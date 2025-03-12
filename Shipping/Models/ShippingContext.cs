@@ -4,7 +4,7 @@ using System;
 
 namespace Shipping.Models
 {
-    public class ShippingContext : IdentityDbContext<ApplicationUser>
+    public class ShippingContext : IdentityDbContext<ApplicationUser, ApplicationRole, string>
     {
         public virtual DbSet<Branch> Branches { get; set; }
         public virtual DbSet<City> Cities { get; set; }
@@ -19,9 +19,11 @@ namespace Shipping.Models
         public virtual DbSet<ShippingType> ShippingTypes { get; set; }
         public virtual DbSet<SpecialShippingRate> SpecialShippingRates { get; set; }
         public virtual DbSet<WeightPricing> WeightPricings { get; set; }
+        public virtual DbSet<Permission> Permissions { get; set; }
+        public virtual DbSet<RolePermission> RolePermissions { get; set; }
 
         public ShippingContext() : base() { }
 
-        public ShippingContext (DbContextOptions<ShippingContext> optios) : base(optios) { }
+        public ShippingContext (DbContextOptions<ShippingContext> options) : base(options) { }
     }
 }
