@@ -12,6 +12,7 @@ namespace Shipping.Models
         public int Product_Id { get; set; }
         [ForeignKey("Order")]
         public int Order_Id { get; set; }
+        public bool IsDeleted { get; set; } = false;
         public virtual Product? Product { get; set; }
         public virtual Order? Order { get; set; }
     }
