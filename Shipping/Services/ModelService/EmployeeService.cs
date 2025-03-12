@@ -2,11 +2,12 @@
 using Shipping.Models;
 using Shipping.Services.IModelService;
 using Shipping.Repository;
+using Shipping.UnitOfWorks;
 namespace Shipping.Services.ModelService
 {
     public class EmployeeService : ServiceGeneric<Employee>, IEmployeeService
     {
-        public EmployeeService(IRepositoryGeneric<Employee> repository) : base(repository)
+        public EmployeeService(UnitOfWork unitOfWork) : base(unitOfWork)
         {
         }
     }

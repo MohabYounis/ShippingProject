@@ -2,11 +2,12 @@
 using Shipping.Models;
 using Shipping.Services.IModelService;
 using Shipping.Repository;
+using Shipping.UnitOfWorks;
 namespace Shipping.Services.ModelService
 {
     public class PaymentTypeService : ServiceGeneric<PaymentType>, IPaymentTypeService
     {
-        public PaymentTypeService(IRepositoryGeneric<PaymentType> repository) : base(repository)
+        public PaymentTypeService(UnitOfWork unitOfWork) : base(unitOfWork)
         {
         }
     }
