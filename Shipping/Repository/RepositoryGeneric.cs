@@ -79,7 +79,7 @@ namespace Shipping.Repository
             Context.Update(entity);
         }
 
-        public void SaveDataBase()
+        public void SaveDB()
         {
             Context.SaveChanges();
         }
