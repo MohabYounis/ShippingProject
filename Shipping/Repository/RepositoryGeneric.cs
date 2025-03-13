@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Shipping.Models;
 using Shipping.UnitOfWorks;
+using static Dapper.SqlMapper;
 
 namespace Shipping.Repository
 {
@@ -25,7 +26,9 @@ namespace Shipping.Repository
 
         public async Task<IEnumerable<Tentity>> GetAllAsync()
         {
-            return await Context.Set<Tentity>().ToListAsync();
+            return await Context.Set<Tentity>()
+                        .Where(e => !EF.Property<bool>(e, "IsDeleted"))
+                        .ToListAsync(); // Soft Delete
         }
 
         public async Task AddAsync(Tentity entity)
@@ -51,14 +54,20 @@ namespace Shipping.Repository
         {
             Tentity tentityObj = await GetByIdAsync(id);
             if (tentityObj == null) throw new KeyNotFoundException($"Entity with ID {id} not found.");
-            Context.Remove (tentityObj);
+            // Context.Remove (tentityObj);
+            EF.Property<bool>(tentityObj, "IsDeleted"); // تأكد من وجود الخاصية في الكيان
+            tentityObj.GetType().GetProperty("IsDeleted")?.SetValue(tentityObj, true); // تعيين IsDeleted = true
+            Context.Update(tentityObj);
         }
 
 
         public void Delete(Tentity entity)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
-            Context.Remove(entity);
+            //Context.Remove(entity);
+            EF.Property<bool>(entity, "IsDeleted"); // تأكد من وجود الخاصية في الكيان
+            entity.GetType().GetProperty("IsDeleted")?.SetValue(entity, true); // تعيين IsDeleted = true
+            Context.Update(entity);
         }
 
      
@@ -67,9 +76,12 @@ namespace Shipping.Repository
         public void Update(Tentity entity)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
-
             Context.Update(entity);
         }
 
+        public void SaveDB()
+        {
+            Context.SaveChanges();
+        }
     }
 }
