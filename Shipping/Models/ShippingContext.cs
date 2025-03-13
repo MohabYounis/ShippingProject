@@ -14,13 +14,15 @@ namespace Shipping.Models
         public virtual DbSet<Merchant> Merchants { get; set; }
         public virtual DbSet<Order> Orders { get; set; }
         public virtual DbSet<OrderProduct> OrderProducts { get; set; }
-        public virtual DbSet<PaymentType> PaymentTypes { get; set; }
         public virtual DbSet<Product> Products { get; set; }
         public virtual DbSet<ShippingType> ShippingTypes { get; set; }
         public virtual DbSet<SpecialShippingRate> SpecialShippingRates { get; set; }
         public virtual DbSet<WeightPricing> WeightPricings { get; set; }
         public virtual DbSet<Permission> Permissions { get; set; }
         public virtual DbSet<RolePermission> RolePermissions { get; set; }
+        public virtual DbSet<ShippingToVillage> ShippingToVillages { get; set; }
+        public virtual DbSet<DeliveryGovernment> DeliveryGovernments { get; set; }
+        public virtual DbSet<BranchMerchant> BranchMerchants { get; set; }
 
         public ShippingContext() : base() { }
 
