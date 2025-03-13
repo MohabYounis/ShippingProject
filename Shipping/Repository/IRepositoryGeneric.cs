@@ -10,6 +10,7 @@
         void Update(Tentity entity);
         void Delete(Tentity entity);
         void SaveDB();
+        Task SaveDBAsenc();
     }
    
 }
