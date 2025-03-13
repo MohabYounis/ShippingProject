@@ -5,7 +5,7 @@
 namespace Shipping.Migrations
 {
     /// <inheritdoc />
-    public partial class DbEdit1 : Migration
+    public partial class addIsDeleted : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -36,6 +36,10 @@ namespace Shipping.Migrations
             migrationBuilder.DropColumn(
                 name: "BranchName",
                 table: "Merchants");
+
+            migrationBuilder.DropColumn(
+                name: "IsDeleted",
+                table: "AspNetUsers");
 
             migrationBuilder.RenameColumn(
                 name: "PaymentType_Id",
@@ -110,6 +114,27 @@ namespace Shipping.Migrations
                 nullable: false,
                 defaultValue: "");
 
+            migrationBuilder.AddColumn<bool>(
+                name: "IsDeleted",
+                table: "Merchants",
+                type: "bit",
+                nullable: false,
+                defaultValue: false);
+
+            migrationBuilder.AddColumn<bool>(
+                name: "IsDeleted",
+                table: "Employees",
+                type: "bit",
+                nullable: false,
+                defaultValue: false);
+
+            migrationBuilder.AddColumn<bool>(
+                name: "IsDeleted",
+                table: "Deliveries",
+                type: "bit",
+                nullable: false,
+                defaultValue: false);
+
             migrationBuilder.CreateTable(
                 name: "BranchMerchants",
                 columns: table => new
@@ -125,13 +150,13 @@ namespace Shipping.Migrations
                         column: x => x.Branch_Id,
                         principalTable: "Branches",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_BranchMerchants_Merchants_Merchant_Id",
                         column: x => x.Merchant_Id,
                         principalTable: "Merchants",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -150,13 +175,13 @@ namespace Shipping.Migrations
                         column: x => x.Delivery_Id,
                         principalTable: "Deliveries",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_DeliveryGovernments_Governments_Government_Id",
                         column: x => x.Government_Id,
                         principalTable: "Governments",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -204,7 +229,7 @@ namespace Shipping.Migrations
                 column: "City_Id",
                 principalTable: "Cities",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.NoAction);
+                onDelete: ReferentialAction.Cascade);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Orders_Deliveries_Delivery_Id",
@@ -212,7 +237,7 @@ namespace Shipping.Migrations
                 column: "Delivery_Id",
                 principalTable: "Deliveries",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.NoAction);
+                onDelete: ReferentialAction.Cascade);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Orders_Governments_Dovernment_Id",
@@ -220,7 +245,7 @@ namespace Shipping.Migrations
                 column: "Dovernment_Id",
                 principalTable: "Governments",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.NoAction);
+                onDelete: ReferentialAction.Cascade);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Orders_ShippingToVillages_ShippingToVillage_Id",
@@ -228,7 +253,7 @@ namespace Shipping.Migrations
                 column: "ShippingToVillage_Id",
                 principalTable: "ShippingToVillages",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.NoAction);
+                onDelete: ReferentialAction.Cascade);
         }
 
         /// <inheritdoc />
@@ -307,6 +332,18 @@ namespace Shipping.Migrations
                 name: "Government",
                 table: "Merchants");
 
+            migrationBuilder.DropColumn(
+                name: "IsDeleted",
+                table: "Merchants");
+
+            migrationBuilder.DropColumn(
+                name: "IsDeleted",
+                table: "Employees");
+
+            migrationBuilder.DropColumn(
+                name: "IsDeleted",
+                table: "Deliveries");
+
             migrationBuilder.RenameColumn(
                 name: "ShippingToVillage_Id",
                 table: "Orders",
@@ -351,6 +388,13 @@ namespace Shipping.Migrations
                 maxLength: 100,
                 nullable: false,
                 defaultValue: "");
+
+            migrationBuilder.AddColumn<bool>(
+                name: "IsDeleted",
+                table: "AspNetUsers",
+                type: "bit",
+                nullable: false,
+                defaultValue: false);
 
             migrationBuilder.CreateTable(
                 name: "PaymentTypes",

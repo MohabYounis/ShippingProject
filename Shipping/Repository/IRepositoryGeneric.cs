@@ -1,7 +1,10 @@
-﻿namespace Shipping.Repository
+﻿using Shipping.Models;
+
+namespace Shipping.Repository
 {
     public interface IRepositoryGeneric<Tentity> where Tentity : class
     {
+   
         Task<Tentity> GetByIdAsync(int id);
         Task<IEnumerable<Tentity>> GetAllAsync();
         Task AddAsync(Tentity entity);

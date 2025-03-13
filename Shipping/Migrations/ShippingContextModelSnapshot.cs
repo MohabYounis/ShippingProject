@@ -187,9 +187,6 @@ namespace Shipping.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
 
@@ -339,6 +336,9 @@ namespace Shipping.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AppUser_Id")
@@ -381,6 +381,9 @@ namespace Shipping.Migrations
 
                     b.Property<int>("Branch_Id")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 
@@ -436,6 +439,9 @@ namespace Shipping.Migrations
                     b.Property<string>("Government")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<decimal>("PickupCost")
                         .HasColumnType("decimal(18,2)");

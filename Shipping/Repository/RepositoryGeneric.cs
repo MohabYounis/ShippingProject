@@ -8,9 +8,9 @@ namespace Shipping.Repository
 {
     public class RepositoryGeneric<Tentity> : IRepositoryGeneric<Tentity> where Tentity : class
     {
-        readonly UnitOfWork unitOfWork;
+        readonly IUnitOfWork unitOfWork;
 
-        public RepositoryGeneric(UnitOfWork unitOfWork)
+        public RepositoryGeneric(IUnitOfWork unitOfWork)
         {
             this.unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
 
@@ -19,6 +19,7 @@ namespace Shipping.Repository
         }
 
         protected ShippingContext Context => unitOfWork.Context;
+
         public async  Task<Tentity> GetByIdAsync(int id)
         {
              return await Context.Set<Tentity>().FindAsync(id);
