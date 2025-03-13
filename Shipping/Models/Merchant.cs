@@ -10,6 +10,7 @@ namespace Shipping.Models
         public string AppUser_Id { get; set; }
         [MaxLength(100)]
         public string StoreName { get; set; }
+        public bool IsDeleted { get; set; } = false;
         public string Government { get; set; }
         public string City { get; set; }
         public decimal PickupCost { get; set; }

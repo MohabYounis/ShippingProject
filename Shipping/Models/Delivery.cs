@@ -13,6 +13,7 @@ namespace Shipping.Models
         public int Id { get; set; }
         [ForeignKey("ApplicationUser")]
         public string AppUser_Id { get; set; }
+        public bool IsDeleted { get; set; } = false;
         [ForeignKey("Branch")]
         public int Branch_Id { get; set; }
         [MaxLength(100)]
