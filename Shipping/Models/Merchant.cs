@@ -9,9 +9,9 @@ namespace Shipping.Models
         [ForeignKey("ApplicationUser")]
         public string AppUser_Id { get; set; }
         [MaxLength(100)]
-        public string BranchName { get; set; }
-        [MaxLength(100)]
         public string StoreName { get; set; }
+        public string Government { get; set; }
+        public string City { get; set; }
         public decimal PickupCost { get; set; }
         [Range(0, 100, ErrorMessage=("Percentage must be between 0 and 100%"))]
         public decimal RejectedOrderPercentage  { get; set; }
@@ -19,5 +19,6 @@ namespace Shipping.Models
         public virtual List<SpecialShippingRate>? SpecialShippingRates { get; set; }
         public virtual List<Order>? Orders { get; set; }
         public virtual List<Product>? Products { get; set; }
+        public virtual List<BranchMerchant>? BranchMerchants { get; } = new List<BranchMerchant>();
     }
 }

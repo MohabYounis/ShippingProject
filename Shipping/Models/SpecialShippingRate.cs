@@ -10,7 +10,7 @@ namespace Shipping.Models
         public int City_Id { get; set; }
         [ForeignKey("Merchant")]
         public int Merchant_Id { get; set; }
-        public decimal? Discount { get; set; } 
+        public decimal SpecialPrice { get; set; }
         public bool IsDeleted { get; set; } = false; // refered to status
         public virtual City? City { get; set; }
         public virtual Merchant? Merchant { get; set; }

@@ -12,7 +12,7 @@ namespace Shipping.Models
         public decimal? PickupShipping {  get; set; }
         public decimal? StandardShipping {  get; set; }
         public virtual Government? Government { get; set; }
-
+        public virtual List<Order>? Orders { get; } = new List<Order>();
         public virtual List<SpecialShippingRate>? SpecialShippingRates { get; } = new List<SpecialShippingRate>();
     }
 }

@@ -16,11 +16,14 @@ namespace Shipping
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
+
+
             //register context
             builder.Services.AddDbContext<ShippingContext>(options =>
             {
                 options.UseLazyLoadingProxies().UseSqlServer(builder.Configuration.GetConnectionString("CS"));
             });
+            builder.Services.AddIdentity<ApplicationUser, ApplicationRole>().AddEntityFrameworkStores<ShippingContext>();
 
             //register automapper [add all profiles]
             builder.Services.AddAutoMapper(typeof(Program));
@@ -31,6 +34,7 @@ namespace Shipping
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
+                app.UseSwaggerUI();
                 app.MapOpenApi();
             }
 

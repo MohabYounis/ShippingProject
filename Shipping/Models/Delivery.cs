@@ -5,10 +5,8 @@ namespace Shipping.Models
 {
     public enum DiscountType
     {
-        None = 0,        // Without Discount
         Fixed = 1,       // Fixed Discount 
         Percentage = 2,  // Percentage Discount
-        Variable = 3     // Variabel Discount 
     }
     public class Delivery
     {
@@ -24,5 +22,6 @@ namespace Shipping.Models
         public decimal CompanyPercentage { get; set; }
         public virtual ApplicationUser ApplicationUser { get; set; }
         public virtual Branch? Branch { get; set; }
+        public virtual List<Order>? Orders { get; } = new List<Order>();
     }
 }

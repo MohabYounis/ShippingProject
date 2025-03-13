@@ -10,6 +10,7 @@ namespace Shipping.Models
         [ForeignKey("Branch")]
         public int Branch_Id { get; set; }
         public virtual Branch? Branch { get; set; }
-        public virtual List<City>? Cities { get; } = new List<City>(); 
+        public virtual List<City>? Cities { get; } = new List<City>();
+        public virtual List<Order>? Orders { get; } = new List<Order>();
     }
 }
