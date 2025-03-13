@@ -9,6 +9,7 @@
         Task DeleteByID(int id);
         void Update(Tentity entity);
         void Delete(Tentity entity);
+        void SaveDataBase();
     }
    
 }
