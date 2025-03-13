@@ -83,10 +83,5 @@ namespace Shipping.Repository
         {
             Context.SaveChanges();
         }
-
-        public async Task SaveDBAsenc()
-        {
-            await Context.SaveChangesAsync();
-        }
     }
 }
