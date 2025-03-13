@@ -1,6 +1,10 @@
 
 using Microsoft.EntityFrameworkCore;
 using Shipping.Models;
+using Shipping.Repository;
+using Shipping.Services;
+using Shipping.UnitOfWorks;
+using SHIPPING.Services;
 
 namespace Shipping
 {
@@ -28,6 +32,15 @@ namespace Shipping
             //register automapper [add all profiles]
             builder.Services.AddAutoMapper(typeof(Program));
 
+
+            //Register of Unit Of work
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            // Register Generic Repository
+            builder.Services.AddScoped(typeof(IRepositoryGeneric<>), typeof(RepositoryGeneric<>));
+
+            // Register Generic Service
+            builder.Services.AddScoped(typeof(IServiceGeneric<>), typeof(ServiceGeneric<>));
 
             var app = builder.Build();
 
