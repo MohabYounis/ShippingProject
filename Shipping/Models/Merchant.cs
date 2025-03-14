@@ -19,7 +19,6 @@ namespace Shipping.Models
         public virtual ApplicationUser ApplicationUser { get; set; }
         public virtual List<SpecialShippingRate>? SpecialShippingRates { get; set; }
         public virtual List<Order>? Orders { get; set; }
-        public virtual List<Product>? Products { get; set; }
         public virtual List<BranchMerchant>? BranchMerchants { get; } = new List<BranchMerchant>();
     }
 }
