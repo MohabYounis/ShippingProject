@@ -52,18 +52,22 @@ namespace Shipping.Repository
         {
             Tentity tentityObj = await GetByIdAsync(id);
             if (tentityObj == null) throw new KeyNotFoundException($"Entity with ID {id} not found.");
-            // Context.Remove (tentityObj);
-            EF.Property<bool>(tentityObj, "IsDeleted"); // تأكد من وجود الخاصية في الكيان
-            tentityObj.GetType().GetProperty("IsDeleted")?.SetValue(tentityObj, true); // تعيين IsDeleted = true
+            var prop = tentityObj.GetType().GetProperty("IsDeleted");
+            if (prop != null && prop.CanWrite)
+            {
+                prop.SetValue(tentityObj, true);
+            }
             Context.Update(tentityObj);
         }
 
         public void Delete(Tentity entity)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
-            //Context.Remove(entity);
-            EF.Property<bool>(entity, "IsDeleted"); // تأكد من وجود الخاصية في الكيان
-            entity.GetType().GetProperty("IsDeleted")?.SetValue(entity, true); // تعيين IsDeleted = true
+            var prop = entity.GetType().GetProperty("IsDeleted");
+            if (prop != null && prop.CanWrite)
+            {
+                prop.SetValue(entity, true);
+            }
             Context.Update(entity);
         }
 
