@@ -18,9 +18,13 @@ namespace Shipping.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllDelivery() 
+        public async Task<IActionResult> GetAllDelivery()
         {
-          var deliveries= await deliveryRepo.GetAllAsync();
+            var deliveries = await deliveryRepo.GetAllAsync();
+            if (deliveries == null || !deliveries.Any())
+            {
+                return NotFound("No deliveries found.");
+            }
             return Ok(deliveries);
         }
     }

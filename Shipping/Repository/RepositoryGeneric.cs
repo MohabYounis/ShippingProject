@@ -8,9 +8,9 @@ namespace Shipping.Repository
 {
     public class RepositoryGeneric<Tentity> : IRepositoryGeneric<Tentity> where Tentity : class
     {
-        readonly UnitOfWork unitOfWork;
+        readonly IUnitOfWork unitOfWork;
 
-        public RepositoryGeneric(UnitOfWork unitOfWork)
+        public RepositoryGeneric(IUnitOfWork unitOfWork)
         {
             this.unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
 
@@ -19,6 +19,7 @@ namespace Shipping.Repository
         }
 
         protected ShippingContext Context => unitOfWork.Context;
+
         public async  Task<Tentity> GetByIdAsync(int id)
         {
              return await Context.Set<Tentity>().FindAsync(id);
@@ -40,9 +41,6 @@ namespace Shipping.Repository
 
         }
 
-
-
-
         public async Task UpdateById(int id)
         {
             Tentity tentityObj = await GetByIdAsync(id);
@@ -60,7 +58,6 @@ namespace Shipping.Repository
             Context.Update(tentityObj);
         }
 
-
         public void Delete(Tentity entity)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
@@ -70,18 +67,10 @@ namespace Shipping.Repository
             Context.Update(entity);
         }
 
-     
-      
-
         public void Update(Tentity entity)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
             Context.Update(entity);
-        }
-
-        public void SaveDB()
-        {
-            Context.SaveChanges();
         }
     }
 }

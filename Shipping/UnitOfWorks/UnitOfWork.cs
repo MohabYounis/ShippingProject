@@ -8,15 +8,17 @@ namespace Shipping.UnitOfWorks
 {
     public class UnitOfWork : IUnitOfWork
     {
-        public ShippingContext Context { get; }
+        
         private bool disposed = false;
 
+        public ShippingContext Context { get; }
         public UnitOfWork(ShippingContext context)
         {
             this.Context = context ?? throw new ArgumentNullException(nameof(context));
         }
         // Concurrent Dictionary for  lazy intialization of repositories
         private readonly ConcurrentDictionary<Type, Lazy<object>> repositories = new ConcurrentDictionary<Type, Lazy<object>>();
+
 
         public IRepositoryGeneric<TEntity> GetRepository<TEntity>() where TEntity : class
         {

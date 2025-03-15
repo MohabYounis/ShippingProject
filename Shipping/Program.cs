@@ -1,5 +1,6 @@
 
 using Microsoft.EntityFrameworkCore;
+using Shipping.DTOs;
 using Shipping.Models;
 using Shipping.Repository;
 using Shipping.Services;
@@ -44,6 +45,9 @@ namespace Shipping
 
             // Register Generic Service
             builder.Services.AddScoped(typeof(IServiceGeneric<>), typeof(ServiceGeneric<>));
+            
+            // Register Generic Service
+            builder.Services.AddScoped<GeneralResponse>();
 
             var app = builder.Build();
 

@@ -10,6 +10,7 @@ namespace Shipping.Models
         public string AppUser_Id { get; set; }
         [MaxLength(100)]
         public string StoreName { get; set; }
+        public bool IsDeleted { get; set; } = false;
         public string Government { get; set; }
         public string City { get; set; }
         public decimal PickupCost { get; set; }
@@ -18,7 +19,6 @@ namespace Shipping.Models
         public virtual ApplicationUser ApplicationUser { get; set; }
         public virtual List<SpecialShippingRate>? SpecialShippingRates { get; set; }
         public virtual List<Order>? Orders { get; set; }
-        public virtual List<Product>? Products { get; set; }
         public virtual List<BranchMerchant>? BranchMerchants { get; } = new List<BranchMerchant>();
     }
 }

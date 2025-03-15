@@ -10,6 +10,7 @@ namespace Shipping.Models
         public string AppUser_Id { get; set; }
         [ForeignKey("Branch")]
         public int Branch_Id { get; set; }
+        public bool IsDeleted { get; set; } = false;
         public virtual ApplicationUser ApplicationUser { get; set; }
         public virtual Branch? Branch { get; set; }
     }
