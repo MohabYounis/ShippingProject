@@ -1,4 +1,6 @@
-﻿namespace Shipping.Models
+﻿using System.Text.Json.Serialization;
+
+namespace Shipping.Models
 {
     public class Branch
     {
