@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Shipping.DTOs;
 using Shipping.Models;
 using Shipping.Repository;
 
@@ -9,9 +10,9 @@ namespace Shipping.Controllers
     [ApiController]
     public class DeliveryController : ControllerBase
     {
-        private readonly IRepositoryGeneric<Delivery> deliveryRepo;
+        private readonly IRepositoryGeneric<DeliveryDTO> deliveryRepo;
 
-        public DeliveryController(IRepositoryGeneric<Delivery> DeliveryRepo)
+        public DeliveryController(IRepositoryGeneric<DeliveryDTO> DeliveryRepo)
         {
             deliveryRepo = DeliveryRepo;
         }
