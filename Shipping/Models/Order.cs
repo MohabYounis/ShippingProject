@@ -39,8 +39,8 @@ namespace Shipping.Models
         public int Dovernment_Id { get; set; }
         [ForeignKey("City")]
         public int City_Id { get; set; }
-        [ForeignKey("ShippingToVillage")]
-        public int ShippingToVillage_Id { get; set; }
+        [ForeignKey("Setting")]
+        public int Setting_Id { get; set; }
         public OrderType OrderType { get; set; }
         public string ClientName { get; set; }
         public string ClientPhone1 { get; set; }
@@ -50,16 +50,20 @@ namespace Shipping.Models
         public bool DeliverToVillage { get; set; } = false;
         public bool IsDeleted { get; set; } = false;
         public OrderStatus OrderStatus { get; set; } = OrderStatus.New;
+        [ForeignKey("RejectReason")]
+        public int RejectReason_ID { get; set; }
         public PaymentTypee PaymentType { get; set; }
         public DateTime CreatedDate { get; set; } = DateTime.Now;
         public decimal ShippingCost { get; set; } // depend on weight, additional weight, shipping type city price [standard or pickup], deliver to village, payment type and order type
+        public float TotalWeight { get; set; }
         public virtual Merchant? Merchant { get; set; }
-        public virtual List<OrderProduct>? OrderProducts { get; } = new List<OrderProduct>();
+        public virtual List<Product>? Products { get; } = new List<Product>();
         public virtual ShippingType? ShippingType { get; set; }
         public virtual WeightPricing? WeightPricing { get; set; }
         public virtual Delivery? Delivery { get; set; }
         public virtual Government? Government { get; set; }
         public virtual City? City { get; set; }
-        public virtual ShippingToVillage? ShippingToVillage { get; set; }
+        public virtual Setting? Setting { get; set; }
+        public virtual RejectReason? RejectReason { get; set; }
     }
 }

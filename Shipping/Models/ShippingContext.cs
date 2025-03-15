@@ -20,7 +20,7 @@ namespace Shipping.Models
         public virtual DbSet<WeightPricing> WeightPricings { get; set; }
         public virtual DbSet<Permission> Permissions { get; set; }
         public virtual DbSet<RolePermission> RolePermissions { get; set; }
-        public virtual DbSet<ShippingToVillage> ShippingToVillages { get; set; }
+        public virtual DbSet<Setting> ShippingToVillages { get; set; }
         public virtual DbSet<DeliveryGovernment> DeliveryGovernments { get; set; }
         public virtual DbSet<BranchMerchant> BranchMerchants { get; set; }
 
