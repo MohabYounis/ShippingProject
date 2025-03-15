@@ -7,7 +7,7 @@ namespace Shipping.UnitOfWorks
     {
         ShippingContext Context { get; }
         IRepositoryGeneric<Tentity> GetRepository<Tentity>()   where Tentity : class;
-       Task SaveChangesAsync();
+        Task SaveChangesAsync();
 
     }
 }

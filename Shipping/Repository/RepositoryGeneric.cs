@@ -41,9 +41,6 @@ namespace Shipping.Repository
 
         }
 
-
-
-
         public async Task UpdateById(int id)
         {
             Tentity tentityObj = await GetByIdAsync(id);
@@ -61,7 +58,6 @@ namespace Shipping.Repository
             Context.Update(tentityObj);
         }
 
-
         public void Delete(Tentity entity)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
@@ -71,18 +67,10 @@ namespace Shipping.Repository
             Context.Update(entity);
         }
 
-     
-      
-
         public void Update(Tentity entity)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
             Context.Update(entity);
-        }
-
-        public void SaveDB()
-        {
-            Context.SaveChanges();
         }
     }
 }

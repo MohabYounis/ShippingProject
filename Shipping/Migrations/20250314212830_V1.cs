@@ -16,6 +16,7 @@ namespace Shipping.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true)
@@ -30,7 +31,7 @@ namespace Shipping.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Address = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Address = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -71,18 +72,46 @@ namespace Shipping.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PaymentTypes",
+                name: "Permissions",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PaymentTypes", x => x.Id);
+                    table.PrimaryKey("PK_Permissions", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "RejectReason",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Reason = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RejectReason", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ShippingToVillages",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ShippingToVillageCost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    DeliveryAutoAccept = table.Column<bool>(type: "bit", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ShippingToVillages", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -93,7 +122,7 @@ namespace Shipping.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CostLevel = table.Column<int>(type: "int", nullable: false),
+                    Cost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -109,7 +138,8 @@ namespace Shipping.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     DefaultWeight = table.Column<float>(type: "real", nullable: false),
                     DefaultPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    AdditionalKgPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                    AdditionalKgPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -229,8 +259,10 @@ namespace Shipping.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     AppUser_Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    BranchName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     StoreName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    Government = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    City = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PickupCost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     RejectedOrderPercentage = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
                 },
@@ -253,7 +285,8 @@ namespace Shipping.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     AppUser_Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Branch_Id = table.Column<int>(type: "int", nullable: false),
-                    GovernmentName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", maxLength: 100, nullable: false),
+                    GovernmentName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DiscountType = table.Column<int>(type: "int", nullable: false),
                     CompanyPercentage = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
                 },
@@ -281,7 +314,8 @@ namespace Shipping.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     AppUser_Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Branch_Id = table.Column<int>(type: "int", nullable: false)
+                    Branch_Id = table.Column<int>(type: "int", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -322,74 +356,52 @@ namespace Shipping.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Orders",
+                name: "RolePermissions",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Merchant_Id = table.Column<int>(type: "int", nullable: false),
-                    PaymentType_Id = table.Column<int>(type: "int", nullable: false),
-                    ShippingType_Id = table.Column<int>(type: "int", nullable: false),
-                    WeightPricing_Id = table.Column<int>(type: "int", nullable: false),
-                    OrderType = table.Column<int>(type: "int", nullable: false),
-                    ClientName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ClientPhone1 = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ClientPhone2 = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ClientEmail = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ClientGovernment = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ClientCity = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ClientAddress = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    DeliverToVillage = table.Column<bool>(type: "bit", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
-                    OrderStatus = table.Column<int>(type: "int", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ShippingCost = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                    Permission_Id = table.Column<int>(type: "int", nullable: false),
+                    Role_Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CanView = table.Column<bool>(type: "bit", nullable: false),
+                    CanEdit = table.Column<bool>(type: "bit", nullable: false),
+                    CanDelete = table.Column<bool>(type: "bit", nullable: false),
+                    CanAdd = table.Column<bool>(type: "bit", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Orders", x => x.Id);
+                    table.PrimaryKey("PK_RolePermissions", x => new { x.Permission_Id, x.Role_Id });
                     table.ForeignKey(
-                        name: "FK_Orders_Merchants_Merchant_Id",
-                        column: x => x.Merchant_Id,
-                        principalTable: "Merchants",
+                        name: "FK_RolePermissions_AspNetRoles_Role_Id",
+                        column: x => x.Role_Id,
+                        principalTable: "AspNetRoles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.NoAction);
                     table.ForeignKey(
-                        name: "FK_Orders_PaymentTypes_PaymentType_Id",
-                        column: x => x.PaymentType_Id,
-                        principalTable: "PaymentTypes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
-                    table.ForeignKey(
-                        name: "FK_Orders_ShippingTypes_ShippingType_Id",
-                        column: x => x.ShippingType_Id,
-                        principalTable: "ShippingTypes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
-                    table.ForeignKey(
-                        name: "FK_Orders_WeightPricings_WeightPricing_Id",
-                        column: x => x.WeightPricing_Id,
-                        principalTable: "WeightPricings",
+                        name: "FK_RolePermissions_Permissions_Permission_Id",
+                        column: x => x.Permission_Id,
+                        principalTable: "Permissions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.NoAction);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Products",
+                name: "BranchMerchants",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
                     Merchant_Id = table.Column<int>(type: "int", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Quantity = table.Column<int>(type: "int", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                    Branch_Id = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Products", x => x.Id);
+                    table.PrimaryKey("PK_BranchMerchants", x => new { x.Merchant_Id, x.Branch_Id });
                     table.ForeignKey(
-                        name: "FK_Products_Merchants_Merchant_Id",
+                        name: "FK_BranchMerchants_Branches_Branch_Id",
+                        column: x => x.Branch_Id,
+                        principalTable: "Branches",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey(
+                        name: "FK_BranchMerchants_Merchants_Merchant_Id",
                         column: x => x.Merchant_Id,
                         principalTable: "Merchants",
                         principalColumn: "Id",
@@ -420,26 +432,107 @@ namespace Shipping.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "OrderProducts",
+                name: "DeliveryGovernments",
                 columns: table => new
                 {
-                    Product_Id = table.Column<int>(type: "int", nullable: false),
-                    Order_Id = table.Column<int>(type: "int", nullable: false),
-                    SubTotalWeight = table.Column<int>(type: "int", nullable: false)
+                    Delivery_Id = table.Column<int>(type: "int", nullable: false),
+                    Government_Id = table.Column<int>(type: "int", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_OrderProducts", x => new { x.Product_Id, x.Order_Id });
+                    table.PrimaryKey("PK_DeliveryGovernments", x => new { x.Delivery_Id, x.Government_Id });
                     table.ForeignKey(
-                        name: "FK_OrderProducts_Orders_Order_Id",
-                        column: x => x.Order_Id,
-                        principalTable: "Orders",
+                        name: "FK_DeliveryGovernments_Deliveries_Delivery_Id",
+                        column: x => x.Delivery_Id,
+                        principalTable: "Deliveries",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.NoAction);
                     table.ForeignKey(
-                        name: "FK_OrderProducts_Products_Product_Id",
-                        column: x => x.Product_Id,
-                        principalTable: "Products",
+                        name: "FK_DeliveryGovernments_Governments_Government_Id",
+                        column: x => x.Government_Id,
+                        principalTable: "Governments",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Orders",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Merchant_Id = table.Column<int>(type: "int", nullable: false),
+                    ShippingType_Id = table.Column<int>(type: "int", nullable: false),
+                    WeightPricing_Id = table.Column<int>(type: "int", nullable: false),
+                    Delivery_Id = table.Column<int>(type: "int", nullable: false),
+                    Dovernment_Id = table.Column<int>(type: "int", nullable: false),
+                    City_Id = table.Column<int>(type: "int", nullable: false),
+                    Setting_Id = table.Column<int>(type: "int", nullable: false),
+                    OrderType = table.Column<int>(type: "int", nullable: false),
+                    ClientName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ClientPhone1 = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ClientPhone2 = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ClientEmail = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ClientAddress = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DeliverToVillage = table.Column<bool>(type: "bit", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    OrderStatus = table.Column<int>(type: "int", nullable: false),
+                    RejectReason_ID = table.Column<int>(type: "int", nullable: false),
+                    PaymentType = table.Column<int>(type: "int", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ShippingCost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    TotalWeight = table.Column<float>(type: "real", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Orders", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Orders_Cities_City_Id",
+                        column: x => x.City_Id,
+                        principalTable: "Cities",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey(
+                        name: "FK_Orders_Deliveries_Delivery_Id",
+                        column: x => x.Delivery_Id,
+                        principalTable: "Deliveries",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey(
+                        name: "FK_Orders_Governments_Dovernment_Id",
+                        column: x => x.Dovernment_Id,
+                        principalTable: "Governments",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey(
+                        name: "FK_Orders_Merchants_Merchant_Id",
+                        column: x => x.Merchant_Id,
+                        principalTable: "Merchants",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey(
+                        name: "FK_Orders_RejectReason_RejectReason_ID",
+                        column: x => x.RejectReason_ID,
+                        principalTable: "RejectReason",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey(
+                        name: "FK_Orders_ShippingToVillages_Setting_Id",
+                        column: x => x.Setting_Id,
+                        principalTable: "ShippingToVillages",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey(
+                        name: "FK_Orders_ShippingTypes_ShippingType_Id",
+                        column: x => x.ShippingType_Id,
+                        principalTable: "ShippingTypes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                    table.ForeignKey(
+                        name: "FK_Orders_WeightPricings_WeightPricing_Id",
+                        column: x => x.WeightPricing_Id,
+                        principalTable: "WeightPricings",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.NoAction);
                 });
@@ -450,7 +543,7 @@ namespace Shipping.Migrations
                 {
                     City_Id = table.Column<int>(type: "int", nullable: false),
                     Merchant_Id = table.Column<int>(type: "int", nullable: false),
-                    Discount = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    SpecialPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -466,6 +559,35 @@ namespace Shipping.Migrations
                         name: "FK_SpecialShippingRates_Merchants_Merchant_Id",
                         column: x => x.Merchant_Id,
                         principalTable: "Merchants",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.NoAction);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Products",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Product_Id = table.Column<int>(type: "int", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    ItemWeight = table.Column<float>(type: "real", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    OrderId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Products", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Products_Orders_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "Orders",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Products_Products_Product_Id",
+                        column: x => x.Product_Id,
+                        principalTable: "Products",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.NoAction);
                 });
@@ -510,6 +632,11 @@ namespace Shipping.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
+                name: "IX_BranchMerchants_Branch_Id",
+                table: "BranchMerchants",
+                column: "Branch_Id");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Cities_Government_Id",
                 table: "Cities",
                 column: "Government_Id");
@@ -524,6 +651,11 @@ namespace Shipping.Migrations
                 name: "IX_Deliveries_Branch_Id",
                 table: "Deliveries",
                 column: "Branch_Id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DeliveryGovernments_Government_Id",
+                table: "DeliveryGovernments",
+                column: "Government_Id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Employees_AppUser_Id",
@@ -548,9 +680,19 @@ namespace Shipping.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_OrderProducts_Order_Id",
-                table: "OrderProducts",
-                column: "Order_Id");
+                name: "IX_Orders_City_Id",
+                table: "Orders",
+                column: "City_Id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_Delivery_Id",
+                table: "Orders",
+                column: "Delivery_Id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_Dovernment_Id",
+                table: "Orders",
+                column: "Dovernment_Id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Orders_Merchant_Id",
@@ -558,9 +700,14 @@ namespace Shipping.Migrations
                 column: "Merchant_Id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Orders_PaymentType_Id",
+                name: "IX_Orders_RejectReason_ID",
                 table: "Orders",
-                column: "PaymentType_Id");
+                column: "RejectReason_ID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_Setting_Id",
+                table: "Orders",
+                column: "Setting_Id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Orders_ShippingType_Id",
@@ -573,9 +720,19 @@ namespace Shipping.Migrations
                 column: "WeightPricing_Id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Products_Merchant_Id",
+                name: "IX_Products_OrderId",
                 table: "Products",
-                column: "Merchant_Id");
+                column: "OrderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Products_Product_Id",
+                table: "Products",
+                column: "Product_Id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RolePermissions_Role_Id",
+                table: "RolePermissions",
+                column: "Role_Id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SpecialShippingRates_Merchant_Id",
@@ -602,40 +759,52 @@ namespace Shipping.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "Deliveries");
+                name: "BranchMerchants");
+
+            migrationBuilder.DropTable(
+                name: "DeliveryGovernments");
 
             migrationBuilder.DropTable(
                 name: "Employees");
 
             migrationBuilder.DropTable(
-                name: "OrderProducts");
+                name: "Products");
+
+            migrationBuilder.DropTable(
+                name: "RolePermissions");
 
             migrationBuilder.DropTable(
                 name: "SpecialShippingRates");
 
             migrationBuilder.DropTable(
-                name: "AspNetRoles");
-
-            migrationBuilder.DropTable(
                 name: "Orders");
 
             migrationBuilder.DropTable(
-                name: "Products");
+                name: "AspNetRoles");
+
+            migrationBuilder.DropTable(
+                name: "Permissions");
 
             migrationBuilder.DropTable(
                 name: "Cities");
 
             migrationBuilder.DropTable(
-                name: "PaymentTypes");
+                name: "Deliveries");
+
+            migrationBuilder.DropTable(
+                name: "Merchants");
+
+            migrationBuilder.DropTable(
+                name: "RejectReason");
+
+            migrationBuilder.DropTable(
+                name: "ShippingToVillages");
 
             migrationBuilder.DropTable(
                 name: "ShippingTypes");
 
             migrationBuilder.DropTable(
                 name: "WeightPricings");
-
-            migrationBuilder.DropTable(
-                name: "Merchants");
 
             migrationBuilder.DropTable(
                 name: "Governments");

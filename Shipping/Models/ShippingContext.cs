@@ -13,7 +13,6 @@ namespace Shipping.Models
         public virtual DbSet<Government> Governments { get; set; }
         public virtual DbSet<Merchant> Merchants { get; set; }
         public virtual DbSet<Order> Orders { get; set; }
-        public virtual DbSet<OrderProduct> OrderProducts { get; set; }
         public virtual DbSet<Product> Products { get; set; }
         public virtual DbSet<ShippingType> ShippingTypes { get; set; }
         public virtual DbSet<SpecialShippingRate> SpecialShippingRates { get; set; }

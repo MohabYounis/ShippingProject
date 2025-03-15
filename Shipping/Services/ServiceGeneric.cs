@@ -6,9 +6,9 @@ namespace SHIPPING.Services
 {
     public class ServiceGeneric<Tentity> : IServiceGeneric<Tentity> where Tentity : class
     {
-        private readonly UnitOfWork unitOfWork;
+        private readonly IUnitOfWork unitOfWork;
 
-        public ServiceGeneric(UnitOfWork unitOfWork)
+        public ServiceGeneric(IUnitOfWork unitOfWork)
         {
             this.unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         }

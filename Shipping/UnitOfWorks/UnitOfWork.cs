@@ -11,6 +11,7 @@ namespace Shipping.UnitOfWorks
         
         private bool disposed = false;
 
+        public ShippingContext Context { get; }
         public UnitOfWork(ShippingContext context)
         {
             this.Context = context ?? throw new ArgumentNullException(nameof(context));
@@ -18,7 +19,6 @@ namespace Shipping.UnitOfWorks
         // Concurrent Dictionary for  lazy intialization of repositories
         private readonly ConcurrentDictionary<Type, Lazy<object>> repositories = new ConcurrentDictionary<Type, Lazy<object>>();
 
-        public ShippingContext Context { get; }
 
         public IRepositoryGeneric<TEntity> GetRepository<TEntity>() where TEntity : class
         {
