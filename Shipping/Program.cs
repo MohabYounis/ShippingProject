@@ -1,5 +1,6 @@
 
 using Microsoft.EntityFrameworkCore;
+using Shipping.DTOs;
 using Shipping.Models;
 using Shipping.Repository;
 using Shipping.Services;
@@ -16,8 +17,9 @@ namespace Shipping
 
 
             // Add services to the container.
+            // Cancel Filter Above Actions and depend on ModelState.IsValid
+            builder.Services.AddControllers().ConfigureApiBehaviorOptions(options => options.SuppressModelStateInvalidFilter = true);
 
-            builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
@@ -35,7 +37,7 @@ namespace Shipping
             //register automapper [add all profiles]
             builder.Services.AddAutoMapper(typeof(Program));
 
-
+            
             //Register of Unit Of work
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
@@ -44,6 +46,9 @@ namespace Shipping
 
             // Register Generic Service
             builder.Services.AddScoped(typeof(IServiceGeneric<>), typeof(ServiceGeneric<>));
+            
+            // Register Generic Service
+            builder.Services.AddScoped<GeneralResponse>();
 
             var app = builder.Build();
 
