@@ -126,7 +126,7 @@ namespace Shipping.Controllers
             };
 
             await _branchRepository.AddAsync(branch);
-            _branchRepository.SaveDB();
+            //_branchRepository.SaveDB();
             
             var createdBranch = await _branchRepository.GetByIdAsync(branch.Id);
             return CreatedAtAction(nameof(GetById), new { id = createdBranch.Id }, createdBranch);
@@ -149,7 +149,7 @@ namespace Shipping.Controllers
 
 
             _branchRepository.Update(existingBranch);
-            _branchRepository.SaveDB();
+            //_branchRepository.SaveDB();
 
             return Ok(new { message = "The branch has been updated successfully", branch = updatedBranchDto });
         }
@@ -170,7 +170,7 @@ namespace Shipping.Controllers
 
             branch.IsDeleted = true;
             _branchRepository.Update(branch);
-            _branchRepository.SaveDB();
+            //_branchRepository.SaveDB();
 
             return Ok(new { message = "Branch Successfully Deleted " });
         }
