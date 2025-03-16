@@ -28,8 +28,9 @@ namespace Shipping.Controllers
             this.userManager = userManager;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<GeneralResponse>> GetAllMerchants()
+
+        [HttpGet("All")]
+        public async Task<ActionResult<GeneralResponse>> GetAll()
         {
             var merchants = await service.GetAllAsync();
             List<MerchantGetDTO> merchantDTO = mapper.Map<List<MerchantGetDTO>>(merchants);
@@ -37,7 +38,27 @@ namespace Shipping.Controllers
             if (merchants == null)
             {
                 response.IsSuccess = false;
-                response.Data = "No Merchants Exist";
+                response.Data = "No Found";
+            }
+            else
+            {
+                response.IsSuccess = true;
+                response.Data = merchantDTO;
+            }
+            return response;
+        }
+        
+        
+        [HttpGet("AllExist")]
+        public async Task<ActionResult<GeneralResponse>> GetAllExist()
+        {
+            var merchants = await service.GetAllExistAsync();
+            List<MerchantGetDTO> merchantDTO = mapper.Map<List<MerchantGetDTO>>(merchants);
+
+            if (merchants == null)
+            {
+                response.IsSuccess = false;
+                response.Data = "No Found";
             }
             else
             {
@@ -47,8 +68,29 @@ namespace Shipping.Controllers
             return response;
         }
 
+
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<GeneralResponse>> GetById(int id)
+        {
+            try
+            {
+                var merchant = await service.GetByIdAsync(id);
+                MerchantGetDTO merchantDTO = mapper.Map<MerchantGetDTO>(merchant);
+
+                response.IsSuccess = true;
+                response.Data = merchantDTO;
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess= false;
+                response.Data = ex.Message;
+            }
+
+            return response;
+        }
+
         [HttpPost]
-        public async Task<ActionResult<GeneralResponse>> CreateMerchant(MerchantCreateDTO merchantFromReq)
+        public async Task<ActionResult<GeneralResponse>> Create(MerchantCreateDTO merchantFromReq)
         {
             if (!ModelState.IsValid)
             {
@@ -58,28 +100,11 @@ namespace Shipping.Controllers
                     kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToList()
                 );
             }
-            else
+            try
             {
-                var newMerchant = new Merchant()
-                {
-                    StoreName = merchantFromReq.StoreName,
-                    Government = merchantFromReq.Government,
-                    City = merchantFromReq.City,
-                    PickupCost = merchantFromReq.PickupCost,
-                    RejectedOrderPercentage = merchantFromReq.RejectedOrderPercentage,
-                };
-
-                var newUser = new ApplicationUser()
-                {
-                    UserName = merchantFromReq.Name,
-                    Email = merchantFromReq.Email,
-                    Address = merchantFromReq.Address,
-                    Merchant = newMerchant,
-                };
-
+                var newUser = mapper.Map<ApplicationUser>(merchantFromReq);
                 var result = await userManager.CreateAsync(newUser, merchantFromReq.Password);
                 
-
                 if (result.Succeeded)
                 {
                     response.IsSuccess = true;
@@ -91,6 +116,115 @@ namespace Shipping.Controllers
                     response.Data = result.Errors.Select(e => e.Description).ToList();
                 }
             }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Data = ex.Message;
+            }
+
+            return response;
+        }
+
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult<GeneralResponse>> EditById(int id, [FromBody]MerchantEditDTO merchantFromReq)
+        {
+            if(!ModelState.IsValid)
+            {
+                response.IsSuccess = false;
+                response.Data = ModelState.ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToList()
+                );
+                return response;
+            }
+            else
+            {
+                var merchant = await service.GetByIdAsync(id);
+
+                if(merchant == null)
+                {
+                    response.IsSuccess = false;
+                    response.Data = "Merchant not found.";
+                    return response;
+                }
+
+                if (merchant.ApplicationUser == null)
+                {
+                    merchant.ApplicationUser = new ApplicationUser();
+                }
+
+                merchant.StoreName = merchantFromReq.StoreName;
+                merchant.Government = merchantFromReq.Government;
+                merchant.City = merchantFromReq.City;
+                merchant.PickupCost = merchantFromReq.PickupCost;
+                merchant.RejectedOrderPercentage = merchantFromReq.RejectedOrderPercentage;
+
+                merchant.ApplicationUser.UserName = merchantFromReq.Name;
+                merchant.ApplicationUser.Email = merchantFromReq.Email;
+                merchant.ApplicationUser.PhoneNumber = merchantFromReq.Phone;
+                merchant.ApplicationUser.Address = merchantFromReq.Address;
+
+                if (!string.IsNullOrWhiteSpace(merchantFromReq.CurrentPassword) &&
+                    !string.IsNullOrWhiteSpace(merchantFromReq.NewPassword))
+                {
+                    var user = await userManager.FindByIdAsync(merchant.ApplicationUser.Id.ToString());
+
+                    if (user != null)
+                    {
+                        var isCurrentPasswordValid = await userManager.CheckPasswordAsync(user, merchantFromReq.CurrentPassword);
+                        if (!isCurrentPasswordValid)
+                        {
+                            response.IsSuccess = false;
+                            response.Data = "Current password is incorrect.";
+                            return response;
+                        }
+
+                        var passwordResult = await userManager.ChangePasswordAsync(user, merchantFromReq.CurrentPassword, merchantFromReq.NewPassword);
+                        if (!passwordResult.Succeeded)
+                        {
+                            response.IsSuccess = false;
+                            response.Data = passwordResult.Errors.Select(e => e.Description).ToList();
+                            return response;
+                        }
+                    }
+                }
+
+                await service.UpdateAsync(id);
+                await service.SaveChangesAsync();
+                response.IsSuccess = true;
+                response.Data = "Merchant updated successfully.";
+                return response;
+            }
+        }
+
+
+        [HttpDelete("{id:int}")]
+        public async Task<ActionResult<GeneralResponse>> DeleteById(int id)
+        {
+            try
+            {
+                await service.DeleteAsync(id);
+                await service.SaveChangesAsync();
+
+                response.IsSuccess = true;
+                response.Data = "Merchant deleted successfully.";
+            }
+            catch (KeyNotFoundException ex) // لو انا دخلت id مش موجود
+            {
+                response.IsSuccess = false;
+                response.Data = ex.Message;
+            }
+            catch (InvalidOperationException ex) // id موجود بس انا كنت عامله soft delete
+            {
+                response.IsSuccess = false;
+                response.Data = ex.Message;
+            }
+            catch (Exception ex) // بيهندل اي exception جاي من ال server
+            {
+                response.IsSuccess = false; 
+                response.Data = ex.Message;
+            }
+
             return response;
         }
     }
