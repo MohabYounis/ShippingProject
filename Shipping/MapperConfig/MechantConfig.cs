@@ -4,9 +4,9 @@ using Shipping.Models;
 
 namespace Shipping.MapperConfig
 {
-    public class MechantGetConfig : Profile
+    public class MechantConfig : Profile
     {
-        public MechantGetConfig()
+        public MechantConfig()
         {
             CreateMap<Merchant, MerchantGetDTO>().ReverseMap();
 
