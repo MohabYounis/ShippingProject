@@ -37,7 +37,7 @@ namespace Shipping
             //register automapper [add all profiles]
             builder.Services.AddAutoMapper(typeof(Program));
 
-
+            
             //Register of Unit Of work
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
