@@ -225,6 +225,13 @@ namespace Shipping.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
+            var branch = await branchService.GetByIdAsync(id);
+            if (branch == null) return NotFound();
+
+            branch.IsDeleted = true;
+            branchService.UpdateAsync(id);
+            //_branchRepository.SaveDB();
+
             await branchService.DeleteAsync(id);
             await branchService.SaveChangesAsync();
             return Ok(new { message = "Branch Successfully Deleted " });
