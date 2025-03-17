@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Shipping.DTOs;
+using Microsoft.EntityFrameworkCore;
+using Shipping.DTOs.DeliveryDTOs;
 using Shipping.Models;
 using Shipping.Repository;
 using Shipping.Services;
@@ -29,115 +30,113 @@ namespace Shipping.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllDelivery()
         {
-            var deliveries = await deliveryService.GetAllAsync();
+            var deliveries = await deliveryService.GetAllDeliveryWithGovernmentsAsync();
             if (deliveries == null || !deliveries.Any())
             {
                 return NotFound("No deliveries found.");
             }
-            List<DeliveryDTO> deliveryDTO = new List<DeliveryDTO>();
-            DeliveryDTO dto;
 
-            foreach (var delivery in deliveries) 
+            List<ShowDeliveryDto> deliveryDTO = deliveries.Select(delivery => new ShowDeliveryDto
             {
-                dto = new DeliveryDTO()
-                {
-                    Address = delivery.ApplicationUser?.Address,
-                    Email = delivery.ApplicationUser?.Email,
-                    Phone=delivery.ApplicationUser?.PhoneNumber,
-                    Name=delivery.ApplicationUser?.UserName
-                };
-                deliveryDTO.Add(dto);
-            }
+                Id = delivery.Id,
+                Address = delivery.ApplicationUser?.Address,
+                Email = delivery.ApplicationUser?.Email,
+                Phone = delivery.ApplicationUser?.PhoneNumber,
+                Name = delivery.ApplicationUser?.UserName,
+                BranchName = delivery.Branch?.Name,
+                GovernmentName = delivery.DeliveryGovernments.Select(dg => dg.Government?.Name).ToList(),
+                IsDeleted = delivery.IsDeleted
+            }).ToList();
+
             return Ok(deliveryDTO);
-        }
-      
 
-      [HttpPost]
-    public async Task<IActionResult> AddDelivery(DeliveryDTO deliveryDTO)
-    {
-        if (deliveryDTO == null)
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> AddDelivery(DeliveryDTO deliveryDTO)
         {
-            return BadRequest("Delivery data is missing.");
+            if (!ModelState.IsValid) 
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                var result = await deliveryService.AddDeliveryAsync(deliveryDTO);
+                if (result)
+                {
+                    return Ok("Delivery added successfully.");
+                }
+                return BadRequest("Failed to add delivery.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
         }
 
-        if (!ModelState.IsValid)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateDelivery(int id, [FromBody] DeliveryDTO deliveryDTO)
         {
-            return BadRequest(ModelState);
+            if (deliveryDTO == null)
+            {
+                return BadRequest("Invalid data.");
+            }
+
+            var result = await deliveryService.UpdateDeliveryAsync(id, deliveryDTO);
+            if (!result)
+            {
+                return NotFound("Delivery not found or could not be updated.");
+            }
+
+            return Ok("Delivery updated successfully.");
         }
 
-        using (var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+        [HttpGet("id")]
+        public async Task<IActionResult>GetById(int id)
         {
-            //try
-            //{
-                // التحقق من المحافظات
-                var allGovernmentsIdExist = await deliveryService.GetAllGovernmentExist(deliveryDTO.GovernmentsId);
-                if (allGovernmentsIdExist == null || !allGovernmentsIdExist.Any())
-                {
-                    return NotFound("No governments found.");
-                }
+            var delivery = await deliveryService.GetDeliveryByIdAsync(id);
 
-                var invalidIds = deliveryDTO.GovernmentsId.Except(allGovernmentsIdExist.Select(g => g.Id)).ToList();
-                if (invalidIds.Any())
-                {
-                    return BadRequest($"Invalid government IDs: {string.Join(", ", invalidIds)}");
-                }
+            if (delivery == null)
+            {
+                return NotFound("Delivery not found.");
+            }
+            var Dto= new ShowDeliveryDto
+            {
+                Id = delivery.Id,
+                Name = delivery.ApplicationUser?.UserName,
+                Email = delivery.ApplicationUser?.Email,
+                Phone = delivery.ApplicationUser?.PhoneNumber,
+                Address = delivery.ApplicationUser?.Address,
+                BranchName = delivery.Branch?.Name,
+                GovernmentName = delivery.DeliveryGovernments?.Select(dg => dg.Government.Name).ToList(),
+                IsDeleted = delivery.IsDeleted
+            };
 
-                // التحقق من الفرع
-                var branch = await branchService.GetByIdAsync(deliveryDTO.BranchId);
-                if (branch == null)
-                {
-                    return NotFound("Branch not found.");
-                }
-
-                // التحقق من وجود المستخدم مسبقًا
-                var existingUser = await userManager.FindByEmailAsync(deliveryDTO.Email);
-                if (existingUser != null)
-                {
-                    return BadRequest("A user with this email already exists.");
-                }
-
-                // إنشاء مستخدم جديد
-                var user = new ApplicationUser()
-                {
-                    UserName = deliveryDTO.Name,
-                    Email = deliveryDTO.Email,
-                    PhoneNumber = deliveryDTO.Phone,
-                    Address = deliveryDTO.Address,
-                };
-
-                // حفظ المستخدم في قاعدة البيانات
-                var result = await userManager.CreateAsync(user);
-                if (!result.Succeeded)
-                {
-                    return BadRequest(result.Errors);
-                }
-
-                // إنشاء التوصيل وربطه بالمستخدم
-                var delivery = new Delivery()
-                {
-                    AppUser_Id = user.Id,
-                    Branch_Id = deliveryDTO.BranchId,
-                    IsDeleted = deliveryDTO.IsDeleted
-                };
-
-                delivery.DeliveryGovernments.AddRange(deliveryDTO.GovernmentsId.Select(id => new DeliveryGovernment { Government_Id = id }));
-
-               
-                await deliveryService.AddAsync(delivery);
-                await deliveryService.SaveChangesAsync();
-
-                // تأكيد الحفظ وإنهاء الترانزاكشن
-                transaction.Complete();
-
-                return Ok(delivery);
-            //}
-            //catch (Exception ex)
-            //{
-            //    return StatusCode(500, $"An error occurred: {ex.Message}");
-            //}
+            return Ok(Dto);
         }
+
+        [HttpDelete("id")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var delivery = await deliveryService.GetDeliveryByIdAsync(id);
+            if (delivery == null)
+            {
+                return NotFound("Delivery Not Found");
+            }
+            if (delivery.IsDeleted)
+            {
+                return BadRequest("Deliver is aready deleted");
+            }
+            delivery.IsDeleted = true;
+            await deliveryService.UpdateAsync(id);
+           //await deliveryService.DeleteAsync(id);
+           await deliveryService.SaveChangesAsync();
+            
+            return Ok("Deleted Succes");
+        }
+
+
+
     }
-
-
-}
 }

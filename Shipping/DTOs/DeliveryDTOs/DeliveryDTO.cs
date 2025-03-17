@@ -1,7 +1,7 @@
 ﻿using Shipping.Models;
 using System.ComponentModel.DataAnnotations;
 
-namespace Shipping.DTOs
+namespace Shipping.DTOs.DeliveryDTOs
 {
     public class DeliveryDTO
     {
@@ -14,7 +14,7 @@ namespace Shipping.DTOs
         public string Email { get; set; }
 
         [Required(ErrorMessage = "Phone number is required.")]
-        [Phone(ErrorMessage = "Invalid phone number.")]
+        [RegularExpression(@"^(?:\+20|0)?1[0-2,5,1]{1}[0-9]{8}$", ErrorMessage = "Invalid Egyptian phone number format.")]
         public string Phone { get; set; }
 
         [Required(ErrorMessage = "Address is required.")]
@@ -26,7 +26,7 @@ namespace Shipping.DTOs
         [Required(ErrorMessage = "At least one government ID is required.")]
         public List<int> GovernmentsId { get; set; }
 
-        public bool IsDeleted { get; set; } = false; 
+        //public bool IsDeleted { get; set; } = false;
     }
 
 }
