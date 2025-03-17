@@ -8,7 +8,7 @@ namespace Shipping.Repository
 {
     public class RepositoryGeneric<Tentity> : IRepositoryGeneric<Tentity> where Tentity : class
     {
-        readonly IUnitOfWork unitOfWork;
+        protected readonly IUnitOfWork unitOfWork;
 
         public RepositoryGeneric(IUnitOfWork unitOfWork)
         {
@@ -26,18 +26,18 @@ namespace Shipping.Repository
         }
 
 
-        public async Task<IEnumerable<Tentity>> GetAllExistAsync()
+        public Task<IQueryable<Tentity>> GetAllExistAsync()
         {
-            return await Context.Set<Tentity>()
-                        .Where(e => !EF.Property<bool>(e, "IsDeleted"))
-                        .ToListAsync(); // Soft Delete
+            
+            return Task.FromResult(Context.Set<Tentity>().AsQueryable()
+                .Where(e=>!EF.Property<bool>(e, "IsDeleted")));
+         
         }
 
-        public async Task<IEnumerable<Tentity>> GetAllAsync()
+        public Task<IQueryable<Tentity>> GetAllAsync()
         {
-            return await Context.Set<Tentity>().ToListAsync();
+            return Task.FromResult(Context.Set<Tentity>().AsQueryable());
         }
-
 
         public async Task AddAsync(Tentity entity)
         {
@@ -81,5 +81,7 @@ namespace Shipping.Repository
             if (entity == null) throw new ArgumentNullException(nameof(entity));
             Context.Update(entity);
         }
+
+       
     }
 }
