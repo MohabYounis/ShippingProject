@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Shipping.DTOs;
 using Shipping.DTOs.Branch;
 using Shipping.Models;
 using Shipping.Repository;
@@ -41,22 +42,55 @@ namespace Shipping.Controllers
 
         // Get Branch by ID
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        public async Task<ActionResult<GeneralResponse>> GetById(int id)
         {
-            var branch = await branchService.GetByIdAsync(id);
-            if (branch == null) return NotFound();
-
-            var branchDto = new BranchDTO
+            GeneralResponse response = new GeneralResponse();
+            try
             {
-                Id = branch.Id,
-                Name = branch.Name,
-                Mobile = branch.Mobile,
-                Location = branch.Location,
-                CreatedDate = branch.CreatedDate,
-                IsDeleted = branch.IsDeleted
-            };
+                var branch = await branchService.GetByIdAsync(id);
 
-            return Ok(branchDto);
+                var branchDto = new BranchDTO
+                {
+                    Id = branch.Id,
+                    Name = branch.Name,
+                    Mobile = branch.Mobile,
+                    Location = branch.Location,
+                    CreatedDate = branch.CreatedDate,
+                    IsDeleted = branch.IsDeleted
+                };
+
+                response.IsSuccess = true;
+                response.Data = branchDto;
+            }
+            catch (KeyNotFoundException)
+            {
+                response.IsSuccess = false;
+                response.Data = $"Branch with ID {id} was not found.";
+                return NotFound(response);
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Data = ex.Message;
+                return StatusCode(500, response);
+            }
+
+            return Ok(response);
+
+            //var branch = await branchService.GetByIdAsync(id);
+            //if (branch == null) return NotFound();
+
+            //var branchDto = new BranchDTO
+            //{
+            //    Id = branch.Id,
+            //    Name = branch.Name,
+            //    Mobile = branch.Mobile,
+            //    Location = branch.Location,
+            //    CreatedDate = branch.CreatedDate,
+            //    IsDeleted = branch.IsDeleted
+            //};
+
+            //return Ok(branchDto);
         }
 
 
@@ -134,22 +168,56 @@ namespace Shipping.Controllers
 
         // Update Branch by ID
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] BranchDTO updatedBranchDto)
+        public async Task<IActionResult> Update(int id, [FromBody] EditBranchDTO updatedBranchDto)
         {
-            var existingBranch = await branchService.GetByIdAsync(id);
-            if (existingBranch == null) return NotFound();
+            GeneralResponse response = new GeneralResponse();
 
-            existingBranch.Name = updatedBranchDto.Name;
-            existingBranch.Mobile = updatedBranchDto.Mobile;
-            existingBranch.Location = updatedBranchDto.Location;
-            existingBranch.CreatedDate = updatedBranchDto.CreatedDate;
-            existingBranch.IsDeleted = updatedBranchDto.IsDeleted;
+            if (updatedBranchDto == null)
+            {
+                response.IsSuccess = false;
+                response.Data = "The data is incorrect.";
+                return BadRequest(response);
+            }
 
+            try
+            {
+                var existingBranch = await branchService.GetByIdAsync(id);
+                if (existingBranch == null)
+                {
+                    response.IsSuccess = false;
+                    response.Data = $"Branch with ID {id} was not found.";
+                    return NotFound(response);
+                }
 
-            await branchService.UpdateAsync(id);
-            await branchService.SaveChangesAsync();
+                // Update properties
+                existingBranch.Name = updatedBranchDto.Name;
+                existingBranch.Mobile = updatedBranchDto.Mobile;
+                existingBranch.Location = updatedBranchDto.Location;
+                existingBranch.CreatedDate = updatedBranchDto.CreatedDate;
 
-            return Ok(new { message = "The branch has been updated successfully", branch = updatedBranchDto });
+                await branchService.UpdateAsync(id);
+                await branchService.SaveChangesAsync();
+
+                // Prepare response with updated data
+                var updatedBranchData = new EditBranchDTO
+                {
+                    Id = existingBranch.Id,
+                    Name = existingBranch.Name,
+                    Mobile = existingBranch.Mobile,
+                    Location = existingBranch.Location,
+                    CreatedDate = existingBranch.CreatedDate,
+                };
+
+                response.IsSuccess = true;
+                response.Data = updatedBranchData;
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Data = ex.Message;
+                return StatusCode(500, response);
+            }
+            return Ok(response);
         }
 
 
