@@ -25,12 +25,19 @@ namespace Shipping.Repository
              return await Context.Set<Tentity>().FindAsync(id);
         }
 
-        public async Task<IEnumerable<Tentity>> GetAllAsync()
+
+        public async Task<IEnumerable<Tentity>> GetAllExistAsync()
         {
             return await Context.Set<Tentity>()
                         .Where(e => !EF.Property<bool>(e, "IsDeleted"))
                         .ToListAsync(); // Soft Delete
         }
+
+        public async Task<IEnumerable<Tentity>> GetAllAsync()
+        {
+            return await Context.Set<Tentity>().ToListAsync();
+        }
+
 
         public async Task AddAsync(Tentity entity)
         {
@@ -53,10 +60,8 @@ namespace Shipping.Repository
             Tentity tentityObj = await GetByIdAsync(id);
             if (tentityObj == null) throw new KeyNotFoundException($"Entity with ID {id} not found.");
             var prop = tentityObj.GetType().GetProperty("IsDeleted");
-            if (prop != null && prop.CanWrite)
-            {
-                prop.SetValue(tentityObj, true);
-            }
+
+            prop.SetValue(tentityObj, true);
             Context.Update(tentityObj);
         }
 

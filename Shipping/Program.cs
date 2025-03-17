@@ -19,8 +19,9 @@ namespace Shipping
 
 
             // Add services to the container.
+            // Cancel Filter Above Actions and depend on ModelState.IsValid
+            builder.Services.AddControllers().ConfigureApiBehaviorOptions(options => options.SuppressModelStateInvalidFilter = true);
 
-            builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
@@ -38,7 +39,7 @@ namespace Shipping
             //register automapper [add all profiles]
             builder.Services.AddAutoMapper(typeof(Program));
 
-
+            
             //Register of Unit Of work
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
