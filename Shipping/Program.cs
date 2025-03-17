@@ -4,8 +4,10 @@ using Shipping.DTOs;
 using Shipping.Models;
 using Shipping.Repository;
 using Shipping.Services;
+using Shipping.Services.ModelService;
 using Shipping.UnitOfWorks;
 using SHIPPING.Services;
+using Shipping.Services.IModelService;
 
 namespace Shipping
 {
@@ -49,6 +51,8 @@ namespace Shipping
             
             // Register Generic Service
             builder.Services.AddScoped<GeneralResponse>();
+
+            builder.Services.AddScoped<IApplicationRoleService, ApplicationRoleService>();
 
             var app = builder.Build();
 
