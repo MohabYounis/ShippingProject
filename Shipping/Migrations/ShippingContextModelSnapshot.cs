@@ -186,9 +186,6 @@ namespace Shipping.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
 
@@ -332,10 +329,6 @@ namespace Shipping.Migrations
 
                     b.Property<int>("DiscountType")
                         .HasColumnType("int");
-
-                    b.Property<string>("GovernmentName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsDeleted")
                         .HasMaxLength(100)
@@ -865,7 +858,7 @@ namespace Shipping.Migrations
             modelBuilder.Entity("Shipping.Models.DeliveryGovernment", b =>
                 {
                     b.HasOne("Shipping.Models.Delivery", "Delivery")
-                        .WithMany()
+                        .WithMany("DeliveryGovernments")
                         .HasForeignKey("Delivery_Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1074,6 +1067,8 @@ namespace Shipping.Migrations
 
             modelBuilder.Entity("Shipping.Models.Delivery", b =>
                 {
+                    b.Navigation("DeliveryGovernments");
+
                     b.Navigation("Orders");
                 });
 

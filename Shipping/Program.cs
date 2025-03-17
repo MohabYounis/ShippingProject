@@ -4,6 +4,8 @@ using Shipping.DTOs;
 using Shipping.Models;
 using Shipping.Repository;
 using Shipping.Services;
+using Shipping.Services.IModelService;
+using Shipping.Services.ModelService;
 using Shipping.UnitOfWorks;
 using SHIPPING.Services;
 
@@ -45,7 +47,8 @@ namespace Shipping
 
             // Register Generic Service
             builder.Services.AddScoped(typeof(IServiceGeneric<>), typeof(ServiceGeneric<>));
-            
+            //Register Delivery Service
+            builder.Services.AddScoped<IDeliveryService, DeliveryService>();
             // Register Generic Service
             builder.Services.AddScoped<GeneralResponse>();
 
