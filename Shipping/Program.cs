@@ -53,6 +53,9 @@ namespace Shipping
             builder.Services.AddScoped<GeneralResponse>();
 
             builder.Services.AddScoped<IApplicationRoleService, ApplicationRoleService>();
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped(typeof(IRepositoryGeneric<>), typeof(RepositoryGeneric<>));
+            builder.Services.AddScoped<IWeightPricingService, WeightPricingService>();
 
             var app = builder.Build();
 
