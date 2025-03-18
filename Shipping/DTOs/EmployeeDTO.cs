@@ -4,15 +4,9 @@ namespace Shipping.DTOs
 {
     public class EmployeeDTO
     {
-
         //employee fields
-
         public int Id { get; set; }
-
         public bool IsDeleted { get; set; }
-
-
-
 
         // app user fields
         public string Name { get; set; }
@@ -27,6 +21,5 @@ namespace Shipping.DTOs
 
         // branch fields
         public int branchId { get; set; }
-
     }
 }
