@@ -1,9 +1,12 @@
 
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Shipping.DTOs;
 using Shipping.Models;
 using Shipping.Repository;
 using Shipping.Services;
+using Shipping.Services.IModelService;
+using Shipping.Services.ModelService;
 using Shipping.UnitOfWorks;
 using SHIPPING.Services;
 
@@ -32,7 +35,8 @@ namespace Shipping
             });
             builder.Services.AddIdentity<ApplicationUser, ApplicationRole>().AddEntityFrameworkStores<ShippingContext>();
 
-        
+            //------------------
+            builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 
             //register automapper [add all profiles]
             builder.Services.AddAutoMapper(typeof(Program));
@@ -46,11 +50,14 @@ namespace Shipping
 
             // Register Generic Service
             builder.Services.AddScoped(typeof(IServiceGeneric<>), typeof(ServiceGeneric<>));
-            
+            //Register Delivery Service
+            builder.Services.AddScoped<IDeliveryService, DeliveryService>();
             // Register Generic Service
             builder.Services.AddScoped<GeneralResponse>();
 
             var app = builder.Build();
+
+
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

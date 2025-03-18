@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Shipping.Models;
 using Shipping.Repository;
 using System.Collections.Concurrent;
@@ -10,6 +11,7 @@ namespace Shipping.UnitOfWorks
     {
         
         private bool disposed = false;
+        private IDbContextTransaction _transaction;
 
         public ShippingContext Context { get; }
         public UnitOfWork(ShippingContext context)
@@ -34,12 +36,16 @@ namespace Shipping.UnitOfWorks
 
         public void Dispose()
         {
+            _transaction?.Dispose();
             if (!disposed)
             {
                 Context.Dispose();
                 disposed = true;
             }
             GC.SuppressFinalize(this);
+           
         }
+
+
     }
 }
