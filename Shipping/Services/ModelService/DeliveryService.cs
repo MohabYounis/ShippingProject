@@ -159,10 +159,10 @@ namespace Shipping.Services.ModelService
                 delivery.Branch_Id = deliveryDTO.BranchId;
                 delivery.IsDeleted = false;
 
-                // 🟢 تحديث المحافظات المرتبطة بدون حذف كامل أو إضافة غير ضرورية
+                // جلب جميع المحافظات
                 var deliveryGovernmentRepo = unitOfWork.GetRepository<DeliveryGovernment>();
 
-                // 🔹 جلب المحافظات القديمة
+                //جلب المحافظات القديمه من deliveryGovernment 
                 var oldGovernments = (await deliveryGovernmentRepo.GetAllAsync())
                     .Where(dg => dg.Delivery_Id == delivery.Id).ToList();
                 var oldGovernmentIds = oldGovernments.Select(dg => dg.Government_Id).ToList();
