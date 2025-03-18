@@ -1,4 +1,5 @@
 
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Shipping.DTOs;
 using Shipping.Models;
@@ -8,6 +9,7 @@ using Shipping.Services.IModelService;
 using Shipping.Services.ModelService;
 using Shipping.UnitOfWorks;
 using SHIPPING.Services;
+using Microsoft.OpenApi.Models;
 
 namespace Shipping
 {
@@ -24,8 +26,12 @@ namespace Shipping
 
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
-
-
+            //Add Swagger
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Shipping API", Version = "v1" });
+            });
 
             //register context
             builder.Services.AddDbContext<ShippingContext>(options =>
@@ -58,9 +64,11 @@ namespace Shipping
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
-                app.UseSwaggerUI(options => options.SwaggerEndpoint("/openapi/v1.json", "v1"));
-                app.MapOpenApi();
+                app.UseSwagger(); // ? ??? ????? ??? ????
+                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Shipping API V1"));
             }
+
+
 
             app.UseAuthorization();
 

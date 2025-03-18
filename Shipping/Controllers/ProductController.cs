@@ -53,10 +53,11 @@ namespace Shipping.Controllers
         [HttpGet("id")]
         public async Task<IActionResult> GetById(int id)
         {
-            var product =await serviceGeneric.GetByIdAsync(id);
-            if (product == null) { return NotFound("Not Found Product has Id = " + id);}
+           
             try
             {
+                var product = await serviceGeneric.GetByIdAsync(id);
+                if (product == null) { return NotFound("Not Found Product has Id = " + id); }
                 ProductDTO productDTO = new ProductDTO()
                 {
                     Id = product.Id,
@@ -101,18 +102,26 @@ namespace Shipping.Controllers
         [HttpPut("id")]
         public async Task<IActionResult> UpdateProduct(int id ,CreatProductDto productDto)
         {
-            Product product = new Product()
+            try
             {
-                Id=id,
-                Product_Id = productDto.OrderId,
-                Name = productDto.Name,
-                Quantity = productDto.Quantity,
-                ItemWeight = productDto.ItemWeight,
-                IsDeleted = false,  
-            };
-           //await serviceGeneric.up
-            serviceGeneric.SaveChangesAsync();
-            return Ok("Updated Succsefully");
+                Product product = new Product()
+                {
+                    Id = id,
+                    Product_Id = productDto.OrderId,
+                    Name = productDto.Name,
+                    Quantity = productDto.Quantity,
+                    ItemWeight = productDto.ItemWeight,
+                    IsDeleted = false,
+                };
+                if (product == null) { return NotFound("Not Found Product has Id = " + id); }
+                await serviceGeneric.UpdateAsync(id);
+                serviceGeneric.SaveChangesAsync();
+                return Ok("Updated Succsefully");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }
