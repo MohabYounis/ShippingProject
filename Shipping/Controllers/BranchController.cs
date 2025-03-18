@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using Azure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,7 @@ namespace Shipping.Controllers
     public class BranchController : ControllerBase
     {
         private readonly IServiceGeneric<Branch> branchService;
+        GeneralResponse response = new GeneralResponse();
         public BranchController(IServiceGeneric<Branch> branchService)
         {
             this.branchService = branchService;
@@ -223,11 +225,37 @@ namespace Shipping.Controllers
 
         // Soft Delete Branch
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            await branchService.DeleteAsync(id);
-            await branchService.SaveChangesAsync();
-            return Ok(new { message = "Branch Successfully Deleted " });
+        public async Task<ActionResult<GeneralResponse>> Delete(int id)
+        {  
+            try
+            {
+                await branchService.DeleteAsync(id);
+                await branchService.SaveChangesAsync();
+
+                response.IsSuccess = true;
+                response.Data = "Branch deleted successfully.";
+            }
+            catch (KeyNotFoundException ex) 
+            {
+                response.IsSuccess = false;
+                response.Data = ex.Message;
+            }
+            catch (InvalidOperationException ex) 
+            {
+                response.IsSuccess = false;
+                response.Data = ex.Message;
+            }
+            catch (Exception ex) 
+            {
+                response.IsSuccess = false;
+                response.Data = ex.Message;
+            }
+
+            return response;
+
+            //await branchService.DeleteAsync(id);
+            //await branchService.SaveChangesAsync();
+            //return Ok(new { message = "Branch Successfully Deleted " });
         }
     }
 }
