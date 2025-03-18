@@ -6,8 +6,8 @@ namespace Shipping.Repository
     {
    
         Task<Tentity> GetByIdAsync(int id);
-        Task<IEnumerable<Tentity>> GetAllAsync();
-        Task<IEnumerable<Tentity>> GetAllExistAsync();
+        Task<IQueryable<Tentity>> GetAllAsync();// to use linq
+        Task<IQueryable<Tentity>> GetAllExistAsync();
         Task AddAsync(Tentity entity);
         Task UpdateById(int id);
         Task DeleteByID(int id);

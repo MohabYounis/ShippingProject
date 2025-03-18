@@ -1,4 +1,5 @@
 
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Shipping.DTOs;
 using Shipping.Models;
@@ -34,7 +35,8 @@ namespace Shipping
             });
             builder.Services.AddIdentity<ApplicationUser, ApplicationRole>().AddEntityFrameworkStores<ShippingContext>();
 
-        
+            //------------------
+            builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 
             //register automapper [add all profiles]
             builder.Services.AddAutoMapper(typeof(Program));
@@ -54,6 +56,8 @@ namespace Shipping
             builder.Services.AddScoped<GeneralResponse>();
 
             var app = builder.Build();
+
+
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
