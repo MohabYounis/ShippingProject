@@ -1,13 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Shipping.DTOs
+namespace Shipping.DTOs.EmployeeDTOs
 {
-    public class EmployeeDTO
+    public class EmployeeCreateDTO
     {
-        //employee fields
-        public int Id { get; set; }
-        public bool IsDeleted { get; set; }
-
         // app user fields
         public string Name { get; set; }
         public string Email { get; set; }
@@ -18,7 +14,6 @@ namespace Shipping.DTOs
         public string ConfirmPassword { get; set; }
         public string Phone { get; set; }
         public string Address { get; set; }
-
         // branch fields
         public int branchId { get; set; }
     }

@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Shipping.DTOs;
+using Shipping.DTOs.EmployeeDTOs;
 using Shipping.Models;
 using Shipping.Services;
 using Shipping.Services.IModelService;
@@ -39,7 +39,7 @@ namespace Shipping.Controllers
                 return NotFound("there is no employees ");
             }
 
-            List<EmployeeDTO> employeeDtos = employees.Select(e => new EmployeeDTO
+            List<EmployeeGetAndEditDTO> employeeDtos = employees.Select(e => new EmployeeGetAndEditDTO
             {
                 Id = e.Id,
                 Name = e.ApplicationUser?.UserName,
@@ -61,7 +61,7 @@ namespace Shipping.Controllers
                 return NotFound("there is no employees ");
             }
 
-            List<EmployeeDTO> employeeDtos = employeesExist.Select(e => new EmployeeDTO
+            List<EmployeeGetAndEditDTO> employeeDtos = employeesExist.Select(e => new EmployeeGetAndEditDTO
             {
                 Id = e.Id,
                 Name = e.ApplicationUser?.UserName,
@@ -82,7 +82,7 @@ namespace Shipping.Controllers
             //getting emp drom db
             var employee = await empService.GetByIdAsync(id);
             if (employee == null) return NotFound($"  id {id}  not found");
-            var employeeDto = new EmployeeDTO
+            var employeeDto = new EmployeeGetAndEditDTO
             {
 
                 Id = employee.Id,
@@ -98,7 +98,7 @@ namespace Shipping.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> AddEmployee(EmployeeDTO employeeDto)
+        public async Task<IActionResult> AddEmployee(EmployeeCreateDTO employeeDto)
         {
             if (!ModelState.IsValid)
             {
@@ -150,7 +150,7 @@ namespace Shipping.Controllers
 
 
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> UpdateEmployee(int id, EmployeeDTO employeeDto)
+        public async Task<IActionResult> UpdateEmployee(int id, EmployeeGetAndEditDTO employeeDto)
         {
             if (!ModelState.IsValid)
             {
