@@ -1,4 +1,4 @@
-
+﻿
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Shipping.DTOs;
@@ -9,6 +9,7 @@ using Shipping.Services.IModelService;
 using Shipping.Services.ModelService;
 using Shipping.UnitOfWorks;
 using SHIPPING.Services;
+using Shipping.Controllers;
 
 namespace Shipping
 {
@@ -54,6 +55,10 @@ namespace Shipping
             // Register Generic Service
             builder.Services.AddScoped<GeneralResponse>();
 
+                        builder.Services.AddEndpointsApiExplorer();
+
+                        builder.Services.AddSwaggerGen();
+
             var app = builder.Build();
 
 
@@ -69,6 +74,8 @@ namespace Shipping
 
 
             app.MapControllers();
+
+                        app.MapCityEndpoints();
 
             app.Run();
         }

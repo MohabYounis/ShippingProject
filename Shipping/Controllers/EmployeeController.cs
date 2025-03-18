@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Shipping.DTOs;
+using Shipping.DTOs.Employee;
 using Shipping.Models;
 using Shipping.Services;
 using Shipping.Services.IModelService;
@@ -102,13 +102,11 @@ namespace Shipping.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> AddEmployee(EmployeeDTO employeeDto)
+        public async Task<IActionResult> AddEmployee([FromBody] EmployeeDTO employeeDto)
         {
 
-            if (employeeDto == null)
-            {
-                return BadRequest("Employee is null");
-            }
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
             // getting app user from employeeDto
             ApplicationUser appUser = null;
@@ -158,12 +156,15 @@ namespace Shipping.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateEmployee(int id, EmployeeDTO employeeDto)
+
+        public async Task<IActionResult> UpdateEmployee(int id, [FromBody] CreateEmployeeDTO employeeDto)
         {
             if (id <= 0)
                 return BadRequest("Invalid ID");
 
-            if (employeeDto == null) return BadRequest("Employee is null");
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            
             //getting employee from db
             var employee = await empService.GetByIdAsync(id);
             if (employee == null)
