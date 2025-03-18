@@ -32,19 +32,27 @@ namespace Shipping.Controllers
         [HttpGet("All")]
         public async Task<ActionResult<GeneralResponse>> GetAll()
         {
-            var merchants = await service.GetAllAsync();
-            List<MerchantGetDTO> merchantDTO = mapper.Map<List<MerchantGetDTO>>(merchants);
-
-            if (merchants == null)
+            try
+            {
+                var merchants = await service.GetAllAsync();
+                if (merchants == null)
+                {
+                    response.IsSuccess = false;
+                    response.Data = "No Found";
+                }
+                else
+                {
+                    List<MerchantGetDTO> merchantDTO = mapper.Map<List<MerchantGetDTO>>(merchants);
+                    response.IsSuccess = true;
+                    response.Data = merchantDTO;
+                }
+            }
+            catch (Exception ex)
             {
                 response.IsSuccess = false;
-                response.Data = "No Found";
+                response.Data = ex.Message;
             }
-            else
-            {
-                response.IsSuccess = true;
-                response.Data = merchantDTO;
-            }
+
             return response;
         }
         
@@ -52,19 +60,28 @@ namespace Shipping.Controllers
         [HttpGet("AllExist")]
         public async Task<ActionResult<GeneralResponse>> GetAllExist()
         {
-            var merchants = await service.GetAllExistAsync();
-            List<MerchantGetDTO> merchantDTO = mapper.Map<List<MerchantGetDTO>>(merchants);
+            try
+            {
+                var merchants = await service.GetAllExistAsync();
 
-            if (merchants == null)
+                if (merchants == null)
+                {
+                    response.IsSuccess = false;
+                    response.Data = "No Found";
+                }
+                else
+                {
+                    List<MerchantGetDTO> merchantDTO = mapper.Map<List<MerchantGetDTO>>(merchants);
+                    response.IsSuccess = true;
+                    response.Data = merchantDTO;
+                }
+            }
+            catch (Exception ex)
             {
                 response.IsSuccess = false;
-                response.Data = "No Found";
+                response.Data = ex.Message;
             }
-            else
-            {
-                response.IsSuccess = true;
-                response.Data = merchantDTO;
-            }
+
             return response;
         }
 
@@ -135,9 +152,8 @@ namespace Shipping.Controllers
                     kvp => kvp.Key,
                     kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToList()
                 );
-                return response;
             }
-            else
+            try
             {
                 var merchant = await service.GetByIdAsync(id);
 
@@ -168,7 +184,7 @@ namespace Shipping.Controllers
                     !string.IsNullOrWhiteSpace(merchantFromReq.NewPassword))
                 {
                     var user = await userManager.FindByIdAsync(merchant.ApplicationUser.Id.ToString());
-
+                            
                     if (user != null)
                     {
                         var isCurrentPasswordValid = await userManager.CheckPasswordAsync(user, merchantFromReq.CurrentPassword);
@@ -193,8 +209,14 @@ namespace Shipping.Controllers
                 await service.SaveChangesAsync();
                 response.IsSuccess = true;
                 response.Data = "Merchant updated successfully.";
-                return response;
             }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Data = ex.Message;
+            }
+
+            return response;
         }
 
 

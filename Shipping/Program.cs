@@ -10,6 +10,8 @@ using Shipping.Services.ModelService;
 using Shipping.UnitOfWorks;
 using SHIPPING.Services;
 using Microsoft.OpenApi.Models;
+using Shipping.Controllers;
+
 
 namespace Shipping
 {
@@ -40,7 +42,8 @@ namespace Shipping
             });
             builder.Services.AddIdentity<ApplicationUser, ApplicationRole>().AddEntityFrameworkStores<ShippingContext>();
 
-        
+            //------------------
+            builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 
             //register automapper [add all profiles]
             builder.Services.AddAutoMapper(typeof(Program));
@@ -59,12 +62,18 @@ namespace Shipping
             // Register Generic Service
             builder.Services.AddScoped<GeneralResponse>();
 
+                        builder.Services.AddEndpointsApiExplorer();
+
+                        builder.Services.AddSwaggerGen();
+
             var app = builder.Build();
+
+
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
-                app.UseSwagger(); // ? ??? ????? ??? ????
+                app.UseSwagger(); 
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Shipping API V1"));
             }
 
@@ -74,6 +83,8 @@ namespace Shipping
 
 
             app.MapControllers();
+
+                        app.MapCityEndpoints();
 
             app.Run();
         }
