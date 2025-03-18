@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Shipping.Models;
+﻿
+using Microsoft.AspNetCore.Mvc;
+using Shipping.DTOs;
 using Shipping.Services;
 
 namespace Shipping.Controllers
 {
-
     [Route("api/[controller]")]
     [ApiController]
     public class GovernmentController : ControllerBase
@@ -30,39 +30,49 @@ namespace Shipping.Controllers
         {
             var government = await _governmentService.GetGovernmentByIdAsync(id);
             if (government == null)
-                return NotFound();
-
+                return NotFound("Government not found.");
             return Ok(government);
         }
 
-        // Add Government
+        // Add a new Government
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] Government government)
+        public async Task<IActionResult> Add([FromBody] GovernmentDTO governmentDto)
         {
-            if (government == null)
-                return BadRequest();
+            if (governmentDto == null)
+                return BadRequest("Invalid data.");
 
-            await _governmentService.AddGovernmentAsync(government);
-            return CreatedAtAction(nameof(GetById), new { id = government.Id }, government);
+            await _governmentService.AddGovernmentAsync(governmentDto);
+            return Ok(new { message = "Government added successfully!" });
         }
 
-        // Update Government
+        // Update an existing Government
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] Government government)
+        public async Task<IActionResult> Update(int id, [FromBody] GovernmentDTO governmentDto)
         {
-            if (government == null || id != government.Id)
-                return BadRequest();
-
-            await _governmentService.UpdateGovernmentAsync(government);
-            return NoContent();
+            try
+            {
+                await _governmentService.UpdateGovernmentAsync(id, governmentDto);
+                return Ok(new { message = "Government updated successfully!" });
+            }
+            catch (Exception)
+            {
+                return NotFound("Government not found.");
+            }
         }
 
-        // Delete Government (Soft Delete)
+        // Delete a Government
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            await _governmentService.DeleteGovernmentAsync(id);
-            return NoContent();
+            try
+            {
+                await _governmentService.DeleteGovernmentAsync(id);
+                return Ok(new { message = "Government deleted successfully!" });
+            }
+            catch (Exception)
+            {
+                return NotFound("Government not found.");
+            }
         }
     }
 }

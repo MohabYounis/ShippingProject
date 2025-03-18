@@ -1,4 +1,6 @@
 
+
+
 using Microsoft.EntityFrameworkCore;
 using Shipping.DTOs;
 using Shipping.Models;
@@ -17,30 +19,25 @@ namespace Shipping
         {
             var builder = WebApplication.CreateBuilder(args);
 
-
             // Add services to the container.
-            // Cancel Filter Above Actions and depend on ModelState.IsValid
             builder.Services.AddControllers().ConfigureApiBehaviorOptions(options => options.SuppressModelStateInvalidFilter = true);
 
-            // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+            // Add OpenAPI (Swagger) support
             builder.Services.AddOpenApi();
 
-
-
-            //register context
+            // Register DbContext with SQL Server
             builder.Services.AddDbContext<ShippingContext>(options =>
             {
                 options.UseLazyLoadingProxies().UseSqlServer(builder.Configuration.GetConnectionString("CS"));
             });
-            builder.Services.AddIdentity<ApplicationUser, ApplicationRole>().AddEntityFrameworkStores<ShippingContext>();
 
-        
+            builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
+                .AddEntityFrameworkStores<ShippingContext>();
 
-            //register automapper [add all profiles]
+            // Register AutoMapper
             builder.Services.AddAutoMapper(typeof(Program));
 
-            
-            //Register of Unit Of work
+            // Register Unit of Work
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // Register Generic Repository
@@ -48,10 +45,15 @@ namespace Shipping
 
             // Register Generic Service
             builder.Services.AddScoped(typeof(IServiceGeneric<>), typeof(ServiceGeneric<>));
-            //Register Delivery Service
+
+            // Register Delivery Service
             builder.Services.AddScoped<IDeliveryService, DeliveryService>();
-            // Register Generic Service
+
+            // Register General Response
             builder.Services.AddScoped<GeneralResponse>();
+
+            // Register Government Service
+            builder.Services.AddScoped<IGovernmentService, GovernmentService>();
 
             var app = builder.Build();
 
@@ -63,7 +65,6 @@ namespace Shipping
             }
 
             app.UseAuthorization();
-
 
             app.MapControllers();
 

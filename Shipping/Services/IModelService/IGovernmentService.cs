@@ -5,16 +5,21 @@
 //    }
 //}
 
+using Shipping.DTOs;
 using Shipping.Models;
 
 namespace Shipping.Services
 {
     public interface IGovernmentService
     {
-        Task<IEnumerable<Government>> GetAllGovernmentsAsync();
-        Task<Government> GetGovernmentByIdAsync(int id);
-        Task AddGovernmentAsync(Government government);
-        Task UpdateGovernmentAsync(Government government);
+        
+
+        /////////////////////////
+        ///
+        Task<IEnumerable<GovernmentDTO>> GetAllGovernmentsAsync();
+        Task<GovernmentDTO> GetGovernmentByIdAsync(int id);
+        Task AddGovernmentAsync(GovernmentDTO governmentDto);
+        Task UpdateGovernmentAsync(int id, GovernmentDTO governmentDto);
         Task DeleteGovernmentAsync(int id);
     }
 }

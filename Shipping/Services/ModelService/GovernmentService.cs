@@ -1,64 +1,81 @@
-﻿//using SHIPPING.Services;
-//using Shipping.Models;
-//using Shipping.Services.IModelService;
-//using Shipping.Repository;
-//using Shipping.UnitOfWorks;
-
-//namespace Shipping.Services.ModelService
-//{
-//    public class GovernmentService : ServiceGeneric<Government>, IGovernmentService
-//    {
-//        public GovernmentService(UnitOfWork unitOfWork) : base(unitOfWork)
-//        {
-//        }
-//    }
-//}
-using SHIPPING.Services;
+﻿
 using Shipping.Models;
-using Shipping.Services.IModelService;
-using Shipping.Repository;
-using Shipping.UnitOfWorks;
+using Shipping.DTOs;
+using Microsoft.EntityFrameworkCore;
 
-namespace Shipping.Services.ModelService
-
+namespace Shipping.Services
 {
     public class GovernmentService : IGovernmentService
     {
-        private readonly IRepositoryGeneric<Government> _governmentRepository;
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly ShippingContext _context;
 
-        public GovernmentService(IRepositoryGeneric<Government> governmentRepository, IUnitOfWork unitOfWork)
+        public GovernmentService(ShippingContext context)
         {
-            _governmentRepository = governmentRepository;
-            _unitOfWork = unitOfWork;
+            _context = context;
         }
 
-        public async Task<IEnumerable<Government>> GetAllGovernmentsAsync()
+        public async Task<IEnumerable<GovernmentDTO>> GetAllGovernmentsAsync()
         {
-            return await _governmentRepository.GetAllAsync();
+            return await _context.Governments
+                .Where(g => !g.IsDeleted)
+                .Select(g => new GovernmentDTO
+                {
+                    Id = g.Id,
+                    Name = g.Name,
+                    Branch_Id = g.Branch_Id
+                })
+                .ToListAsync();
         }
 
-        public async Task<Government> GetGovernmentByIdAsync(int id)
+        public async Task<GovernmentDTO> GetGovernmentByIdAsync(int id)
         {
-            return await _governmentRepository.GetByIdAsync(id);
+            var government = await _context.Governments
+                .Where(g => g.Id == id && !g.IsDeleted)
+                .Select(g => new GovernmentDTO
+                {
+                    Id = g.Id,
+                    Name = g.Name,
+                    Branch_Id = g.Branch_Id
+                })
+                .FirstOrDefaultAsync();
+
+            return government;
         }
 
-        public async Task AddGovernmentAsync(Government government)
+        public async Task AddGovernmentAsync(GovernmentDTO governmentDto)
         {
-            await _governmentRepository.AddAsync(government);
-            _unitOfWork.SaveChangesAsync();
+            var government = new Government
+            {
+                Name = governmentDto.Name,
+                Branch_Id = governmentDto.Branch_Id
+            };
+
+            await _context.Governments.AddAsync(government);
+            await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateGovernmentAsync(Government government)
+        public async Task UpdateGovernmentAsync(int id, GovernmentDTO governmentDto)
         {
-            _governmentRepository.Update(government);
-            _unitOfWork.SaveChangesAsync();
+            var government = await _context.Governments.FindAsync(id);
+            if (government == null || government.IsDeleted)
+                throw new Exception("Government not found.");
+
+            government.Name = governmentDto.Name;
+            government.Branch_Id = governmentDto.Branch_Id;
+
+            _context.Governments.Update(government);
+            await _context.SaveChangesAsync();
         }
 
         public async Task DeleteGovernmentAsync(int id)
         {
-            await _governmentRepository.DeleteByID(id);
-            _unitOfWork.SaveChangesAsync();
+            var government = await _context.Governments.FindAsync(id);
+            if (government == null || government.IsDeleted)
+                throw new Exception("Government not found.");
+
+            government.IsDeleted = true;
+            _context.Governments.Update(government);
+            await _context.SaveChangesAsync();
         }
     }
 }
