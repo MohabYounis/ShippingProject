@@ -110,7 +110,7 @@ namespace Shipping.Controllers
                 ItemWeight = productDto.ItemWeight,
                 IsDeleted = false,  
             };
-           await serviceGeneric.up
+           //await serviceGeneric.up
             serviceGeneric.SaveChangesAsync();
             return Ok("Updated Succsefully");
         }
