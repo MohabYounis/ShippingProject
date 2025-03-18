@@ -23,6 +23,7 @@ namespace Shipping.MapperConfig
                 {
                     dest.Merchant = new Merchant();
                 }
+
                 dest.Merchant.StoreName = src.StoreName;
                 dest.Merchant.Government = src.Government;
                 dest.Merchant.City = src.City;

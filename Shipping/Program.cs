@@ -51,7 +51,8 @@ namespace Shipping
 
             // Register Generic Service
             builder.Services.AddScoped(typeof(IServiceGeneric<>), typeof(ServiceGeneric<>));
-            
+            //Register Delivery Service
+            builder.Services.AddScoped<IDeliveryService, DeliveryService>();
             // Register Generic Service
             builder.Services.AddScoped<GeneralResponse>();
 

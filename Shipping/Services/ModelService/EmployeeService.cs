@@ -17,23 +17,22 @@ namespace Shipping.Services.ModelService
 
         public override async Task<IEnumerable<Employee>> GetAllAsync()
         {
-            var query = await unitOfWork.GetRepository<Employee>().GetAllAsync();
-            return await query
+            var query = unitOfWork.GetRepository<Employee>().GetAllAsync();
+            var employees = await query;
+            return employees
                 .Include(e => e.ApplicationUser)
                 .Include(e => e.Branch)
-                .ToListAsync();
+                .ToList();
         }
 
         public override async Task<IEnumerable<Employee>> GetAllExistAsync()
         {
-            var query = await unitOfWork.GetRepository<Employee>().GetAllExistAsync();
-            return await query
+            var query = unitOfWork.GetRepository<Employee>().GetAllExistAsync();
+            var employees = await query;
+            return employees
                 .Include(e => e.ApplicationUser)
                 .Include(e => e.Branch)
-                .ToListAsync();
+                .ToList();
         }
-
-
-
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Azure;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Shipping.DTOs.Employee;
@@ -15,9 +16,8 @@ namespace Shipping.Controllers
     {
         IServiceGeneric<Employee> employeeService;
         IServiceGeneric<Branch> branchService;
-
-        UserManager<ApplicationUser> userManager;
         IEmployeeService empService;
+        UserManager<ApplicationUser> userManager;
 
         public EmployeeController(IServiceGeneric<Employee> employeeService, IEmployeeService empService, UserManager<ApplicationUser> userManager, IServiceGeneric<Branch> branchService)
         {
@@ -74,8 +74,7 @@ namespace Shipping.Controllers
         }
 
 
-
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetEmployee(int id)
         {
             if (id <= 0)
@@ -95,21 +94,19 @@ namespace Shipping.Controllers
             };
 
             return Ok(employeeDto);
-
-
         }
-
 
 
         [HttpPost]
         public async Task<IActionResult> AddEmployee([FromBody] EmployeeDTO employeeDto)
         {
-
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            // getting app user from employeeDto
-            ApplicationUser appUser = null;
+            {
+                return BadRequest(ModelState.ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToList()
+                ));
+            }
             try
             {
 
@@ -128,49 +125,35 @@ namespace Shipping.Controllers
                 }
 
             }
-
             catch (Exception ex)
             {
                 return BadRequest("app" + ex.Message);
-
-
             }
-            // Get branchId from database using BranchName
-
-            var branch = branchService.GetByIdAsync(employeeDto.branchId);
-            if (branch == null) { return BadRequest("branch not found"); }
-            //   mapping manually employeeDto to employee
-            Employee emp = new Employee()
-            {
-                Branch_Id = branch.Id,
-                AppUser_Id = appUser.Id,
-                ApplicationUser = appUser,
-            };
-
-            await employeeService.AddAsync(emp);
-
-            await employeeService.SaveChangesAsync();
-
-
-            return Ok("employee added successfully!");
         }
 
-        [HttpPut("{id}")]
 
-        public async Task<IActionResult> UpdateEmployee(int id, [FromBody] CreateEmployeeDTO employeeDto)
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> UpdateEmployee(int id, EmployeeGetAndEditDTO employeeDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState.ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToList()
+                ));
+            }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateEmployee(int id, EmployeeDTO employeeDto)
         {
             if (id <= 0)
                 return BadRequest("Invalid ID");
 
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-            
+            if (employeeDto == null) return BadRequest("Employee is null");
             //getting employee from db
             var employee = await empService.GetByIdAsync(id);
             if (employee == null)
-            {
                 return NotFound($"Employee with id {id} not found");
-            }
 
             // updating app user
             ApplicationUser appUser = employee.ApplicationUser;
@@ -197,19 +180,30 @@ namespace Shipping.Controllers
         }
 
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteEmployee(int id)
         {
-            if (id <= 0)
-                return BadRequest("Invalid ID");
-            var employee = await empService.GetByIdAsync(id);
-            if (employee == null)
+            try
             {
-                return NotFound($"Employee with id {id} not found");
+                if (id <= 0) return BadRequest("Invalid ID");
+                var employee = await empService.GetByIdAsync(id);
+                
+                await empService.DeleteAsync(id);
+                await empService.SaveChangesAsync();
+                return Ok("Employee deleted successfully!");
             }
-            await empService.DeleteAsync(id);
-            await empService.SaveChangesAsync();
-            return Ok("Employee deleted successfully!");
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new { Message = "The requested resource was not found." });
+            }
+            catch (InvalidOperationException)
+            {
+                return BadRequest(new { Message = "The operation is invalid due to a logical constraint." });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { Message = "An unexpected error occurred. Please try again later." });
+            }
         }
 
 
