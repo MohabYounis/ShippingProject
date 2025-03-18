@@ -1,8 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Shipping.DTOs
+<<<<<<<< HEAD:Shipping/DTOs/Employee/EmployeeDTO.cs
+namespace Shipping.DTOs.Employee
+========
+namespace Shipping.DTOs.EmployeeDTOs
+>>>>>>>> main:Shipping/DTOs/EmployeeDTOs/EmployeeGetAndEditDTO.cs
 {
-    public class EmployeeDTO
+    public class EmployeeGetAndEditDTO
     {
         //employee fields
         public int Id { get; set; }

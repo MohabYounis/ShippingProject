@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Shipping.DTOs;
+using Shipping.DTOs.Employee;
 using Shipping.Models;
 using Shipping.Services;
 using Shipping.Services.IModelService;
@@ -98,7 +98,7 @@ namespace Shipping.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> AddEmployee(EmployeeDTO employeeDto)
+        public async Task<IActionResult> AddEmployee([FromBody] EmployeeDTO employeeDto)
         {
             if (!ModelState.IsValid)
             {
@@ -109,13 +109,13 @@ namespace Shipping.Controllers
             }
             try
             {
-                ApplicationUser appUser = new ApplicationUser()
+
+                appUser = new ApplicationUser()
                 {
                     UserName = employeeDto.Name,
                     Email = employeeDto.Email,
                     PhoneNumber = employeeDto.Phone,
-                    Address = employeeDto.Address,
-                    Employee = new Employee()
+                    Address = employeeDto.Address
                 };
                 // creating user in database
                 var result = await userManager.CreateAsync(appUser, employeeDto.Password);
@@ -123,23 +123,6 @@ namespace Shipping.Controllers
                 {
                     return BadRequest("app" + string.Join(", ", result.Errors.Select(e => e.Description)));
                 }
-
-                // Get branchId from database using BranchName
-                //var branch = branchService.GetByIdAsync(employeeDto.branchId);
-                //if (branch == null) { return BadRequest("branch not found"); }
-
-                // mapping manually employeeDto to employee
-                //Employee emp = new Employee()
-                //{
-                //    Branch_Id = branch.Id,
-                //    AppUser_Id = appUser.Id,
-                //    ApplicationUser = appUser,
-                //};
-
-                //await employeeService.AddAsync(emp);
-                //await employeeService.SaveChangesAsync();
-
-                return Ok("employee added successfully!");
 
             }
             catch (Exception ex)
@@ -150,7 +133,7 @@ namespace Shipping.Controllers
 
 
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> UpdateEmployee(int id, EmployeeDTO employeeDto)
+        public async Task<IActionResult> UpdateEmployee(int id, EmployeeGetAndEditDTO employeeDto)
         {
             if (!ModelState.IsValid)
             {
@@ -160,11 +143,13 @@ namespace Shipping.Controllers
                 ));
             }
 
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateEmployee(int id, EmployeeDTO employeeDto)
+        {
             if (id <= 0)
                 return BadRequest("Invalid ID");
 
             if (employeeDto == null) return BadRequest("Employee is null");
-
             //getting employee from db
             var employee = await empService.GetByIdAsync(id);
             if (employee == null)
