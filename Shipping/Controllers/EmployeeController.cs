@@ -1,5 +1,4 @@
-﻿using Azure;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Shipping.DTOs.Employee;
@@ -213,14 +212,5 @@ namespace Shipping.Controllers
             await empService.SaveChangesAsync();
             return Ok("Employee deleted successfully!");
         }
-
-
-
-
-
-
-
-
-
     }
 }
