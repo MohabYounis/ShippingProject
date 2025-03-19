@@ -83,9 +83,6 @@ namespace Shipping
 
 
             app.MapControllers();
-
-                        app.MapCityEndpoints();
-
             app.Run();
         }
     }

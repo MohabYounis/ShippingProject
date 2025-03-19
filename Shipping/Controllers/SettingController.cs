@@ -150,7 +150,7 @@ namespace Shipping.Controllers
                 setting.ShippingToVillageCost = settingUpdateDto.ShippingToVillageCost;
                 setting.DeliveryAutoAccept = settingUpdateDto.DeliveryAutoAccept;
                 
-                await settingService.UpdateAsync(id);
+                await settingService.UpdateAsync(setting);
                 await settingService.SaveChangesAsync();
 
                 response.IsSuccess = true;

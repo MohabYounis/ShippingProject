@@ -205,7 +205,7 @@ namespace Shipping.Controllers
                     }
                 }
 
-                await service.UpdateAsync(id);
+                await service.UpdateAsync(merchant);
                 await service.SaveChangesAsync();
                 response.IsSuccess = true;
                 response.Data = "Merchant updated successfully.";
