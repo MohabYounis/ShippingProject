@@ -67,7 +67,6 @@ namespace Shipping
             var app = builder.Build();
 
 
-
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
@@ -76,11 +75,9 @@ namespace Shipping
             }
 
 
-
             app.UseAuthorization();
 
             app.MapControllers();
-
             app.Run();
         }
     }
