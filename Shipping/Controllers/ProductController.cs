@@ -83,7 +83,7 @@ namespace Shipping.Controllers
             {
                 Product product = new Product()
                 {
-                    Product_Id = productDto.OrderId,
+                    Order_Id = productDto.OrderId,
                     Name = productDto.Name,
                     Quantity = productDto.Quantity,
                     ItemWeight = productDto.ItemWeight,
@@ -107,14 +107,14 @@ namespace Shipping.Controllers
                 Product product = new Product()
                 {
                     Id = id,
-                    Product_Id = productDto.OrderId,
+                    Order_Id = productDto.OrderId,
                     Name = productDto.Name,
                     Quantity = productDto.Quantity,
                     ItemWeight = productDto.ItemWeight,
                     IsDeleted = false,
                 };
                 if (product == null) { return NotFound("Not Found Product has Id = " + id); }
-                await serviceGeneric.UpdateAsync(id);
+                await serviceGeneric.UpdateAsync(product);
                 serviceGeneric.SaveChangesAsync();
                 return Ok("Updated Succsefully");
             }
