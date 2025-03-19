@@ -1,4 +1,6 @@
 
+
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Shipping.DTOs;
 using Shipping.Models;
@@ -15,15 +17,12 @@ namespace Shipping
         {
             var builder = WebApplication.CreateBuilder(args);
 
-
             // Add services to the container.
             // Cancel Filter Above Actions and depend on ModelState.IsValid
             builder.Services.AddControllers().ConfigureApiBehaviorOptions(options => options.SuppressModelStateInvalidFilter = true);
 
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
-
-
 
             //register context
             builder.Services.AddDbContext<ShippingContext>(options =>
@@ -37,7 +36,6 @@ namespace Shipping
             //register automapper [add all profiles]
             builder.Services.AddAutoMapper(typeof(Program));
 
-            
             //Register of Unit Of work
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
@@ -46,9 +44,17 @@ namespace Shipping
 
             // Register Generic Service
             builder.Services.AddScoped(typeof(IServiceGeneric<>), typeof(ServiceGeneric<>));
-            
+
             // Register Generic Service
             builder.Services.AddScoped<GeneralResponse>();
+
+            builder.Services.AddEndpointsApiExplorer();
+
+            //// Add Swagger generation
+            //builder.Services.AddSwaggerGen(c =>
+            //{
+            //    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Shipping API", Version = "v1" });
+            //});
 
             var app = builder.Build();
 
@@ -60,7 +66,6 @@ namespace Shipping
             }
 
             app.UseAuthorization();
-
 
             app.MapControllers();
 
