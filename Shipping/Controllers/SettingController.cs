@@ -15,34 +15,46 @@ namespace Shipping.Controllers
     public class SettingController : ControllerBase
     {
         private readonly IServiceGeneric<Setting> settingService;
-        public SettingController(IServiceGeneric<Setting> settingService)
+        private readonly GeneralResponse response;
+
+        public SettingController(IServiceGeneric<Setting> settingService, GeneralResponse response)
         {
-          this.settingService = settingService;
+            this.settingService = settingService;
+            this.response = response;
         }
+
 
         // Get All setting
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<ActionResult<GeneralResponse>> GetAll()
         {
-            var settings = await settingService.GetAllAsync();
-            var settingsDtos = settings.Select(s => new SettingDTO
+            try
             {
-                Id = s.Id,
-                ShippingToVillageCost =s.ShippingToVillageCost,
-                DeliveryAutoAccept=s.DeliveryAutoAccept,
-                IsDeleted = s.IsDeleted,
-            }).ToList();
+                var settings = await settingService.GetAllAsync();
+                var settingsDtos = settings.Select(s => new SettingDTO
+                {
+                    Id = s.Id,
+                    ShippingToVillageCost =s.ShippingToVillageCost,
+                    DeliveryAutoAccept=s.DeliveryAutoAccept,
+                    IsDeleted = s.IsDeleted,
+                }).ToList();
 
-            return Ok(settingsDtos);
+                response.IsSuccess = true;
+                response.Data = settingsDtos;
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Data = ex.Message;
+            }
+
+            return response;
         }
 
         // Get setting by ID
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<GeneralResponse>> GetById(int id)
         {
-
-            GeneralResponse response = new GeneralResponse();
-
             try
             {
                 var setting = await settingService.GetByIdAsync(id);
@@ -57,74 +69,75 @@ namespace Shipping.Controllers
                 response.IsSuccess = true;
                 response.Data = settingDto;
             }
-            catch (KeyNotFoundException)
+            catch (KeyNotFoundException ex)
             {
                 response.IsSuccess = false;
                 response.Data = $"Setting with ID {id} was not found.";
-                return NotFound(response);
             }
             catch (Exception ex)
             {
                 response.IsSuccess = false;
                 response.Data = ex.Message;
-                return StatusCode(500, response);
             }
-            return Ok(response);
 
-
-            //var setting = await settingService.GetByIdAsync(id);
-            //if (setting == null)
-            //    return NotFound(new { message = $"Setting with ID {id} was not found." });
-            //var settingDto = new SettingDTO
-            //{
-            //    Id = setting.Id,
-            //    ShippingToVillageCost = setting.ShippingToVillageCost,
-            //    DeliveryAutoAccept = setting.DeliveryAutoAccept,
-            //    IsDeleted = setting.IsDeleted
-            //};
-
-            //return Ok(settingDto);
+            return response;
         }
+
 
         //Add setting
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] SettingCreateDTOS settingcreateDto)
+        public async Task<ActionResult<GeneralResponse>> Create([FromBody] SettingCreateDTOS settingcreateDto)
         {
-            if (settingcreateDto == null)
-                return BadRequest("The data is incorrect");
-
-          
-            var existingSetting = await settingService.GetAllAsync();
-            if (existingSetting.Any())
-                return BadRequest("A Setting has already been created. You cannot add another one.");
-
-          
-            var setting = new Setting
+            if(!ModelState.IsValid)
             {
-                ShippingToVillageCost = settingcreateDto.ShippingToVillageCost ,
-                DeliveryAutoAccept = settingcreateDto.DeliveryAutoAccept ,
-                IsDeleted = false
-            };
+                response.IsSuccess = false;
+                response.Data = ModelState.ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToList()
+                );
+            }
+            try
+            {
+                var existingSetting = await settingService.GetAllAsync();
+                if (existingSetting.Any())
+                {
+                    response.IsSuccess = false;
+                    response.Data = "A Setting has already been created. You cannot add another one.";
+                    return response;
+                }
 
-            await settingService.AddAsync(setting);
-            await settingService.SaveChangesAsync();
+                var setting = new Setting
+                {
+                    ShippingToVillageCost = settingcreateDto.ShippingToVillageCost,
+                };
 
-            return CreatedAtAction(nameof(GetById), new { id = setting.Id }, setting);
+                await settingService.AddAsync(setting);
+                await settingService.SaveChangesAsync();
+
+                response.IsSuccess = true;
+                response.Data = "Setting created successfully.";
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Data = ex.Message;
+            }
+            
+            return response;
         }
 
         // Update setting by ID 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> EditById(int id, [FromBody] SettingEditDTO settingUpdateDto)
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult<GeneralResponse>> EditById(int id, [FromBody] SettingEditDTO settingUpdateDto)
         {
-            GeneralResponse response = new GeneralResponse();
-
-            if (settingUpdateDto == null)
+            if (!ModelState.IsValid)
             {
                 response.IsSuccess = false;
-                response.Data = "The data is incorrect.";
-                return BadRequest(response);
+                response.Data = ModelState.ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToList()
+                );
             }
-
             try
             {
                 var setting = await settingService.GetByIdAsync(id);
@@ -132,32 +145,24 @@ namespace Shipping.Controllers
                 {
                     response.IsSuccess = false;
                     response.Data = $"Setting with ID {id} was not found.";
-                    return NotFound(response);
                 }
 
-                setting.Id = settingUpdateDto.Id;   
                 setting.ShippingToVillageCost = settingUpdateDto.ShippingToVillageCost;
                 setting.DeliveryAutoAccept = settingUpdateDto.DeliveryAutoAccept;
                 
-                await settingService.UpdateAsync(id);
+                await settingService.UpdateAsync(setting);
                 await settingService.SaveChangesAsync();
 
-                var updatedSettingDto = new SettingEditDTO
-                {
-                    Id = setting.Id,
-                    ShippingToVillageCost = setting.ShippingToVillageCost,
-                    DeliveryAutoAccept = setting.DeliveryAutoAccept,  
-                };
                 response.IsSuccess = true;
-                response.Data = updatedSettingDto;
+                response.Data = "Setting updated successfully.";
             }
             catch (Exception ex)
             {
                 response.IsSuccess = false;
                 response.Data = ex.Message;
-                return StatusCode(500, response);
             }
-            return Ok(response);
+
+            return response;
         }
     }
 }
