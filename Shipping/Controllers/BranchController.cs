@@ -265,7 +265,7 @@ namespace Shipping.Controllers
                 existingBranch.Mobile = updatedBranchDto.Mobile;
                 existingBranch.Location = updatedBranchDto.Location;
 
-                await branchService.UpdateAsync(id);
+                await branchService.UpdateAsync(existingBranch);
                 await branchService.SaveChangesAsync();
 
                 response.IsSuccess = true;
