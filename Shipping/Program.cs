@@ -59,15 +59,14 @@ namespace Shipping
             builder.Services.AddScoped(typeof(IServiceGeneric<>), typeof(ServiceGeneric<>));
             //Register Delivery Service
             builder.Services.AddScoped<IDeliveryService, DeliveryService>();
+            //Register Merchant Service
+            builder.Services.AddScoped<IMerchantService, MerchantService>();
             // Register Generic Service
             builder.Services.AddScoped<GeneralResponse>();
 
-                        builder.Services.AddEndpointsApiExplorer();
-
-                        builder.Services.AddSwaggerGen();
+            builder.Services.AddEndpointsApiExplorer();
 
             var app = builder.Build();
-
 
 
             // Configure the HTTP request pipeline.
@@ -78,9 +77,7 @@ namespace Shipping
             }
 
 
-
             app.UseAuthorization();
-
 
             app.MapControllers();
             app.Run();
