@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Shipping.DTOs.Employee;
+using Shipping.DTOs.EmployeeDTOs;
 using Shipping.Models;
 using Shipping.Services;
 using Shipping.Services.IModelService;
@@ -164,7 +165,7 @@ namespace Shipping.Controllers
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            
+
             //getting employee from db
             var employee = await empService.GetByIdAsync(id);
             if (employee == null)
@@ -211,14 +212,5 @@ namespace Shipping.Controllers
             await employeeService.SaveChangesAsync();
             return Ok("Employee deleted successfully!");
         }
-
-
-
-
-
-
-
-
-
     }
 }

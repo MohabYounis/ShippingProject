@@ -1,6 +1,8 @@
-﻿namespace Shipping.Services.IModelService
+﻿using Shipping.Models;
+
+namespace Shipping.Services.IModelService
 {
-    public interface IMerchantService
+    public interface IMerchantService : IServiceGeneric<Merchant>
     {
         //Task<IEnumerable<Merchant>> GetAllAsync();
         //Task<IEnumerable<Merchant>> GetAllExistAsync();

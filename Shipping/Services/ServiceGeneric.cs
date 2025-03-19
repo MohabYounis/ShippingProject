@@ -30,6 +30,7 @@ namespace SHIPPING.Services
         public async Task<Tentity> GetByIdAsync(int id)
         {
             var entity = await unitOfWork.GetRepository<Tentity>().GetByIdAsync(id);
+            if (entity == null) throw new KeyNotFoundException($"Entity with ID {id} not found.");
             return entity;
         }
 
