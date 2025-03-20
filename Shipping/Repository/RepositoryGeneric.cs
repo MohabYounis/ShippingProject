@@ -8,7 +8,7 @@ namespace Shipping.Repository
 {
     public class RepositoryGeneric<Tentity> : IRepositoryGeneric<Tentity> where Tentity : class
     {
-        readonly IUnitOfWork unitOfWork;
+        protected readonly IUnitOfWork unitOfWork;
 
         public RepositoryGeneric(IUnitOfWork unitOfWork)
         {
@@ -26,39 +26,36 @@ namespace Shipping.Repository
         }
 
 
-        public async Task<IEnumerable<Tentity>> GetAllExistAsync()
+        public Task<IQueryable<Tentity>> GetAllExistAsync()
         {
-            return await Context.Set<Tentity>()
-                        .Where(e => !EF.Property<bool>(e, "IsDeleted"))
-                        .ToListAsync(); // Soft Delete
+            
+            return Task.FromResult(Context.Set<Tentity>().AsQueryable()
+                .Where(e=>!EF.Property<bool>(e, "IsDeleted")));
+         
         }
 
-        public async Task<IEnumerable<Tentity>> GetAllAsync()
+        public Task<IQueryable<Tentity>> GetAllAsync()
         {
-            return await Context.Set<Tentity>().ToListAsync();
+            return Task.FromResult(Context.Set<Tentity>().AsQueryable());
         }
-
 
         public async Task AddAsync(Tentity entity)
         {
 
-            if (entity == null) throw new ArgumentNullException(nameof(entity));
 
             await Context.AddAsync(entity);
 
         }
-
+        // will be delted
         public async Task UpdateById(int id)
         {
             Tentity tentityObj = await GetByIdAsync(id);
-           if (tentityObj == null) throw new KeyNotFoundException($"Entity with ID {id} not found.");
             Context.Update(tentityObj);
         }
 
         public async Task DeleteByID(int id)
         {
             Tentity tentityObj = await GetByIdAsync(id);
-            if (tentityObj == null) throw new KeyNotFoundException($"Entity with ID {id} not found.");
             var prop = tentityObj.GetType().GetProperty("IsDeleted");
 
             prop.SetValue(tentityObj, true);
@@ -67,7 +64,7 @@ namespace Shipping.Repository
 
         public void Delete(Tentity entity)
         {
-            if (entity == null) throw new ArgumentNullException(nameof(entity));
+            if (entity == null);
             var prop = entity.GetType().GetProperty("IsDeleted");
             if (prop != null && prop.CanWrite)
             {
@@ -76,10 +73,11 @@ namespace Shipping.Repository
             Context.Update(entity);
         }
 
-        public void Update(Tentity entity)
+        public async Task Update(Tentity entity)
         {
-            if (entity == null) throw new ArgumentNullException(nameof(entity));
             Context.Update(entity);
         }
+
+       
     }
 }

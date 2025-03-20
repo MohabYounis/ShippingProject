@@ -1,6 +1,4 @@
-
-
-
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Shipping.DTOs;
 using Shipping.Models;
@@ -10,6 +8,9 @@ using Shipping.Services.IModelService;
 using Shipping.Services.ModelService;
 using Shipping.UnitOfWorks;
 using SHIPPING.Services;
+using Microsoft.OpenApi.Models;
+using Shipping.Controllers;
+
 
 namespace Shipping
 {
@@ -24,20 +25,31 @@ namespace Shipping
 
             // Add OpenAPI (Swagger) support
             builder.Services.AddOpenApi();
+            //Add Swagger
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Shipping API", Version = "v1" });
+            });
 
-            // Register DbContext with SQL Server
+            //register context
             builder.Services.AddDbContext<ShippingContext>(options =>
             {
                 options.UseLazyLoadingProxies().UseSqlServer(builder.Configuration.GetConnectionString("CS"));
             });
 
+
             builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
                 .AddEntityFrameworkStores<ShippingContext>();
+
+            builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+
 
             // Register AutoMapper
             builder.Services.AddAutoMapper(typeof(Program));
 
-            // Register Unit of Work
+            //Register of Unit Of work
+
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // Register Generic Repository
@@ -49,25 +61,29 @@ namespace Shipping
             // Register Delivery Service
             builder.Services.AddScoped<IDeliveryService, DeliveryService>();
 
-            // Register General Response
-            builder.Services.AddScoped<GeneralResponse>();
-
             // Register Government Service
             builder.Services.AddScoped<IGovernmentService, GovernmentService>();
+
+            //Register Merchant Service
+            builder.Services.AddScoped<IMerchantService, MerchantService>();
+            //Register City Service
+            builder.Services.AddScoped<ICityService, CityService>();
+            // Register Generic Service
+            builder.Services.AddScoped<GeneralResponse>();
 
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
-                app.UseSwaggerUI(options => options.SwaggerEndpoint("/openapi/v1.json", "v1"));
-                app.MapOpenApi();
+                app.UseSwagger(); 
+                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Shipping API V1"));
             }
 
             app.UseAuthorization();
 
-            app.MapControllers();
 
+            app.MapControllers();
             app.Run();
         }
     }

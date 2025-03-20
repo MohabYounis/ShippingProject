@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Shipping.DTOs.NewFolder1;
+using Shipping.DTOs.SpecialShippingRatesDTOs;
+using System.ComponentModel.DataAnnotations;
 
 namespace Shipping.DTOs.MerchantDTOs
 {
@@ -24,7 +26,8 @@ namespace Shipping.DTOs.MerchantDTOs
         public decimal PickupCost { get; set; }
         [Range(0, 100, ErrorMessage = "Percentage must be between 0 and 100%")]
         public decimal RejectedOrderPercentage { get; set; }
-        //public List<Branch>? Branches { get; set; }
-        //public List<SpecialShippingRate>? SpecialShippingRates { get; set; }
+        public bool IsDeleted { get; set; } = false;
+        public List<SpecialCreateDTO>? SpecialShippingRates { get; set; }
+        public List<int>? Branches_Id { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Shipping.Repository;
+﻿using Microsoft.EntityFrameworkCore;
+using Shipping.Repository;
 using Shipping.Services;
 using Shipping.UnitOfWorks;
 
@@ -6,19 +7,22 @@ namespace SHIPPING.Services
 {
     public class ServiceGeneric<Tentity> : IServiceGeneric<Tentity> where Tentity : class
     {
-        private readonly IUnitOfWork unitOfWork;
+        protected readonly IUnitOfWork unitOfWork;
 
         public ServiceGeneric(IUnitOfWork unitOfWork)
         {
             this.unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         }
-        public async Task<IEnumerable<Tentity>> GetAllAsync()
+
+
+        //--------------------------------------
+        public virtual async Task<IEnumerable<Tentity>> GetAllAsync()
         {
             return await unitOfWork.GetRepository<Tentity>().GetAllAsync();
         }
 
 
-        public async Task<IEnumerable<Tentity>> GetAllExistAsync()
+        public virtual async Task<IEnumerable<Tentity>> GetAllExistAsync()
         {
             return await unitOfWork.GetRepository<Tentity>().GetAllExistAsync();
         }
@@ -32,15 +36,13 @@ namespace SHIPPING.Services
 
         public async Task AddAsync(Tentity entity)
         {
-            if (entity == null) throw new ArgumentNullException(nameof(entity));
             await unitOfWork.GetRepository<Tentity>().AddAsync(entity);
         }
 
-        public async Task UpdateAsync(int id)
+        public async Task UpdateAsync(Tentity entity)
         {
-            var entity = await unitOfWork.GetRepository<Tentity>().GetByIdAsync(id);
-            if (entity == null) throw new KeyNotFoundException($"Entity with ID {id} not found.");
-            await unitOfWork.GetRepository<Tentity>().UpdateById(id);
+            if (entity == null) throw new KeyNotFoundException($"Entity not found.");
+            await unitOfWork.GetRepository<Tentity>().Update(entity);
         }
 
         public async Task DeleteAsync(int id)
@@ -60,5 +62,7 @@ namespace SHIPPING.Services
         {
             await unitOfWork.SaveChangesAsync();
         }
+
+       
     }
 }
