@@ -11,7 +11,6 @@ using SHIPPING.Services;
 using Microsoft.OpenApi.Models;
 using Shipping.Controllers;
 
-
 namespace Shipping
 {
     public class Program
@@ -70,6 +69,11 @@ namespace Shipping
             builder.Services.AddScoped<ICityService, CityService>();
             // Register Generic Service
             builder.Services.AddScoped<GeneralResponse>();
+
+            builder.Services.AddScoped<IApplicationRoleService, ApplicationRoleService>();
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped(typeof(IRepositoryGeneric<>), typeof(RepositoryGeneric<>));
+            builder.Services.AddScoped<IWeightPricingService, WeightPricingService>();
 
             var app = builder.Build();
 
