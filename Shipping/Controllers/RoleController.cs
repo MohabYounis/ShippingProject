@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Shipping.DTOs;
 using Shipping.Models;
 using Shipping.Services.IModelService;
 
@@ -10,9 +12,12 @@ namespace Shipping.Controllers
     public class RoleController : ControllerBase
     {
         private readonly IApplicationRoleService _roleService;
-        public RoleController(IApplicationRoleService roleService)
+        private readonly IMapper mapper;
+
+        public RoleController(IApplicationRoleService roleService , IMapper mapper)
         {
             _roleService = roleService ?? throw new ArgumentNullException(nameof(roleService));
+            this.mapper = mapper;
         }
 
         // GET: api/Role
@@ -40,7 +45,7 @@ namespace Shipping.Controllers
 
         // POST: api/Role
         [HttpPost]
-        public async Task<IActionResult> AddRole([FromBody] ApplicationRole role)
+        public async Task<IActionResult> AddRole([FromBody] ApplicationRoleDTO role)
         {
             if (!ModelState.IsValid)
             {
@@ -55,7 +60,7 @@ namespace Shipping.Controllers
 
         // PUT: api/Role/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateRole(string id, [FromBody] ApplicationRole role)
+        public async Task<IActionResult> UpdateRole(string id, [FromBody] ApplicationRoleDTO role)
         {
             if (!ModelState.IsValid)
             {
@@ -69,10 +74,9 @@ namespace Shipping.Controllers
                 {
                     return NotFound($"Role with ID {id} not found.");
                 }
-
+                role.Id = id; 
                 _roleService.Update(role);
-                 _roleService.SaveDB();
-
+                _roleService.SaveDB();  
                 return NoContent();
             }
             catch (KeyNotFoundException)
@@ -83,18 +87,25 @@ namespace Shipping.Controllers
 
         // DELETE: api/Role/{id}
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteRole([FromBody] ApplicationRole role)
+        public async Task<IActionResult> DeleteRole(string id)
         {
             try
             {
-                 _roleService.Delete(role);
+                var existingRole = await _roleService.GetByIdAsync(id);
+                if (existingRole == null)
+                {
+                    return NotFound($"Role with ID {id} not found.");
+                }
+                await _roleService.Delete(id);
                 _roleService.SaveDB();
+
                 return NoContent();
             }
             catch (KeyNotFoundException)
             {
-                return NotFound($"Role with ID {role.Id} not found.");
+                return NotFound($"Role with ID {id} not found.");
             }
         }
+
     }
 }
