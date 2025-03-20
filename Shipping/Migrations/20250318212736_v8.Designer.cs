@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Shipping.Models;
 
@@ -11,9 +12,11 @@ using Shipping.Models;
 namespace Shipping.Migrations
 {
     [DbContext(typeof(ShippingContext))]
-    partial class ShippingContextModelSnapshot : ModelSnapshot
+    [Migration("20250318212736_v8")]
+    partial class v8
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -184,9 +187,6 @@ namespace Shipping.Migrations
                         .HasColumnType("nvarchar(256)");
 
                     b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<bool>("LockoutEnabled")
@@ -594,7 +594,10 @@ namespace Shipping.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Order_Id")
+                    b.Property<int?>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Product_Id")
                         .HasColumnType("int");
 
                     b.Property<int>("Quantity")
@@ -602,7 +605,9 @@ namespace Shipping.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Order_Id");
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("Product_Id");
 
                     b.ToTable("Products");
                 });
@@ -981,13 +986,17 @@ namespace Shipping.Migrations
 
             modelBuilder.Entity("Shipping.Models.Product", b =>
                 {
-                    b.HasOne("Shipping.Models.Order", "Order")
+                    b.HasOne("Shipping.Models.Order", null)
                         .WithMany("Products")
-                        .HasForeignKey("Order_Id")
+                        .HasForeignKey("OrderId");
+
+                    b.HasOne("Shipping.Models.Product", "product")
+                        .WithMany()
+                        .HasForeignKey("Product_Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Order");
+                    b.Navigation("product");
                 });
 
             modelBuilder.Entity("Shipping.Models.RolePermission", b =>

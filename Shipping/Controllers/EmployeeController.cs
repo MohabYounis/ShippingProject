@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Shipping.DTOs.Employee;
-using Shipping.DTOs.EmployeeDTOs;
 using Shipping.Models;
 using Shipping.Services;
 using Shipping.Services.IModelService;
@@ -192,7 +191,7 @@ namespace Shipping.Controllers
             if (branch == null) return BadRequest("Branch not found");
 
             employee.Branch_Id = branch.Id;
-            await empService.SaveChangesAsync();
+            await employeeService.SaveChangesAsync();
 
             return Ok("Employee updated successfully!");
         }
@@ -208,8 +207,8 @@ namespace Shipping.Controllers
             {
                 return NotFound($"Employee with id {id} not found");
             }
-            await empService.DeleteAsync(id);
-            await empService.SaveChangesAsync();
+            await employeeService.DeleteAsync(id);
+            await employeeService.SaveChangesAsync();
             return Ok("Employee deleted successfully!");
         }
     }

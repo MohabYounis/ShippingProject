@@ -2,8 +2,8 @@
 
 namespace Shipping.Services.IModelService
 {
-    public interface IEmployeeService: IServiceGeneric<Employee>    
+    public interface IEmployeeService :IServiceGeneric<Employee>
     {
-       
+ 
     }
 }
