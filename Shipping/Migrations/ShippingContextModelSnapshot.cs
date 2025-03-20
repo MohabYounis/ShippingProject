@@ -333,11 +333,7 @@ namespace Shipping.Migrations
                     b.Property<int>("DiscountType")
                         .HasColumnType("int");
 
-                    b.Property<string>("GovernmentName")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<bool>("IsDeleted")
-                        .HasMaxLength(100)
                         .HasColumnType("bit");
 
                     b.HasKey("Id");
@@ -598,10 +594,7 @@ namespace Shipping.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("OrderId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Product_Id")
+                    b.Property<int>("Order_Id")
                         .HasColumnType("int");
 
                     b.Property<int>("Quantity")
@@ -609,9 +602,7 @@ namespace Shipping.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OrderId");
-
-                    b.HasIndex("Product_Id");
+                    b.HasIndex("Order_Id");
 
                     b.ToTable("Products");
                 });
@@ -864,7 +855,7 @@ namespace Shipping.Migrations
             modelBuilder.Entity("Shipping.Models.DeliveryGovernment", b =>
                 {
                     b.HasOne("Shipping.Models.Delivery", "Delivery")
-                        .WithMany()
+                        .WithMany("DeliveryGovernments")
                         .HasForeignKey("Delivery_Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -990,17 +981,13 @@ namespace Shipping.Migrations
 
             modelBuilder.Entity("Shipping.Models.Product", b =>
                 {
-                    b.HasOne("Shipping.Models.Order", null)
+                    b.HasOne("Shipping.Models.Order", "Order")
                         .WithMany("Products")
-                        .HasForeignKey("OrderId");
-
-                    b.HasOne("Shipping.Models.Product", "product")
-                        .WithMany()
-                        .HasForeignKey("Product_Id")
+                        .HasForeignKey("Order_Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("product");
+                    b.Navigation("Order");
                 });
 
             modelBuilder.Entity("Shipping.Models.RolePermission", b =>
@@ -1073,6 +1060,8 @@ namespace Shipping.Migrations
 
             modelBuilder.Entity("Shipping.Models.Delivery", b =>
                 {
+                    b.Navigation("DeliveryGovernments");
+
                     b.Navigation("Orders");
                 });
 

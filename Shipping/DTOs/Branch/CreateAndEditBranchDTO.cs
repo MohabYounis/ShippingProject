@@ -2,7 +2,7 @@
 
 namespace Shipping.DTOs.Branch
 {
-    public class CreateBranchDTO
+    public class CreateAndEditBranchDTO
     {
         [Required]
         public string Name { get; set; }
