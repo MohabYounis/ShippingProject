@@ -1,6 +1,8 @@
-﻿namespace Shipping.Services.IModelService
+﻿using Shipping.Models;
+
+namespace Shipping.Services.IModelService
 {
-    public interface ICityService
+    public interface ICityService : IServiceGeneric<City>
     {
     }
 }

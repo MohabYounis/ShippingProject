@@ -25,6 +25,10 @@ namespace Shipping.Models
 
         public ShippingContext() : base() { }
 
-        public ShippingContext (DbContextOptions<ShippingContext> options) : base(options) { }
+        public ShippingContext (DbContextOptions<ShippingContext> options) : base(options) { 
+        
+        
+        }
+     
     }
 }
