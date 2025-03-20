@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Shipping.DTOs.EmployeeDTOs
+namespace Shipping.DTOs.Employee
 {
     public class EmployeeDTO
     {

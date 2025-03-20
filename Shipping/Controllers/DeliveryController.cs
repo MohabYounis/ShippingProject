@@ -138,6 +138,7 @@ namespace Shipping.Controllers
                 return BadRequest("Deliver is aready deleted");
             }
            await deliveryService.DeleteAsync(id);
+
            await deliveryService.SaveChangesAsync();
             
             return Ok("Deleted Succes");
