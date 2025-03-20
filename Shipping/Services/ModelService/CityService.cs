@@ -18,10 +18,9 @@ namespace Shipping.Services.ModelService
             var query = unitOfWork.GetRepository<City>().GetAllAsync();
             var employees = await query;
             return employees
-                .Include(e => e.ApplicationUser)
                 .Include(e => e.SpecialShippingRates)
                 .Include(e => e.Orders)
-                .Include(e => e.BranchMerchants).ThenInclude(e => e.Branch)
+                .Include(e => e.Government)
                 .ToList();
         }
 
@@ -30,10 +29,9 @@ namespace Shipping.Services.ModelService
             var query = unitOfWork.GetRepository<City>().GetAllExistAsync();
             var employees = await query;
             return employees
-                .Include(e => e.ApplicationUser)
                 .Include(e => e.SpecialShippingRates)
                 .Include(e => e.Orders)
-                .Include(e => e.BranchMerchants).ThenInclude(e => e.Branch)
+                .Include(e => e.Government)
                 .ToList();
         }
     }

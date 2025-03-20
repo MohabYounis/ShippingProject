@@ -15,18 +15,19 @@ namespace Shipping.Controllers
     [ApiController]
     public class CityController : ControllerBase
     {
-        IServiceGeneric<City> service;
+        IServiceGeneric<City> serviceCityGernric;
         GeneralResponse response;
         private readonly IMapper mapper;
         private readonly ICityService cityService;
 
-        public CityController(IServiceGeneric<City> service, GeneralResponse response, IMapper mapper, ICityService cityService)
+        public CityController(IServiceGeneric<City> serviceCityGernric, GeneralResponse response, IMapper mapper, ICityService cityService)
         {
-            this.service = service;
+            this.serviceCityGernric = serviceCityGernric;
             this.response = response;
             this.mapper = mapper;
             this.cityService = cityService;
         }
+
 
         [HttpGet("All")]
         public async Task <ActionResult<GeneralResponse>> GetAll()
@@ -92,7 +93,7 @@ namespace Shipping.Controllers
         {
             try
             {
-                var city = await service.GetByIdAsync(id);
+                var city = await serviceCityGernric.GetByIdAsync(id);
                 var cityDTO = mapper.Map <CityGetDTO>(city);
 
                 if (city == null)
@@ -116,5 +117,88 @@ namespace Shipping.Controllers
             }
         }
 
+
+        [HttpPost]
+        public async Task <ActionResult<GeneralResponse>> Create(CityCreateDTO cityFromReq)
+        {
+            if (!ModelState.IsValid)
+            {
+                response.IsSuccess = false;
+                response.Data = ModelState.ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToList()
+                );
+                return BadRequest(response);
+            }
+            try
+            {
+                var city = mapper.Map<City>(cityFromReq);
+                await serviceCityGernric.AddAsync(city);
+                await serviceCityGernric.SaveChangesAsync();
+
+                response.IsSuccess = true;
+                response.Data = "City created successfully.";
+                return CreatedAtAction("Create", response);
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Data = ex.Message;
+                return StatusCode(500, response);
+            }
+        }
+
+
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult<GeneralResponse>> EditById(int id, [FromBody] CityEditDTO cityFromReq)
+        {
+            if (!ModelState.IsValid)
+            {
+                response.IsSuccess = false;
+                response.Data = ModelState.ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToList()
+                );
+                return BadRequest(response);
+            }
+            try
+            {
+                var city = mapper.Map<City>(cityFromReq);
+                city.Id = id;
+                await serviceCityGernric.UpdateAsync(city);
+                await serviceCityGernric.SaveChangesAsync();
+
+                response.IsSuccess = true;
+                response.Data = "City updated successfully.";
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Data = ex.Message;
+                return StatusCode(500, response);
+            }
+        }
+
+
+        [HttpDelete("{id:int}")]
+        public async Task <ActionResult<GeneralResponse>> Delete (int id)
+        {
+            try
+            {
+                await serviceCityGernric.DeleteAsync(id);
+                await serviceCityGernric.SaveChangesAsync();
+
+                response.IsSuccess = true;
+                response.Data = "City deleted successfully.";
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Data = ex.Message;
+                return StatusCode(500, response);
+            }
+        }
     }
 }

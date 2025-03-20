@@ -13,6 +13,10 @@ namespace Shipping.MapperConfig
             {
                 dest.GovernmentName = src.Government.Name;
             }).ReverseMap();
+            
+            CreateMap<CityCreateDTO, City>().ReverseMap();
+
+            CreateMap<CityEditDTO, City>().ReverseMap();
         }
     }
 }
