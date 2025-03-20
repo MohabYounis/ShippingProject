@@ -61,6 +61,8 @@ namespace Shipping
             builder.Services.AddScoped<IDeliveryService, DeliveryService>();
             //Register Merchant Service
             builder.Services.AddScoped<IMerchantService, MerchantService>();
+            //Register City Service
+            builder.Services.AddScoped<ICityService, CityService>();
             // Register Generic Service
             builder.Services.AddScoped<GeneralResponse>();
 

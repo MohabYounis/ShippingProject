@@ -17,13 +17,12 @@ namespace Shipping.Services.ModelService
 
         public override async Task<IEnumerable<Merchant>> GetAllAsync()
         {
-            var query = unitOfWork.GetRepository<Merchant>().GetAllAsync();
+            var query = unitOfWork.GetRepository<Merchant>().GetAllExistAsync();
             var employees = await query;
             return employees
-                .Include(e => e.ApplicationUser)
-                .Include(e => e.SpecialShippingRates)
+                .Include(e => e.Government)
                 .Include(e => e.Orders)
-                .Include(e => e.BranchMerchants).ThenInclude(e => e.Branch)
+                .Include(e => e.SpecialShippingRates)
                 .ToList();
         }
 
@@ -32,10 +31,9 @@ namespace Shipping.Services.ModelService
             var query = unitOfWork.GetRepository<Merchant>().GetAllExistAsync();
             var employees = await query;
             return employees
-                .Include(e => e.ApplicationUser)
-                .Include(e => e.SpecialShippingRates)
+                .Include(e => e.Government)
                 .Include(e => e.Orders)
-                .Include(e => e.BranchMerchants).ThenInclude(e => e.Branch)
+                .Include(e => e.SpecialShippingRates)
                 .ToList();
         }
     }
