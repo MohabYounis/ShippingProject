@@ -129,12 +129,19 @@ namespace Shipping.Controllers
                 Cost = ShippingDto.Cost,
             };
 
+            try
+            {
+                //adding to db
+                await shippingService.AddAsync(shippingType);
+                await shippingService.SaveChangesAsync();
 
-          await shippingService.AddAsync(shippingType);
-          await shippingService.SaveChangesAsync();
+                return Ok("Shipping added successfully");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
 
-            return Ok("Shipping added successfully");
-
+            }
         }
 
         [HttpPut("{id}")]
@@ -171,7 +178,7 @@ namespace Shipping.Controllers
 
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteEmployee(int id)
+        public async Task<IActionResult> DeleteShipping(int id)
         {
             //check 
             if (id <= 0)
