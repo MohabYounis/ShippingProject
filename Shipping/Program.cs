@@ -64,7 +64,6 @@ namespace Shipping
             // Register Generic Service
             builder.Services.AddScoped<GeneralResponse>();
 
-            builder.Services.AddEndpointsApiExplorer();
 
             var app = builder.Build();
 
