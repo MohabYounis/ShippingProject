@@ -21,9 +21,8 @@ namespace Shipping.Services.ModelService
             var employees = await query;
             return employees
                 .Include(e => e.ApplicationUser)
-                .Include(e => e.SpecialShippingRates)
                 .Include(e => e.Orders)
-                .Include(e => e.BranchMerchants).ThenInclude(e => e.Branch)
+                .Include(e => e.BranchMerchants).ThenInclude(n => n.Branch)
                 .ToList();
         }
 
@@ -33,9 +32,8 @@ namespace Shipping.Services.ModelService
             var employees = await query;
             return employees
                 .Include(e => e.ApplicationUser)
-                .Include(e => e.SpecialShippingRates)
                 .Include(e => e.Orders)
-                .Include(e => e.BranchMerchants).ThenInclude(e => e.Branch)
+                .Include(e => e.BranchMerchants).ThenInclude(n => n.Branch)
                 .ToList();
         }
     }
