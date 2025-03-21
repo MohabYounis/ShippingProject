@@ -7,7 +7,7 @@
         Task<IEnumerable<Tentity>> GetAllExistAsync();
         Task<Tentity> GetByIdAsync(int id);
         Task AddAsync(Tentity entity);
-        Task UpdateAsync(int id);
+        Task UpdateAsync(Tentity entity);
         Task DeleteAsync(int id);
         Task SaveChangesAsync();
     }

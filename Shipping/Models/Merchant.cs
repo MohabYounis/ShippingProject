@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Shipping.Models
@@ -17,8 +18,8 @@ namespace Shipping.Models
         [Range(0, 100, ErrorMessage=("Percentage must be between 0 and 100%"))]
         public decimal RejectedOrderPercentage  { get; set; }
         public virtual ApplicationUser ApplicationUser { get; set; }
-        public virtual List<SpecialShippingRate>? SpecialShippingRates { get; set; }
-        public virtual List<Order>? Orders { get; set; }
-        public virtual List<BranchMerchant>? BranchMerchants { get; } = new List<BranchMerchant>();
+        public virtual List<SpecialShippingRate>? SpecialShippingRates { get; set; } = new List<SpecialShippingRate>();
+        public virtual List<Order>? Orders { get; } = new List<Order>();
+        public virtual List<BranchMerchant>? BranchMerchants { get; set; } = new List<BranchMerchant>();
     }
 }

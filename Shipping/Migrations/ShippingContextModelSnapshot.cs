@@ -186,6 +186,9 @@ namespace Shipping.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
 
@@ -260,7 +263,7 @@ namespace Shipping.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Branches");
+                    b.ToTable("Branches", (string)null);
                 });
 
             modelBuilder.Entity("Shipping.Models.BranchMerchant", b =>
@@ -275,7 +278,7 @@ namespace Shipping.Migrations
 
                     b.HasIndex("Branch_Id");
 
-                    b.ToTable("BranchMerchants");
+                    b.ToTable("BranchMerchants", (string)null);
                 });
 
             modelBuilder.Entity("Shipping.Models.City", b =>
@@ -306,7 +309,7 @@ namespace Shipping.Migrations
 
                     b.HasIndex("Government_Id");
 
-                    b.ToTable("Cities");
+                    b.ToTable("Cities", (string)null);
                 });
 
             modelBuilder.Entity("Shipping.Models.Delivery", b =>
@@ -340,7 +343,7 @@ namespace Shipping.Migrations
 
                     b.HasIndex("Branch_Id");
 
-                    b.ToTable("Deliveries");
+                    b.ToTable("Deliveries", (string)null);
                 });
 
             modelBuilder.Entity("Shipping.Models.DeliveryGovernment", b =>
@@ -358,7 +361,7 @@ namespace Shipping.Migrations
 
                     b.HasIndex("Government_Id");
 
-                    b.ToTable("DeliveryGovernments");
+                    b.ToTable("DeliveryGovernments", (string)null);
                 });
 
             modelBuilder.Entity("Shipping.Models.Employee", b =>
@@ -386,7 +389,7 @@ namespace Shipping.Migrations
 
                     b.HasIndex("Branch_Id");
 
-                    b.ToTable("Employees");
+                    b.ToTable("Employees", (string)null);
                 });
 
             modelBuilder.Entity("Shipping.Models.Government", b =>
@@ -411,7 +414,7 @@ namespace Shipping.Migrations
 
                     b.HasIndex("Branch_Id");
 
-                    b.ToTable("Governments");
+                    b.ToTable("Governments", (string)null);
                 });
 
             modelBuilder.Entity("Shipping.Models.Merchant", b =>
@@ -453,7 +456,7 @@ namespace Shipping.Migrations
                     b.HasIndex("AppUser_Id")
                         .IsUnique();
 
-                    b.ToTable("Merchants");
+                    b.ToTable("Merchants", (string)null);
                 });
 
             modelBuilder.Entity("Shipping.Models.Order", b =>
@@ -550,7 +553,7 @@ namespace Shipping.Migrations
 
                     b.HasIndex("WeightPricing_Id");
 
-                    b.ToTable("Orders");
+                    b.ToTable("Orders", (string)null);
                 });
 
             modelBuilder.Entity("Shipping.Models.Permission", b =>
@@ -570,7 +573,7 @@ namespace Shipping.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Permissions");
+                    b.ToTable("Permissions", (string)null);
                 });
 
             modelBuilder.Entity("Shipping.Models.Product", b =>
@@ -591,10 +594,7 @@ namespace Shipping.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("OrderId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Product_Id")
+                    b.Property<int>("Order_Id")
                         .HasColumnType("int");
 
                     b.Property<int>("Quantity")
@@ -602,11 +602,9 @@ namespace Shipping.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OrderId");
+                    b.HasIndex("Order_Id");
 
-                    b.HasIndex("Product_Id");
-
-                    b.ToTable("Products");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("Shipping.Models.RejectReason", b =>
@@ -626,7 +624,7 @@ namespace Shipping.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("RejectReason");
+                    b.ToTable("RejectReason", (string)null);
                 });
 
             modelBuilder.Entity("Shipping.Models.RolePermission", b =>
@@ -656,7 +654,7 @@ namespace Shipping.Migrations
 
                     b.HasIndex("Role_Id");
 
-                    b.ToTable("RolePermissions");
+                    b.ToTable("RolePermissions", (string)null);
                 });
 
             modelBuilder.Entity("Shipping.Models.Setting", b =>
@@ -678,7 +676,7 @@ namespace Shipping.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ShippingToVillages");
+                    b.ToTable("ShippingToVillages", (string)null);
                 });
 
             modelBuilder.Entity("Shipping.Models.ShippingType", b =>
@@ -705,7 +703,7 @@ namespace Shipping.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ShippingTypes");
+                    b.ToTable("ShippingTypes", (string)null);
                 });
 
             modelBuilder.Entity("Shipping.Models.SpecialShippingRate", b =>
@@ -726,7 +724,7 @@ namespace Shipping.Migrations
 
                     b.HasIndex("Merchant_Id");
 
-                    b.ToTable("SpecialShippingRates");
+                    b.ToTable("SpecialShippingRates", (string)null);
                 });
 
             modelBuilder.Entity("Shipping.Models.WeightPricing", b =>
@@ -751,7 +749,7 @@ namespace Shipping.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("WeightPricings");
+                    b.ToTable("WeightPricings", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -983,17 +981,13 @@ namespace Shipping.Migrations
 
             modelBuilder.Entity("Shipping.Models.Product", b =>
                 {
-                    b.HasOne("Shipping.Models.Order", null)
+                    b.HasOne("Shipping.Models.Order", "Order")
                         .WithMany("Products")
-                        .HasForeignKey("OrderId");
-
-                    b.HasOne("Shipping.Models.Product", "product")
-                        .WithMany()
-                        .HasForeignKey("Product_Id")
+                        .HasForeignKey("Order_Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("product");
+                    b.Navigation("Order");
                 });
 
             modelBuilder.Entity("Shipping.Models.RolePermission", b =>
