@@ -57,6 +57,38 @@ namespace Shipping.Controllers
             }
 
         }
+        [HttpGet("AllExist")]
+        public async Task<IActionResult> GetAllExist()
+        {
+            try
+            {
+                var deliveries = await deliveryService.GetAllDeliveryWithGovernmentsAsync();
+                var deliveryExist = deliveries.Where(i => !i.IsDeleted).ToList();
+
+                if (deliveries == null || !deliveries.Any())
+                {
+                    return NotFound("No deliveries found.");
+                }
+
+                List<ShowDeliveryDto> deliveryDTO = deliveryExist.Select(delivery => new ShowDeliveryDto
+                {
+                    Id = delivery.Id,
+                    Address = delivery.ApplicationUser?.Address,
+                    Email = delivery.ApplicationUser?.Email,
+                    Phone = delivery.ApplicationUser?.PhoneNumber,
+                    Name = delivery.ApplicationUser?.UserName,
+                    BranchName = delivery.Branch?.Name,
+                    GovernmentName = delivery.DeliveryGovernments.Select(dg => dg.Government?.Name).ToList(),
+                    IsDeleted = delivery.IsDeleted
+                }).ToList();
+                return Ok(deliveryDTO);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+        }
 
 
         [HttpPost]
@@ -64,7 +96,7 @@ namespace Shipping.Controllers
         {
             if (!ModelState.IsValid) 
             {
-                return BadRequest(ModelState);
+                return BadRequest("hmada");
             }
             try
             {
@@ -143,6 +175,8 @@ namespace Shipping.Controllers
             
             return Ok("Deleted Succes");
         }
+
+
 
 
 
