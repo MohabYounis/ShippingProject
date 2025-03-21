@@ -60,6 +60,8 @@ namespace Shipping
             // Register Delivery Service
             builder.Services.AddScoped<IDeliveryService, DeliveryService>();
 
+            // Register RejectReason Service
+            builder.Services.AddScoped<IRejectReasonService, RejectReasonService>();
             // Register Government Service
             builder.Services.AddScoped<IGovernmentService, GovernmentService>();
 
