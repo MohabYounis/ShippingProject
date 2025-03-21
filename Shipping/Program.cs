@@ -49,6 +49,9 @@ namespace Shipping
             // Register Delivery Service
             builder.Services.AddScoped<IDeliveryService, DeliveryService>();
 
+            // Register RejectReason Service
+            builder.Services.AddScoped<IRejectReasonService, RejectReasonService>();
+
             // Register General Response
             builder.Services.AddScoped<GeneralResponse>();
 
