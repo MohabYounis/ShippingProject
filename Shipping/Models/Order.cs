@@ -15,18 +15,23 @@ namespace Shipping.Models
     }
     public enum OrderStatus
     {
-        New,                // جديد
-        Pendding,           // قيد الانتظار
-        AssignedToCourier,  // تم التسليم للمندوب
-        InTransit,          // في الطريق
-        Delivered,          // تم التسليم للعميل
-        Canceled,           // تم الإلغاء
-        Returned            // تم الإرجاع
+        New,          
+        Pending,          
+        DeliveredToAgent,  
+        Delivered,         
+        CanceledByRecipient,         
+        PartiallyDelivered,       
+        Postponed,
+        CannotBeReached,
+        RejectedAndNotPaid,
+        RejectedWithPartialPayment,
+        RejectedWithPayment
     }
 
     public class Order
     {
         public int Id { get; set; }
+        public string SerialNumber { get; set; }
         [ForeignKey("Merchant")]
         public int Merchant_Id { get; set; }
         [ForeignKey("ShippingType")]
@@ -65,5 +70,10 @@ namespace Shipping.Models
         public virtual City? City { get; set; }
         public virtual Setting? Setting { get; set; }
         public virtual RejectReason? RejectReason { get; set; }
+
+        public Order()
+        {
+            SerialNumber = (Id + 40_000_000).ToString();
+        }
     }
 }
