@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Shipping.DTOs;
 using Shipping.Models;
@@ -10,6 +10,9 @@ using Shipping.UnitOfWorks;
 using SHIPPING.Services;
 using Microsoft.OpenApi.Models;
 using Shipping.Controllers;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace Shipping
 {
@@ -37,7 +40,7 @@ namespace Shipping
                 options.UseLazyLoadingProxies().UseSqlServer(builder.Configuration.GetConnectionString("CS"));
             });
 
-
+            // Register Identity
             builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
                 .AddEntityFrameworkStores<ShippingContext>();
 
@@ -74,6 +77,25 @@ namespace Shipping
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped(typeof(IRepositoryGeneric<>), typeof(RepositoryGeneric<>));
             builder.Services.AddScoped<IWeightPricingService, WeightPricingService>();
+
+            //jwt
+            var jwtOptions= builder.Configuration.GetSection("Jwt").Get<JwtOptions>();
+            builder.Services.AddSingleton(jwtOptions);
+            builder.Services.AddAuthentication()
+                .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+                {
+                    options.SaveToken = true;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer=jwtOptions.Issuer,
+                        ValidateAudience = true,
+                        ValidAudience = jwtOptions.Audience,
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),//حولي signkey الي array of byte 
+                    };
+                });
+
 
             var app = builder.Build();
 
