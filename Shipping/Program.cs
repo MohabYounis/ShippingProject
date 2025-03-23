@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Shipping.DTOs;
 using Shipping.Models;
 using Shipping.Repository;
@@ -9,10 +8,10 @@ using Shipping.Services.ModelService;
 using Shipping.UnitOfWorks;
 using SHIPPING.Services;
 using Microsoft.OpenApi.Models;
-using Shipping.Controllers;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace Shipping
 {
@@ -101,7 +100,18 @@ namespace Shipping
                 });
 
 
+
+            // For Profile Image
+            builder.Services.Configure<FormOptions>(options =>
+            {
+                options.MultipartBodyLengthLimit = 104857600; // السماح برفع ملفات حتى 100 ميجابايت
+            });
+
+
+
             var app = builder.Build();
+
+
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -110,10 +120,14 @@ namespace Shipping
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Shipping API V1"));
             }
 
+            app.UseStaticFiles();
+
+            app.UseRouting();
+
             app.UseAuthorization();
 
-
             app.MapControllers();
+
             app.Run();
         }
     }
