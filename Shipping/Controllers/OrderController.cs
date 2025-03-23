@@ -212,5 +212,27 @@ namespace Shipping.Controllers
 
         //------------------------------------------------------------------------------------------------------------------------------------
 
+        [HttpPost]
+        public async Task <ActionResult<GeneralResponse>> CreateOrder(OrderCreateDTO orderFromReq)
+        {
+            if (!ModelState.IsValid)
+            {
+                response.IsSuccess = false;
+                response.Data = ModelState.ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToList()
+                );
+                return BadRequest(response);
+            }
+            try
+            {
+                var order = mapper.Map<Order>(orderFromReq);
+
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
     }
 }
