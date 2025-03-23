@@ -34,6 +34,8 @@ namespace Shipping.Models
         public string SerialNumber { get; set; }
         [ForeignKey("Merchant")]
         public int Merchant_Id { get; set; }
+        [ForeignKey("Branch")]
+        public int Branch_Id { get; set; }
         [ForeignKey("ShippingType")]
         public int ShippingType_Id { get; set; }
         [ForeignKey("WeightPricing")]
@@ -41,7 +43,7 @@ namespace Shipping.Models
         [ForeignKey("Delivery")]
         public int Delivery_Id { get; set; }
         [ForeignKey("Government")]
-        public int Dovernment_Id { get; set; }
+        public int Government_Id { get; set; }
         [ForeignKey("City")]
         public int City_Id { get; set; }
         [ForeignKey("Setting")]
@@ -52,15 +54,17 @@ namespace Shipping.Models
         public string ClientPhone2 { get; set; }
         public string ClientEmail { get; set; }
         public string ClientAddress { get; set; }
-        public bool DeliverToVillage { get; set; } = false;
+        public bool DeliverToVillage { get; set; }
         public bool IsDeleted { get; set; } = false;
         public OrderStatus OrderStatus { get; set; } = OrderStatus.New;
         [ForeignKey("RejectReason")]
         public int RejectReason_ID { get; set; }
         public PaymentTypee PaymentType { get; set; }
         public DateTime CreatedDate { get; set; } = DateTime.Now;
+        public decimal OrderCost { get; set; } // depend on merchant pricing
         public decimal ShippingCost { get; set; } // depend on weight, additional weight, shipping type city price [standard or pickup], deliver to village, payment type and order type
-        public float TotalWeight { get; set; }
+        public float OrderTotalWeight { get; set; }
+        public string Notes { get; set; }
         public virtual Merchant? Merchant { get; set; }
         public virtual List<Product>? Products { get; } = new List<Product>();
         public virtual ShippingType? ShippingType { get; set; }
@@ -70,6 +74,7 @@ namespace Shipping.Models
         public virtual City? City { get; set; }
         public virtual Setting? Setting { get; set; }
         public virtual RejectReason? RejectReason { get; set; }
+        public virtual Branch? Branch { get; set; }
 
         public Order()
         {
