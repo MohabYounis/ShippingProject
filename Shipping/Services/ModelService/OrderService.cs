@@ -38,7 +38,6 @@ namespace Shipping.Services.ModelService
                 .Include(e => e.Delivery)
                 .Include(e => e.Government)
                 .Include(e => e.City)
-                .Include(e => e.Setting)
                 .Include(e => e.RejectReason)
                 .ToList();
         }
@@ -53,7 +52,6 @@ namespace Shipping.Services.ModelService
                .Include(e => e.Delivery)
                .Include(e => e.Government)
                .Include(e => e.City)
-               .Include(e => e.Setting)
                .Include(e => e.RejectReason)
                .ToList();
         }

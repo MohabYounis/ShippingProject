@@ -11,14 +11,12 @@ namespace Shipping.MapperConfig
             CreateMap<WeightPricing, WeightPricingDTO>().AfterMap((src, dest) =>
             {
                 dest.DefaultWeight = src.DefaultWeight;
-                dest.DefaultPrice = src.DefaultPrice;
                 dest.AdditionalKgPrice = src.AdditionalKgPrice;
             }).ReverseMap();
 
             CreateMap<WeightPricingDTO, WeightPricing>().AfterMap((src, dest) =>
             {
                 dest.DefaultWeight = src.DefaultWeight;
-                dest.DefaultPrice = src.DefaultPrice;
                 dest.AdditionalKgPrice = src.AdditionalKgPrice;
             }).ReverseMap();
 

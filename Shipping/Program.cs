@@ -71,7 +71,8 @@ namespace Shipping
             builder.Services.AddScoped<IGovernmentService, GovernmentService>();
 
             //Register Merchant Service
-            builder.Services.AddScoped<IMerchantService, MerchantService>();
+            builder.Services.AddScoped<IMerchantService, MerchantService>(); //Register Merchant Service
+            builder.Services.AddScoped<ISpecialShippingRateService, SpecialShippingRateService>();
             //Register City Service
             builder.Services.AddScoped<ICityService, CityService>();
             //Register Order Service
