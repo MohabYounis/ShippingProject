@@ -11,8 +11,20 @@ namespace Shipping.Services.ModelService
 {
     public class OrderService : ServiceGeneric<Order>, IOrderService
     {
-        public OrderService(IUnitOfWork unitOfWork) : base(unitOfWork)
+        ISpecialShippingRateService specialShippingRateService;
+        IServiceGeneric<WeightPricing> weightService;
+        IServiceGeneric<ShippingType> shippingTypeService;
+        IServiceGeneric<Merchant> merchantService;
+        IServiceGeneric<Setting> settingService;
+        public OrderService(IUnitOfWork unitOfWork, ISpecialShippingRateService specialShippingRateService, 
+            IServiceGeneric<WeightPricing> weightService, IServiceGeneric<ShippingType> shippingTypeService,
+             IServiceGeneric<Merchant> merchantService, IServiceGeneric<Setting> settingService) : base(unitOfWork)
         {
+            this.specialShippingRateService = specialShippingRateService;
+            this.weightService = weightService;
+            this.shippingTypeService = shippingTypeService;
+            this.merchantService = merchantService;
+            this.settingService = settingService;
         }
 
 
@@ -23,7 +35,6 @@ namespace Shipping.Services.ModelService
             return employees
                 .Include(e => e.Merchant)
                 .Include(e => e.ShippingCost)
-                .Include(e => e.WeightPricing)
                 .Include(e => e.Delivery)
                 .Include(e => e.Government)
                 .Include(e => e.City)
@@ -39,7 +50,6 @@ namespace Shipping.Services.ModelService
             return employees
                .Include(e => e.Merchant)
                .Include(e => e.ShippingCost)
-               .Include(e => e.WeightPricing)
                .Include(e => e.Delivery)
                .Include(e => e.Government)
                .Include(e => e.City)
@@ -177,6 +187,69 @@ namespace Shipping.Services.ModelService
             {
                 throw new Exception("parameter is not found");
             }
+        }
+
+
+        //----------------------------------------------------------------------------------------------------
+
+        public async Task<decimal> CalculateShippingCost(OrderCreateDTO createDTO)
+        {
+            decimal TotalShippingCost = 0;
+
+            // -----------------------------------------------------------------
+            // سعر الشحن لمدينة ولقرية ان طلب
+            var specialRate = await specialShippingRateService.GetSpecialRateByMerchant(createDTO.Merchant_Id, createDTO.City_Id);
+            var setting = await settingService.GetAllExistAsync();
+            var settingFirst = setting.FirstOrDefault();
+
+            if (specialRate != null)
+            {
+                TotalShippingCost += specialRate.SpecialPrice;
+            }
+            else
+            {
+                TotalShippingCost += (decimal)specialRate.City.StandardShipping;
+
+            }
+
+            if (createDTO.DeliverToVillage)
+            {
+                TotalShippingCost += settingFirst.ShippingToVillageCost;
+            }
+            // -----------------------------------------------------------------
+
+            // -----------------------------------------------------------------
+            // سعر الوزن الاضافي
+            var weightObj = await weightService.GetAllExistAsync();
+            var defaultWeight = weightObj.FirstOrDefault().DefaultWeight;
+            var additonalPricingPerKG = weightObj.FirstOrDefault().AdditionalKgPrice;
+
+            if (createDTO.OrderTotalWeight > defaultWeight)
+            {
+                TotalShippingCost += (decimal)(createDTO.OrderTotalWeight - defaultWeight) * additonalPricingPerKG;
+            }
+            // -----------------------------------------------------------------
+
+            // -----------------------------------------------------------------
+            // نوع الشحن
+            var shippingTypeObj = await shippingTypeService.GetByIdAsync(createDTO.ShippingType_Id);
+            TotalShippingCost += shippingTypeObj.Cost;
+            // -----------------------------------------------------------------
+
+            // -----------------------------------------------------------------
+            // نوع الطلب من التاجر
+            var orderType = (OrderType)Enum.Parse(typeof(OrderType), (createDTO.OrderType));
+            var merchant = await merchantService.GetByIdAsync(createDTO.Merchant_Id);
+
+            if (orderType == OrderType.PickupFromMerchant)
+            {
+                TotalShippingCost += merchant.PickupCost;
+            }
+
+            if (TotalShippingCost == 0) throw new Exception("Shipping cost equal 0");
+            // -----------------------------------------------------------------
+
+            return TotalShippingCost;
         }
 
     }

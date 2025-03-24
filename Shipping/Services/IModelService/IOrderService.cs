@@ -1,4 +1,5 @@
-﻿using Shipping.Models;
+﻿using Shipping.DTOs.OrderDTOs;
+using Shipping.Models;
 
 namespace Shipping.Services.IModelService
 {
@@ -12,5 +13,8 @@ namespace Shipping.Services.IModelService
 
         Task<IEnumerable<Order>> GetAllByMerchantByStatus(int id, string orderStatus);
         Task<IEnumerable<Order>> GetAllExistByMerchantByStatus(int id, string orderStatus);
+
+        Task<decimal> CalculateShippingCost(OrderCreateDTO createDTO);
+
     }
 }

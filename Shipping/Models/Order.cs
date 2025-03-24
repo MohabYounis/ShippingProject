@@ -38,16 +38,12 @@ namespace Shipping.Models
         public int Branch_Id { get; set; }
         [ForeignKey("ShippingType")]
         public int ShippingType_Id { get; set; }
-        [ForeignKey("WeightPricing")]
-        public int WeightPricing_Id { get; set; }
         [ForeignKey("Delivery")]
         public int Delivery_Id { get; set; }
         [ForeignKey("Government")]
         public int Government_Id { get; set; }
         [ForeignKey("City")]
         public int City_Id { get; set; }
-        [ForeignKey("Setting")]
-        public int Setting_Id { get; set; }
         public OrderType OrderType { get; set; }
         public string ClientName { get; set; }
         public string ClientPhone1 { get; set; }
@@ -63,16 +59,16 @@ namespace Shipping.Models
         public DateTime CreatedDate { get; set; } = DateTime.Now;
         public decimal OrderCost { get; set; } // depend on merchant pricing
         public decimal ShippingCost { get; set; } // depend on weight, additional weight, shipping type city price [standard or pickup], deliver to village, payment type and order type
+        public decimal DeliveryRight { get; set; }
+        public decimal CompanyRight { get; set; }
         public float OrderTotalWeight { get; set; }
         public string Notes { get; set; }
         public virtual Merchant? Merchant { get; set; }
         public virtual List<Product>? Products { get; } = new List<Product>();
         public virtual ShippingType? ShippingType { get; set; }
-        public virtual WeightPricing? WeightPricing { get; set; }
         public virtual Delivery? Delivery { get; set; }
         public virtual Government? Government { get; set; }
         public virtual City? City { get; set; }
-        public virtual Setting? Setting { get; set; }
         public virtual RejectReason? RejectReason { get; set; }
         public virtual Branch? Branch { get; set; }
 
