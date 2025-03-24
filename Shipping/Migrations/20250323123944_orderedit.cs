@@ -85,7 +85,7 @@ namespace Shipping.Migrations
                 column: "Branch_Id",
                 principalTable: "Branches",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                onDelete: ReferentialAction.NoAction);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Orders_Governments_Government_Id",
@@ -93,7 +93,7 @@ namespace Shipping.Migrations
                 column: "Government_Id",
                 principalTable: "Governments",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                onDelete: ReferentialAction.NoAction);
         }
 
         /// <inheritdoc />

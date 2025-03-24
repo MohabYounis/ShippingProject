@@ -1,13 +1,10 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shipping.DTOs;
 using Shipping.DTOs.OrderDTOs;
 using Shipping.Models;
 using Shipping.Services;
 using Shipping.Services.IModelService;
-using SHIPPING.Services;
-using System.ComponentModel;
 
 namespace Shipping.Controllers
 {
@@ -212,27 +209,46 @@ namespace Shipping.Controllers
 
         //------------------------------------------------------------------------------------------------------------------------------------
 
-        //[HttpPost]
-        //public async Task <ActionResult<GeneralResponse>> CreateOrder(OrderCreateDTO orderFromReq)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        response.IsSuccess = false;
-        //        response.Data = ModelState.ToDictionary(
-        //            kvp => kvp.Key,
-        //            kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToList()
-        //        );
-        //        return BadRequest(response);
-        //    }
-        //    try
-        //    {
-        //        var order = mapper.Map<Order>(orderFromReq);
+        [HttpPost]
+        [EndpointSummary("Create order and calculate its shipping cost")]
 
-        //    }
-        //    catch (Exception ex)
-        //    {
+        public async Task<ActionResult<GeneralResponse>> CreateOrder(OrderCreateDTO orderFromReq)
+        {
+            if (!ModelState.IsValid)
+            {
+                response.IsSuccess = false;
+                response.Data = ModelState.ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToList()
+                );
+                return BadRequest(response);
+            }
+            try
+            {
+                var order = mapper.Map<Order>(orderFromReq);
+                if (order.Products.Count == 0)
+                {
+                    response.IsSuccess = false;
+                    response.Data = "No Products Found";
+                    return BadRequest(response);
+                }
 
-        //    }
-        //}
+                decimal totalShippingCost = await orderService.CalculateShippingCost(orderFromReq);
+                order.ShippingCost = totalShippingCost;
+
+                await orderService.AddAsync(order);
+                await orderService.SaveChangesAsync();
+
+                response.IsSuccess = true;
+                response.Data = "Order Created Successfully.";
+                return CreatedAtAction("Create", response);
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Data = ex.Message;
+                return StatusCode(500, response);
+            }
+        }
     }
 }

@@ -12,6 +12,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Shipping.ImodelRepository;
+using Shipping.modelRepository;
 
 namespace Shipping
 {
@@ -50,8 +52,9 @@ namespace Shipping
             builder.Services.AddAutoMapper(typeof(Program));
 
             //Register of Unit Of work
-
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped<ISpecialShippingRateRepository, SpecialShippingRateRepository>();
+
 
             // Register Generic Repository
             builder.Services.AddScoped(typeof(IRepositoryGeneric<>), typeof(RepositoryGeneric<>));
@@ -68,7 +71,8 @@ namespace Shipping
             builder.Services.AddScoped<IGovernmentService, GovernmentService>();
 
             //Register Merchant Service
-            builder.Services.AddScoped<IMerchantService, MerchantService>();
+            builder.Services.AddScoped<IMerchantService, MerchantService>(); //Register Merchant Service
+            builder.Services.AddScoped<ISpecialShippingRateService, SpecialShippingRateService>();
             //Register City Service
             builder.Services.AddScoped<ICityService, CityService>();
             //Register Order Service
