@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Shipping.DTOs;
 using Shipping.DTOs.OrderDTOs;
@@ -16,13 +17,15 @@ namespace Shipping.Controllers
         IServiceGeneric<Order> serviceGeneric;
         IOrderService orderService;
         GeneralResponse response;
+        UserManager<ApplicationUser> userManager;
 
-        public OrderController(IMapper mapper, IServiceGeneric<Order> serviceGeneric, GeneralResponse response, IOrderService orderService)
+        public OrderController(IMapper mapper, IServiceGeneric<Order> serviceGeneric, GeneralResponse response, IOrderService orderService, UserManager<ApplicationUser> userManager)
         {
             this.mapper = mapper;
             this.serviceGeneric = serviceGeneric;
             this.response = response;
             this.orderService = orderService;
+            this.userManager = userManager;
         }
 
 
@@ -211,7 +214,6 @@ namespace Shipping.Controllers
 
         [HttpPost]
         [EndpointSummary("Create order and calculate its shipping cost")]
-
         public async Task<ActionResult<GeneralResponse>> CreateOrder(OrderCreateDTO orderFromReq)
         {
             if (!ModelState.IsValid)
@@ -250,5 +252,56 @@ namespace Shipping.Controllers
                 return StatusCode(500, response);
             }
         }
+
+        //------------------------------------------------------------------------------------------------------------------------------------
+
+        [HttpDelete("{orderId:int}")]
+        [EndpointSummary("Delete order by employee or merchant, or reject it by delivery.")]
+        public async Task<ActionResult<GeneralResponse>> DeleteOrReject([FromQuery] string userId, [FromRoute] int orderId)
+        {
+            try
+            {
+                var order = await serviceGeneric.GetByIdAsync(orderId);
+                var user = await userManager.FindByIdAsync(userId);
+
+                if (user == null || order == null)
+                {
+                    response.IsSuccess = false;
+                    response.Data = "User or order is Not Found";
+                    return BadRequest(response);
+                }
+
+                var userRole = await userManager.IsInRoleAsync(user, "Deliver");
+                if (userRole)
+                {
+                    order.Delivery_Id = null; // لغيت اسنادة لدلفري
+                    order.OrderStatus = OrderStatus.Pending; // هعدل حالته علشان اعرف ارجع اسنده لدلفري تاني
+
+                    await serviceGeneric.UpdateAsync(order);
+                    await serviceGeneric.SaveChangesAsync();
+
+                    string message = $"Delivery [{(user.UserName.ToUpper())}] has canceled the assignment of the order with serial number [{order.SerialNumber}]";
+                    response.IsSuccess = true;
+                    response.Data = message;
+                    return Ok(response);
+                }
+
+                await serviceGeneric.DeleteAsync(orderId);
+                await serviceGeneric.SaveChangesAsync();
+
+                response.IsSuccess = true;
+                response.Data = "Order deleted successfully.";
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Data = ex.Message;
+                return StatusCode(500, response);
+            }
+        }
+
+        //------------------------------------------------------------------------------------------------------------------------------------
+
     }
 }

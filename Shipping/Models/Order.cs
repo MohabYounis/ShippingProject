@@ -39,7 +39,7 @@ namespace Shipping.Models
         [ForeignKey("ShippingType")]
         public int ShippingType_Id { get; set; }
         [ForeignKey("Delivery")]
-        public int Delivery_Id { get; set; }
+        public int? Delivery_Id { get; set; } = null;
         [ForeignKey("Government")]
         public int Government_Id { get; set; }
         [ForeignKey("City")]
