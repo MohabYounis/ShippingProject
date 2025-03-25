@@ -26,7 +26,7 @@ namespace Shipping.Controllers
 
 
         // Get User by ID
-        [HttpGet("{id:string}")]
+        [HttpGet("{id:alpha}")]
         [EndpointSummary("Get the user's data and view it in his profile page")]
         public async Task<ActionResult<GeneralResponse>> GetById(string id)
         {
@@ -66,7 +66,7 @@ namespace Shipping.Controllers
             
 
         // Upload profile image
-        [HttpPost("{id:string}/upload-profile-image")]
+        [HttpPost("{id}/upload-profile-image")]
         [EndpointSummary("Upload the profile image and save it in database")]
         public async Task<ActionResult<GeneralResponse>> UploadProfileImage(string id, IFormFile imageFile)
         {
