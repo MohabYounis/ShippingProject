@@ -33,13 +33,22 @@ namespace Shipping.Controllers
         }
 
 
-        [HttpGet("All")]
-        public async Task<ActionResult<GeneralResponse>> GetAll()
+        [HttpGet("{all:alpha}")]
+        public async Task<ActionResult<GeneralResponse>> GetWithPagginationAndSearch(string? searchTxt, string all = "all", int page = 1, int pageSize = 10)
         {
             try
             {
-                var merchants = await merchantService.GetAllAsync();
-                if (merchants == null)
+                IEnumerable<Merchant> merchants;
+                if (all == "all") merchants = await merchantService.GetAllAsync();
+                else if (all == "exist") merchants = await merchantService.GetAllExistAsync();
+                else
+                {
+                    response.IsSuccess = false;
+                    response.Data = "Parameter Not Exist";
+                    return BadRequest(response);
+                }
+
+                if (merchants == null || !merchants.Any())
                 {
                     response.IsSuccess = false;
                     response.Data = "No Found";
@@ -47,9 +56,45 @@ namespace Shipping.Controllers
                 }
                 else
                 {
-                    List<MerchantGetDTO> merchantDTO = mapper.Map<List<MerchantGetDTO>>(merchants);
+                    if (!string.IsNullOrEmpty(searchTxt))
+                    {
+                        // Searching by name or phone
+                        merchants = merchants
+                            .Where(item =>
+                                (item.ApplicationUser.UserName?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                                (item.ApplicationUser.PhoneNumber?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false)
+                            )
+                            .ToList();
+
+                        if (!merchants.Any())
+                        {
+                            response.IsSuccess = false;
+                            response.Data = "No Found";
+                            return NotFound(response);
+                        }
+                    }
+
+                    var totalMerchnts = merchants.Count();
+
+                    // Pagination
+                    var paginatedMerchants = merchants
+                        .Skip((page - 1) * pageSize)
+                        .Take(pageSize)
+                        .ToList();
+
+                    List<MerchantGetDTO> merchantDTO = mapper.Map<List<MerchantGetDTO>>(paginatedMerchants);
+
+                    
+                    var result = new
+                    {
+                        TotalMerchants = totalMerchnts,       // العدد الإجمالي للعناصر
+                        Page = page,                          // الصفحة الحالية
+                        PageSize = pageSize,                  // عدد العناصر في الصفحة
+                        Merchants = merchantDTO               // العناصر الحالية
+                    };
+
                     response.IsSuccess = true;
-                    response.Data = merchantDTO;
+                    response.Data = result;
                     return Ok(response);
                 }
             }
@@ -60,37 +105,33 @@ namespace Shipping.Controllers
                 return StatusCode(500, response);
             }
         }
-        
-        
-        [HttpGet("AllExist")]
-        public async Task<ActionResult<GeneralResponse>> GetAllExist()
-        {
-            try
-            {
-                var merchants = await merchantService.GetAllExistAsync();
 
-                if (merchants == null)
-                {
-                    response.IsSuccess = false;
-                    response.Data = "No Found";
-                    return NotFound(response);
-                }
-                else
-                {
-                    List<MerchantGetDTO> merchantDTO = mapper.Map<List<MerchantGetDTO>>(merchants);
-                    response.IsSuccess = true;
-                    response.Data = merchantDTO;
-                    return Ok(response);
-                }
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.Data = ex.Message;
-                return StatusCode(500, response);
-            }
-        }
-
+        //public async Task<ActionResult<GeneralResponse>> GetAll()
+        //{
+        //    try
+        //    {
+        //        var merchants = await merchantService.GetAllAsync();
+        //        if (merchants == null)
+        //        {
+        //            response.IsSuccess = false;
+        //            response.Data = "No Found";
+        //            return NotFound(response);
+        //        }
+        //        else
+        //        {
+        //            List<MerchantGetDTO> merchantDTO = mapper.Map<List<MerchantGetDTO>>(merchants);
+        //            response.IsSuccess = true;
+        //            response.Data = merchantDTO;
+        //            return Ok(response);
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        response.IsSuccess = false;
+        //        response.Data = ex.Message;
+        //        return StatusCode(500, response);
+        //    }
+        //}
 
         [HttpGet("{id:int}")]
         public async Task<ActionResult<GeneralResponse>> GetById(int id)

@@ -133,7 +133,7 @@ namespace Shipping.Controllers
             return Ok("Delivery updated successfully.");
         }
 
-        [HttpGet("id")]
+        [HttpGet("{id}")]
         public async Task<IActionResult>GetById(int id)
         {
             var delivery = await deliveryService.GetDeliveryByIdAsync(id);
@@ -157,7 +157,7 @@ namespace Shipping.Controllers
             return Ok(Dto);
         }
 
-        [HttpDelete("id")]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             var delivery = await deliveryService.GetDeliveryByIdAsync(id);
@@ -175,10 +175,5 @@ namespace Shipping.Controllers
             
             return Ok("Deleted Succes");
         }
-
-
-
-
-
     }
 }

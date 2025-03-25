@@ -7,11 +7,8 @@ namespace Shipping.MapperConfig
 {
     public class OrderConfig : Profile
     {
-        IMerchantService merchantService;
-        public OrderConfig(IMerchantService merchantService)
+        public OrderConfig()
         {
-            this.merchantService = merchantService;
-
             CreateMap<Order, OrderGetDTO>().AfterMap((src, dest) =>
             {
                 dest.CreatedDate = src.CreatedDate.ToString("dd MMM yyyy hh.mmtt");

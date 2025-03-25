@@ -50,7 +50,7 @@ namespace Shipping.Controllers
            
         }
 
-        [HttpGet("id")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
            
@@ -99,7 +99,7 @@ namespace Shipping.Controllers
             }
         }
 
-        [HttpPut("id")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> UpdateProduct(int id ,CreatProductDto productDto)
         {
             try
