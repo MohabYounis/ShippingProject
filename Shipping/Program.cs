@@ -11,6 +11,8 @@ using Shipping.UnitOfWorks;
 using SHIPPING.Services;
 using Microsoft.OpenApi.Models;
 using Shipping.Controllers;
+using Shipping.Repository.ImodelRepository;
+using Shipping.Repository.modelRepository;
 
 
 namespace Shipping
@@ -49,6 +51,22 @@ namespace Shipping
 
             //Register of Unit Of work
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+
+            //register of RolePermissionRepository
+            builder.Services.AddScoped<IRolePermissinRepository, RolePermissinRepository>();
+
+            //register of RolePermissionService
+
+            builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
+
+            //role
+            builder.Services.AddScoped<IApplicationRoleService, ApplicationRoleService>();
+
+
+
+
+
 
             // Register Generic Repository
             builder.Services.AddScoped(typeof(IRepositoryGeneric<>), typeof(RepositoryGeneric<>));

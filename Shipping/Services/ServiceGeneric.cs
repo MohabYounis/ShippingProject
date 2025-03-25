@@ -27,7 +27,7 @@ namespace SHIPPING.Services
             return await unitOfWork.GetRepository<Tentity>().GetAllExistAsync();
         }
 
-        public async Task<Tentity> GetByIdAsync(int id)
+        public virtual async Task<Tentity> GetByIdAsync(int id)
         {
             var entity = await unitOfWork.GetRepository<Tentity>().GetByIdAsync(id);
             return entity;
