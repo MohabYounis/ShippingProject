@@ -104,33 +104,6 @@ namespace Shipping.Controllers
             }
         }
 
-        //public async Task <ActionResult<GeneralResponse>> GetAll()
-        //{
-        //    try
-        //    {
-        //        var cities = await cityService.GetAllAsync();
-        //        var citiesDTO = mapper.Map<List<CityGetDTO>>(cities);
-        //        if (cities == null)
-        //        {
-        //            response.IsSuccess = false;
-        //            response.Data = "Not Found";
-        //            return NotFound(response);
-        //        }
-        //        else
-        //        {
-        //            response.IsSuccess = true;
-        //            response.Data = citiesDTO;
-        //            return Ok(response);
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        response.IsSuccess= false;
-        //        response.Data = ex.Message;
-        //        return StatusCode(500, response);
-        //    }
-        //}
-
 
         [HttpGet("{id:int}")]
         public async Task <ActionResult<GeneralResponse>> GetById(int id)
