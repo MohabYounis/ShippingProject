@@ -190,7 +190,7 @@ namespace Shipping.Services.ModelService
 
         //----------------------------------------------------------------------------------------------------
 
-        public async Task<decimal> CalculateShippingCost(OrderCreateDTO createDTO)
+        public async Task<decimal> CalculateShippingCost(OrderCreateEditDTO createDTO)
         {
             decimal TotalShippingCost = 0;
 

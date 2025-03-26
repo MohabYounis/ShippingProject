@@ -18,7 +18,7 @@ namespace Shipping.MapperConfig
             }).ReverseMap();
             
             
-            CreateMap<OrderCreateDTO, Order>().AfterMap((src, dest) =>
+            CreateMap<OrderCreateEditDTO, Order>().AfterMap((src, dest) =>
             {
                 dest.OrderType = (OrderType) Enum.Parse(typeof(OrderType), (src.OrderType));
                 dest.PaymentType = (PaymentTypee) Enum.Parse(typeof(PaymentTypee), (src.PaymentType));

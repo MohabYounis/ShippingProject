@@ -34,7 +34,7 @@ namespace Shipping.Controllers
 
 
         [HttpGet("{all:alpha}")]
-        public async Task<ActionResult<GeneralResponse>> GetWithPagginationAndSearch(string? searchTxt, string all = "all", int page = 1, int pageSize = 10)
+        public async Task<ActionResult<GeneralResponse>> GetWithPaginationAndSearch(string? searchTxt, string all = "all", int page = 1, int pageSize = 10)
         {
             try
             {
@@ -106,32 +106,6 @@ namespace Shipping.Controllers
             }
         }
 
-        //public async Task<ActionResult<GeneralResponse>> GetAll()
-        //{
-        //    try
-        //    {
-        //        var merchants = await merchantService.GetAllAsync();
-        //        if (merchants == null)
-        //        {
-        //            response.IsSuccess = false;
-        //            response.Data = "No Found";
-        //            return NotFound(response);
-        //        }
-        //        else
-        //        {
-        //            List<MerchantGetDTO> merchantDTO = mapper.Map<List<MerchantGetDTO>>(merchants);
-        //            response.IsSuccess = true;
-        //            response.Data = merchantDTO;
-        //            return Ok(response);
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        response.IsSuccess = false;
-        //        response.Data = ex.Message;
-        //        return StatusCode(500, response);
-        //    }
-        //}
 
         [HttpGet("{id:int}")]
         public async Task<ActionResult<GeneralResponse>> GetById(int id)

@@ -62,9 +62,11 @@ namespace Shipping.Models
         public decimal DeliveryRight { get; set; }
         public decimal CompanyRight { get; set; }
         public float OrderTotalWeight { get; set; }
-        public string Notes { get; set; }
+        public string? MerchantNotes { get; set; }
+        public string? EmployeeNotes { get; set; }
+        public string? DeliveryNotes { get; set; }
         public virtual Merchant? Merchant { get; set; }
-        public virtual List<Product>? Products { get; } = new List<Product>();
+        public virtual List<Product>? Products { get; set; } = new List<Product>();
         public virtual ShippingType? ShippingType { get; set; }
         public virtual Delivery? Delivery { get; set; }
         public virtual Government? Government { get; set; }
