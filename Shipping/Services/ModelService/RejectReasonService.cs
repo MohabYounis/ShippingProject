@@ -1,7 +1,7 @@
 ﻿
 
 using Microsoft.EntityFrameworkCore;
-using Shipping.DTOs;
+using Shipping.DTOs.RejectedReasonsDTOs;
 using Shipping.Models;
 using Shipping.Repository;
 using Shipping.Services.IModelService;
@@ -20,29 +20,46 @@ namespace Shipping.Services.ModelService
             _unitOfWork = unitOfWork;
         }
 
+
         public async Task<IEnumerable<RejectReasonDTO>> GetAllAsync()
         {
             var rejectReasons = await _repository.GetAllAsync();
             return rejectReasons.Select(r => new RejectReasonDTO
             {
                 Id = r.Id,
+                IsDeleted = r.IsDeleted,
+                Reason = r.Reason
+            }).ToList();
+        } 
+        
+
+        public async Task<IEnumerable<RejectReasonDTO>> GetAllExistAsync()
+        {
+            var rejectReasons = await _repository.GetAllExistAsync();
+            return rejectReasons.Select(r => new RejectReasonDTO
+            {
+                Id = r.Id,
+                IsDeleted= r.IsDeleted,
                 Reason = r.Reason
             }).ToList();
         }
 
+
         public async Task<RejectReasonDTO> GetByIdAsync(int id)
         {
             var rejectReason = await _repository.GetByIdAsync(id);
-            if (rejectReason == null) return null;
+            if (rejectReason == null) throw new Exception("Not Found.");
 
             return new RejectReasonDTO
             {
                 Id = rejectReason.Id,
+                IsDeleted = rejectReason.IsDeleted,
                 Reason = rejectReason.Reason
             };
         }
 
-        public async Task AddAsync(RejectReasonDTO rejectReasonDto)
+
+        public async Task AddAsync(RejectReasonCreateDTO rejectReasonDto)
         {
             var rejectReason = new RejectReason
             {
@@ -50,8 +67,9 @@ namespace Shipping.Services.ModelService
             };
 
             await _repository.AddAsync(rejectReason);
-            _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
         }
+
 
         public async Task UpdateAsync(int id, RejectReasonDTO rejectReasonDto)
         {
@@ -59,10 +77,12 @@ namespace Shipping.Services.ModelService
             if (existingRejectReason == null) throw new KeyNotFoundException("Reject Reason not found.");
 
             existingRejectReason.Reason = rejectReasonDto.Reason;
+            existingRejectReason.IsDeleted = rejectReasonDto.IsDeleted;
 
             _repository.Update(existingRejectReason);
-            _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
         }
+
 
         public async Task DeleteAsync(int id)
         {
@@ -71,7 +91,7 @@ namespace Shipping.Services.ModelService
 
             rejectReason.IsDeleted = true;
             _repository.Update(rejectReason);
-            _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
         }
     }
 }
