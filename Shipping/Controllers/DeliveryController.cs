@@ -96,7 +96,7 @@ namespace Shipping.Controllers
         {
             if (!ModelState.IsValid) 
             {
-                return BadRequest("hmada");
+                return BadRequest("null parameter");
             }
             try
             {

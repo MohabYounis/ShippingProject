@@ -212,8 +212,5 @@ namespace Shipping.Services.ModelService
 
             return delivery;
         }
-
-
-
     }
 }

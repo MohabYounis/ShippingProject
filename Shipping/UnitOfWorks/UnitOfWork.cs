@@ -14,9 +14,7 @@ namespace Shipping.UnitOfWorks
         
         private bool disposed = false;
         private IDbContextTransaction _transaction;
-
         public ShippingContext Context { get; }
-
         private readonly Lazy<ISpecialShippingRateRepository> _specialShippingRateRepository;
 
         public UnitOfWork(ShippingContext context)
