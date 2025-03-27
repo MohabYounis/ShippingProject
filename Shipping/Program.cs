@@ -42,6 +42,7 @@ namespace Shipping
                 options.UseLazyLoadingProxies().UseSqlServer(builder.Configuration.GetConnectionString("CS"));
             });
             builder.Services.AddIdentity<ApplicationUser, ApplicationRole>().AddEntityFrameworkStores<ShippingContext>();
+            //
 
             //------------------
             builder.Services.AddScoped<IEmployeeService, EmployeeService>();

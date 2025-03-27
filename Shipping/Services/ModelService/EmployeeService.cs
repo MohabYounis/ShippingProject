@@ -5,6 +5,7 @@ using Shipping.Repository;
 using Shipping.UnitOfWorks;
 using Microsoft.EntityFrameworkCore;
 using static Dapper.SqlMapper;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Shipping.Services.ModelService
 {
@@ -34,5 +35,19 @@ namespace Shipping.Services.ModelService
                 .Include(e => e.Branch)
                 .ToList();
         }
+    
+    
+    //transaction
+
+        public async Task<IDbContextTransaction> BeginTransactionAsync()
+        {
+
+              return    await  unitOfWork.Context.Database.BeginTransactionAsync();
+
+        }
+
+
+
+
     }
 }

@@ -39,11 +39,18 @@ namespace Shipping.Repository.modelRepository
             Context.Update(tentityObj);
         }
 
-        public async Task<IEnumerable<ApplicationRole>> GetAllAsync()
+        public async Task<IEnumerable<ApplicationRole>> GetAllAsyncExist()
         {
             return await Context.Set<ApplicationRole>()
                      .Where(e => !EF.Property<bool>(e, "IsDeleted"))
                      .ToListAsync();
+        }
+
+        //
+
+        public async Task<IEnumerable<ApplicationRole>> GetAllAsync()
+        {
+            return await Context.Set<ApplicationRole>().ToListAsync();
         }
 
         public async Task<ApplicationRole> GetByIdAsync(string id)
@@ -57,6 +64,12 @@ namespace Shipping.Repository.modelRepository
             Context.Update(entity);
         }
 
+        public async Task<ApplicationRole> GetByNameAsync(string roleName)
+        {
+            return await Context.Set<ApplicationRole>()
+                                .FirstOrDefaultAsync(r => EF.Functions.Like(r.Name, roleName));
+        }
+
         public async Task UpdateById(string id)
         {
             ApplicationRole tentityObj = await GetByIdAsync(id);
@@ -64,9 +77,10 @@ namespace Shipping.Repository.modelRepository
             Context.Update(tentityObj);
         }
 
-        public void SaveDB()
+        public async Task SaveDB()
         {
-            Context.SaveChanges();
+            await Context.SaveChangesAsync();
         }
+
     }
 }
