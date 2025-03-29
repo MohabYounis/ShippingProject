@@ -31,38 +31,9 @@ namespace Shipping.Controllers
         }
 
 
-        //[HttpGet("{orderStatus}/All")]
-        //[EndpointSummary("Get all orders -deleted or not- with specific status to shipping employee")]
-        //public async Task<ActionResult<GeneralResponse>> GetAllByStatus(string orderStatus = "New")
-        //{
-        //    try
-        //    {
-        //        var orders = await orderService.GetAllOrdersByStatus(orderStatus);
-        //        if (orders == null)
-        //        {
-        //            response.IsSuccess = false;
-        //            response.Data = "No Found";
-        //            return NotFound(response);
-        //        }
-        //        else
-        //        {
-        //            var ordersDTO = mapper.Map<OrderGetDTO>(orders);
-        //            response.IsSuccess = true;
-        //            response.Data = ordersDTO;
-        //            return Ok(response);
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        response.IsSuccess = false;
-        //        response.Data = ex.Message;
-        //        return StatusCode(500, response);
-        //    }
-        //}   
-
         [HttpGet("{orderStatus:alpha}/{all:alpha}")]
-        [EndpointSummary("Get orders with specific status to shipping employee")]
-        public async Task<ActionResult<GeneralResponse>> GetWithPaginationAndSearch(
+        [EndpointSummary("Get orders by searching or by specific status to shipping employee")]
+        public async Task<ActionResult<GeneralResponse>> GetWithPaginationAndSearchByEmployee(
                                 string? searchTxt, int? branchId, int? merchantId,
                                 int? governId, int? cityId, int? deliveryId, string? serialNum,
                                 DateTime? startDate, DateTime? endDate,
@@ -165,75 +136,30 @@ namespace Shipping.Controllers
             }
         }
 
-        //[HttpGet("{orderStatus}/AllExist")]
-        //[EndpointSummary("Get all Exist orders with specific status to shipping employee")]
-        //public async Task<ActionResult<GeneralResponse>> GetAllExistByStatus(string orderStatus = "New")
-        //{
-        //    try
-        //    {
-        //        var orders = await orderService.GetAllExistOrdersByStatus(orderStatus);
-        //        if (orders == null)
-        //        {
-        //            response.IsSuccess = false;
-        //            response.Data = "No Found";
-        //            return NotFound(response);
-        //        }
-        //        else
-        //        {
-        //            var ordersDTO = mapper.Map<List<OrderGetDTO>>(orders);
-        //            response.IsSuccess = true;
-        //            response.Data = ordersDTO;
-        //            return NotFound(response);
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        response.IsSuccess = false;
-        //        response.Data = ex.Message;
-        //        return StatusCode(500, response);
-        //    }
-        //}
-
         //-------------------------------------------------------------------------------------------------------------------------------------------------------
 
-        [HttpGet("Delivery/{id:int}/All")]
-        [EndpointSummary("Get all orders or orders with specific status -deleted or not- to delivery")]
-        public async Task<ActionResult<GeneralResponse>> GetAllByDeliveryByStatus(int id, string orderStatus = "DeliveredToAgent") //orderStatus = All ===> receive all orders, orderStatus == any status ===> recieve all orders that have this status.
+        [HttpGet("Delivery/{id:int}/{orderStatus:alpha}/{all:alpha}")]
+        [EndpointSummary("Get orders by searching or by specific status to delivery")]
+        public async Task<ActionResult<GeneralResponse>> GetWithPaginationAndSearchByDelivery(
+                                int id, string? searchTxt,
+                                int? governId, int? cityId, string? serialNum,
+                                DateTime? startDate, DateTime? endDate,
+                                string all = "all", string orderStatus = "DeliveredToAgent",
+                                int page = 1, int pageSize = 10)
         {
             try
             {
-                var orders = await orderService.GetAllByDeliveryByStatus(id, orderStatus);
-                if (orders == null)
-                {
-                    response.IsSuccess = false;
-                    response.Data = "No Found";
-                    return NotFound(response);
-                }
+                IEnumerable<Order> orders;
+                if (all == "all") orders = await orderService.GetAllByDeliveryByStatus(id, orderStatus);
+                else if (all == "exist") orders = await orderService.GetAllExistByDeliveryByStatus(id, orderStatus);
                 else
                 {
-                    var ordersDTO = mapper.Map<List<OrderGetDTO>>(orders);
-                    response.IsSuccess = true;
-                    response.Data = ordersDTO;
-                    return NotFound(response);
+                    response.IsSuccess = false;
+                    response.Data = "Parameter Not Exist";
+                    return BadRequest(response);
                 }
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.Data = ex.Message;
-                return StatusCode(500, response);
-            }
-        }
-        
 
-        [HttpGet("Delivery/{id:int}/{orderStatus}/AllExist")]
-        [EndpointSummary("Get all exist orders or exist orders with specific status to delivery")]
-        public async Task<ActionResult<GeneralResponse>> GetAllExistByDeliveryByStatus(int id, string orderStatus = "DeliveredToAgent")
-        {
-            try
-            {
-                var orders = await orderService.GetAllExistByDeliveryByStatus(id, orderStatus);
-                if (orders == null)
+                if (orders == null || !orders.Any())
                 {
                     response.IsSuccess = false;
                     response.Data = "No Found";
@@ -241,10 +167,63 @@ namespace Shipping.Controllers
                 }
                 else
                 {
-                    var ordersDTO = mapper.Map<List<OrderGetDTO>>(orders);
+                    if (!string.IsNullOrEmpty(searchTxt))
+                    {
+                        // Search by ClientName or Phone or Email
+                        orders = orders
+                            .Where(item =>
+                                (item.ClientName?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                                (item.ClientPhone1?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                                (item.ClientPhone2?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                                (item.ClientEmail?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false)
+                            )
+                            .ToList();
+
+                        if (!orders.Any())
+                        {
+                            response.IsSuccess = false;
+                            response.Data = "No Found";
+                            return NotFound(response);
+                        }
+                    }
+
+                    // Other filters
+                    if (governId.HasValue)
+                        orders = orders.Where(o => o.Government_Id == governId.Value);
+
+                    if (cityId.HasValue)
+                        orders = orders.Where(o => o.City_Id == cityId.Value);
+
+                    if (!string.IsNullOrEmpty(serialNum))
+                        orders = orders.Where(o => o.SerialNumber.Contains(serialNum, StringComparison.OrdinalIgnoreCase));
+
+                    if (startDate.HasValue)
+                        orders = orders.Where(o => o.CreatedDate >= startDate.Value);
+
+                    if (endDate.HasValue)
+                        orders = orders.Where(o => o.CreatedDate <= endDate.Value);
+
+                    var totalOrders = orders.Count();
+
+                    // Pagination
+                    var paginatedOrders = orders
+                        .Skip((page - 1) * pageSize)
+                        .Take(pageSize)
+                        .ToList();
+
+                    var orderDTO = mapper.Map<List<OrderGetDTO>>(paginatedOrders);
+
+                    var result = new
+                    {
+                        TotalOrders = totalOrders,          // العدد الإجمالي للعناصر
+                        Page = page,                        // الصفحة الحالية
+                        PageSize = pageSize,                // عدد العناصر في الصفحة
+                        Orders = orderDTO                   // العناصر الحالية
+                    };
+
                     response.IsSuccess = true;
-                    response.Data = ordersDTO;
-                    return NotFound(response);
+                    response.Data = result;
+                    return Ok(response);
                 }
             }
             catch (Exception ex)
@@ -257,14 +236,28 @@ namespace Shipping.Controllers
 
         //------------------------------------------------------------------------------------------------------------------------------------
 
-        [HttpGet("Merchant/{id:int}/All")]
-        [EndpointSummary("Get all orders -deleted or not- to merchant")]
-        public async Task<ActionResult<GeneralResponse>> GetAllByMerchantByStatus(int id, string orderStatus = "New")
+        [HttpGet("Merchant/{id:int}/{orderStatus:alpha}/{all:alpha}")]
+        [EndpointSummary("Get orders by searching or by specific status to merchant")]
+        public async Task<ActionResult<GeneralResponse>> GetWithPaginationAndSearchByMerchant(
+                                int id, string? searchTxt, 
+                                int? governId, int? cityId, int? branchId,
+                                DateTime? startDate, DateTime? endDate,
+                                string all = "all", string orderStatus = "New",
+                                int page = 1, int pageSize = 10)
         {
             try
             {
-                var orders = await orderService.GetAllByMerchantByStatus(id, orderStatus);
-                if (orders == null)
+                IEnumerable<Order> orders;
+                if (all == "all") orders = await orderService.GetAllByMerchantByStatus(id, orderStatus);
+                else if (all == "exist") orders = await orderService.GetAllExistByMerchantByStatus(id, orderStatus);
+                else
+                {
+                    response.IsSuccess = false;
+                    response.Data = "Parameter Not Exist";
+                    return BadRequest(response);
+                }
+
+                if (orders == null || !orders.Any())
                 {
                     response.IsSuccess = false;
                     response.Data = "No Found";
@@ -272,40 +265,63 @@ namespace Shipping.Controllers
                 }
                 else
                 {
-                    var ordersDTO = mapper.Map<List<OrderGetDTO>>(orders);
-                    response.IsSuccess = true;
-                    response.Data = ordersDTO;
-                    return NotFound(response);
-                }
-            }
-            catch (Exception ex)
-            {
-                response.IsSuccess = false;
-                response.Data = ex.Message;
-                return StatusCode(500, response);
-            }
-        }
+                    if (!string.IsNullOrEmpty(searchTxt))
+                    {
+                        // Search by ClientName or Phone or Email
+                        orders = orders
+                            .Where(item =>
+                                (item.ClientName?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                                (item.ClientPhone1?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                                (item.ClientPhone2?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                                (item.ClientEmail?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false)
+                            )
+                            .ToList();
 
+                        if (!orders.Any())
+                        {
+                            response.IsSuccess = false;
+                            response.Data = "No Found";
+                            return NotFound(response);
+                        }
+                    }
 
-        [HttpGet("Merchant/{id:int}/{orderStatus}/AllExist")]
-        [EndpointSummary("Get all exist orders with specific status to merchant")]
-        public async Task<ActionResult<GeneralResponse>> GetAllExistByMerchantByStatus(int id, string orderStatus = "New")
-        {
-            try
-            {
-                var orders = await orderService.GetAllExistByMerchantByStatus(id, orderStatus);
-                if (orders == null)
-                {
-                    response.IsSuccess = false;
-                    response.Data = "No Found";
-                    return NotFound(response);
-                }
-                else
-                {
-                    var ordersDTO = mapper.Map<List<OrderGetDTO>>(orders);
+                    // Other filters
+                    if (governId.HasValue)
+                        orders = orders.Where(o => o.Government_Id == governId.Value);
+
+                    if (cityId.HasValue)
+                        orders = orders.Where(o => o.City_Id == cityId.Value);
+
+                    if (branchId.HasValue)
+                        orders = orders.Where(o => o.Branch_Id == branchId.Value);
+
+                    if (startDate.HasValue)
+                        orders = orders.Where(o => o.CreatedDate >= startDate.Value);
+
+                    if (endDate.HasValue)
+                        orders = orders.Where(o => o.CreatedDate <= endDate.Value);
+
+                    var totalOrders = orders.Count();
+
+                    // Pagination
+                    var paginatedOrders = orders
+                        .Skip((page - 1) * pageSize)
+                        .Take(pageSize)
+                        .ToList();
+
+                    var orderDTO = mapper.Map<List<OrderGetDTO>>(paginatedOrders);
+
+                    var result = new
+                    {
+                        TotalOrders = totalOrders,          // العدد الإجمالي للعناصر
+                        Page = page,                        // الصفحة الحالية
+                        PageSize = pageSize,                // عدد العناصر في الصفحة
+                        Orders = orderDTO                   // العناصر الحالية
+                    };
+
                     response.IsSuccess = true;
-                    response.Data = ordersDTO;
-                    return NotFound(response);
+                    response.Data = result;
+                    return Ok(response);
                 }
             }
             catch (Exception ex)
@@ -334,7 +350,7 @@ namespace Shipping.Controllers
             try
             {
                 var order = mapper.Map<Order>(orderFromReq);
-                if (order.Products.Count == 0)
+                if (order.Products.Count() == 0)
                 {
                     response.IsSuccess = false;
                     response.Data = "No Products Found";
