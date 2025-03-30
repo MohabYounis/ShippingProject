@@ -23,6 +23,7 @@ namespace Shipping.Controllers
         IMapper mapper;
         GeneralResponse response;
         UserManager<ApplicationUser> userManager;
+        RoleManager<ApplicationRole> roleManager;
         public MerchantController(IServiceGeneric<Merchant> service, IMapper mapper, GeneralResponse response, UserManager<ApplicationUser> userManager, IMerchantService merchantService)
         {
             this.service = service;
@@ -143,8 +144,12 @@ namespace Shipping.Controllers
             try
             {
                 var newUser = mapper.Map<ApplicationUser>(merchantFromReq);
+
+                bool roleExists = await roleManager.RoleExistsAsync("merchant");
+                if (!roleExists) throw new Exception("Role 'merchant' does not exist.");
+                await userManager.AddToRoleAsync(newUser, "merchant");
+
                 var result = await userManager.CreateAsync(newUser, merchantFromReq.Password);
-                
                 if (result.Succeeded)
                 {
                     response.IsSuccess = true;

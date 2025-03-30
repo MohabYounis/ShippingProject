@@ -66,7 +66,6 @@ namespace Shipping.Controllers
             {
                 return BadRequest(ModelState);
             }
-
             try
             {
                 var existingRole = await _roleService.GetByIdAsync(id);
@@ -84,6 +83,7 @@ namespace Shipping.Controllers
                 return NotFound($"Role with ID {id} not found.");
             }
         }
+
 
         // DELETE: api/Role/{id}
         [HttpDelete("{id}")]
