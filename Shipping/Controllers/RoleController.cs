@@ -14,14 +14,14 @@ namespace Shipping.Controllers
     public class RoleController : ControllerBase
     {
         private readonly IApplicationRoleService _roleService;
-
         UserManager<ApplicationUser> userManger;
+
         public RoleController(IApplicationRoleService roleService, UserManager<ApplicationUser> roleManger)
         {
             _roleService = roleService ?? throw new ArgumentNullException(nameof(roleService));
-
             this.userManger = roleManger;
         }
+
 
         // GET: api/Role
         [HttpGet("exist")]
@@ -52,7 +52,6 @@ namespace Shipping.Controllers
 
             }).ToList()
             }).ToList();
-
 
             return Ok(roleDTO);
         }
@@ -88,7 +87,6 @@ namespace Shipping.Controllers
             }).ToList()
             }).ToList();
 
-
             return Ok(roleDTO);
         }
 
@@ -118,7 +116,6 @@ namespace Shipping.Controllers
             };
 
             return Ok(roleDTO);
-
         }
 
 
@@ -214,18 +211,13 @@ namespace Shipping.Controllers
         }
 
 
-
-
-
         //assign role to user
-
         // POST: api/Role/AssignRole
         [HttpPost("AssignRole")]
         public async Task<IActionResult> AssignRole(string UserId , string RoleName)
         {
             try
             {
-
                 //check user
                 var user = await userManger.FindByIdAsync(UserId);
                 if (user == null)
@@ -251,17 +243,8 @@ namespace Shipping.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message + "gfdsssss ");
+                return BadRequest(ex.Message + "gfdsssss");
             }
         }
-
-
-
-
-
-
-
-
-
     }
 }
