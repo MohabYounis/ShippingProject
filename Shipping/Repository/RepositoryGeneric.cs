@@ -78,6 +78,12 @@ namespace Shipping.Repository
             Context.Update(entity);
         }
 
-       
+        public async Task<Tentity> GetByNameAsync(string name)
+        {
+            var entityType = typeof(Tentity);
+            var nameProperty = entityType.GetProperty("Name");
+            if (nameProperty == null) return null;
+            return await Context.Set<Tentity>().FirstOrDefaultAsync(t => EF.Property<string>(t, "Name") == name);
+        }
     }
 }

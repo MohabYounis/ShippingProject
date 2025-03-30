@@ -22,6 +22,7 @@ namespace Shipping.Models
         public virtual DbSet<Setting> ShippingToVillages { get; set; }
         public virtual DbSet<DeliveryGovernment> DeliveryGovernments { get; set; }
         public virtual DbSet<BranchMerchant> BranchMerchants { get; set; }
+        public virtual DbSet<RejectedOrder> RejectedOrders { get; set; }
 
         public ShippingContext() : base() { }
         public ShippingContext (DbContextOptions<ShippingContext> options) : base(options) { }

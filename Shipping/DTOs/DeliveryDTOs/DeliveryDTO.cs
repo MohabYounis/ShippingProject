@@ -27,8 +27,6 @@ namespace Shipping.DTOs.DeliveryDTOs
 
         [Required(ErrorMessage = "At least one government ID is required.")]
         public List<int> GovernmentsId { get; set; }
-
-        //public bool IsDeleted { get; set; } = false;
     }
 
 }
