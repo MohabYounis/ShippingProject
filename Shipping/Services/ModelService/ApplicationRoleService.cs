@@ -10,7 +10,7 @@ namespace Shipping.Services.ModelService
 {
     public class ApplicationRoleService : ApplicationRoleRepository, IApplicationRoleService
     {
-        public ApplicationRoleService(ShippingContext context, IMapper mapper) :base(context , mapper)
+        public ApplicationRoleService(ShippingContext context) :base(context)
         { 
             
         }
