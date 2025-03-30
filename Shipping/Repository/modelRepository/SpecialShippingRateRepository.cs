@@ -13,11 +13,17 @@ namespace Shipping.modelRepository
 {
     public class SpecialShippingRateRepository : RepositoryGeneric<SpecialShippingRate>, ISpecialShippingRateRepository
     {
-        public SpecialShippingRateRepository (UnitOfWork unitOfWork) : base(unitOfWork)
+        public SpecialShippingRateRepository (IUnitOfWork unitOfWork) : base(unitOfWork)
         {
         }
 
-      
+        public async Task<SpecialShippingRate> GetSpecialRateByMerchantAsync(int merchantId, int cityId)
+        {
+            return await Context.SpecialShippingRates
+                .Include(rate => rate.Merchant)
+                .Include(rate => rate.City)
+                .FirstOrDefaultAsync(rate => rate.Merchant_Id == merchantId && rate.City_Id == cityId);
+        }
     }
 }
 

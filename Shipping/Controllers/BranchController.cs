@@ -165,6 +165,7 @@ namespace Shipping.Controllers
                 {
                     response.IsSuccess = false;
                     response.Data = "Invalid mobile or landline number. Mobile must start with 010, 011, 012, or 015 and be 11 digits. Landline must start with 0 and be 10 digits.";
+                    return BadRequest(response);
                 }
 
                 var existingBranch = (await branchService.GetAllAsync())
@@ -178,6 +179,7 @@ namespace Shipping.Controllers
                 {
                     response.IsSuccess = false;
                     response.Data = "A branch with the same name, mobile, and location already exists.";
+                    return BadRequest(response);
                 }
 
                 var duplicateMobileBranch = (await branchService.GetAllAsync())
@@ -190,6 +192,7 @@ namespace Shipping.Controllers
                 {
                     response.IsSuccess = false;
                     response.Data = "A branch with the same name and mobile already exists.";
+                    return BadRequest(response);
                 }
 
                 var duplicateLocationBranch = (await branchService.GetAllAsync())
@@ -202,6 +205,7 @@ namespace Shipping.Controllers
                 {
                     response.IsSuccess = false;
                     response.Data = "A branch with the same name and location already exists.";
+                    return BadRequest(response);
                 }
 
                 var duplicateMobileOnlyBranch = (await branchService.GetAllAsync())
@@ -213,6 +217,16 @@ namespace Shipping.Controllers
                 {
                     response.IsSuccess = false;
                     response.Data = "This mobile number is already registered with another branch.";
+                    return BadRequest(response);
+                }
+
+                var duplicateBranchName = await branchService.GetByNameAsync(branchDto.Name);
+
+                if (duplicateBranchName != null)
+                {
+                    response.IsSuccess = false;
+                    response.Data = "Branch name is already exist.";
+                    return BadRequest(response);
                 }
 
                 var branch = new Branch
@@ -227,14 +241,14 @@ namespace Shipping.Controllers
 
                 response.IsSuccess = true;
                 response.Data = "Branch Created Successfully";
+                return CreatedAtAction("Create", response);
             }
             catch (Exception ex)
             {
                 response.IsSuccess = false;
                 response.Data = ex.Message;
+                return StatusCode(500, ex.Message);
             }
-
-            return response;
         }
 
 

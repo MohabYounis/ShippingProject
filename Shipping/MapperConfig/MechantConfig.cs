@@ -15,6 +15,7 @@ namespace Shipping.MapperConfig
                 dest.Email = src.ApplicationUser.Email;
                 dest.Phone = src.ApplicationUser.PhoneNumber;
                 dest.Address = src.ApplicationUser.Address;
+                dest.CreatedDate = (src.ApplicationUser.CreatedDate)?.ToString("dd MMM yyyy");
                 dest.BranchsNames = string.Join(Environment.NewLine, src.BranchMerchants.Select(bm => bm.Branch?.Name ?? "Unknown")); // Get Branch Names
             }).ReverseMap();
 

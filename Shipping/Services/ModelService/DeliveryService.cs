@@ -81,12 +81,15 @@ namespace Shipping.Services.ModelService
                     PhoneNumber = deliveryDTO.Phone,
                     Address = deliveryDTO.Address,
                 };
+                // ✅ إضافة المستخدم إلى قاعدة البيانات
+                //حطيت هنا password علشان يهيشهولي 
+                IdentityResult Result = await userManager.CreateAsync(user, deliveryDTO.Password);
 
-                var result = await userManager.CreateAsync(user);
-                if (!result.Succeeded)
+                if (!Result.Succeeded)
                 {
-                    throw new Exception($"Failed to create user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                    throw new Exception($"Failed to create user: {string.Join(", ", Result.Errors.Select(e => e.Description))}");
                 }
+                await userManager.AddToRoleAsync(user, "delivery");
 
                 // ✅ إنشاء كيان التوصيل وربطه بالمستخدم الجديد
                 var delivery = new Delivery
@@ -209,8 +212,5 @@ namespace Shipping.Services.ModelService
 
             return delivery;
         }
-
-
-
     }
 }

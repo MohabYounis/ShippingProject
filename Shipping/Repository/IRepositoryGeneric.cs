@@ -6,6 +6,7 @@ namespace Shipping.Repository
     {
    
         Task<Tentity> GetByIdAsync(int id);
+        Task<Tentity> GetByNameAsync(string name);
         Task<IQueryable<Tentity>> GetAllAsync();// to use linq
         Task<IQueryable<Tentity>> GetAllExistAsync();
         Task AddAsync(Tentity entity);

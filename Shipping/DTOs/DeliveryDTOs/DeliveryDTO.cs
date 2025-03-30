@@ -16,6 +16,8 @@ namespace Shipping.DTOs.DeliveryDTOs
         [Required(ErrorMessage = "Phone number is required.")]
         [RegularExpression(@"^(?:\+20|0)?1[0-2,5,1]{1}[0-9]{8}$", ErrorMessage = "Invalid Egyptian phone number format.")]
         public string Phone { get; set; }
+        //password 
+        public string Password { get; set; }
 
         [Required(ErrorMessage = "Address is required.")]
         public string Address { get; set; }
@@ -25,8 +27,6 @@ namespace Shipping.DTOs.DeliveryDTOs
 
         [Required(ErrorMessage = "At least one government ID is required.")]
         public List<int> GovernmentsId { get; set; }
-
-        //public bool IsDeleted { get; set; } = false;
     }
 
 }

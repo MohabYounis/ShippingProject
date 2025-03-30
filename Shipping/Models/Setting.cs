@@ -6,6 +6,5 @@
         public decimal ShippingToVillageCost { get; set; }
         public bool DeliveryAutoAccept { get; set; } = false;
         public bool IsDeleted { get; set; } = false;
-        public virtual List<Order>? Orders { get; } = new List<Order>();
     }
 }
