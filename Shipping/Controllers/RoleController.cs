@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Shipping.DTOs.Role;
@@ -203,6 +204,7 @@ namespace Shipping.Controllers
                 if (existingRole.IsDeleted) return BadRequest("already delted");
                  _roleService.Delete(existingRole);
                 _roleService.SaveDB();
+
                 return NoContent();
             }
             catch (KeyNotFoundException)

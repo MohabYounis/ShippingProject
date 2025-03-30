@@ -1,4 +1,5 @@
-﻿using Shipping.Models;
+﻿using Shipping.DTOs;
+using Shipping.Models;
 using static Dapper.SqlMapper;
 
 namespace Shipping.Repository.ImodelRepository

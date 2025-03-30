@@ -40,12 +40,14 @@ namespace SHIPPING.Services
 
         public async Task UpdateAsync(Tentity entity)
         {
+            if (entity == null) throw new KeyNotFoundException($"Entity not found.");
             await unitOfWork.GetRepository<Tentity>().Update(entity);
         }
 
         public async Task DeleteAsync(int id)
         {
             var entity = await unitOfWork.GetRepository<Tentity>().GetByIdAsync(id);
+            if (entity == null) throw new KeyNotFoundException($"Entity with ID {id} not found.");
 
             var prop = entity.GetType().GetProperty("IsDeleted");
             if (prop == null || !prop.CanWrite) throw new InvalidOperationException("The entity does not support soft deletion.");
