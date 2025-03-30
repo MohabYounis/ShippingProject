@@ -18,11 +18,13 @@ namespace Shipping.Services.ModelService
     {
         private readonly IUnitOfWork unitOfWork;
         private readonly UserManager<ApplicationUser> userManager;
+        private readonly RoleManager<ApplicationRole> roleManager;
 
-        public DeliveryService(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager) : base(unitOfWork)
+        public DeliveryService(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager) : base(unitOfWork)
         {
             this.unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             this.userManager = userManager;
+            this.roleManager = roleManager;
         }
 
  
@@ -41,7 +43,7 @@ namespace Shipping.Services.ModelService
         }
 
        
-        public async Task<bool> AddDeliveryAsync(DeliveryDTO deliveryDTO)
+        public async Task<bool> AddDeliveryAsync(DeliveryCreateDTO deliveryDTO)
         {
             try
             {
@@ -54,24 +56,15 @@ namespace Shipping.Services.ModelService
                 // ✅ التحقق من صحة بيانات المحافظات
                 var allGovernmentsIdExist = await GetAllGovernmentExist(deliveryDTO.GovernmentsId);
                 var invalidIds = deliveryDTO.GovernmentsId.Except(allGovernmentsIdExist.Select(g => g.Id)).ToList();
-                if (invalidIds.Any())
-                {
-                    throw new Exception($"Invalid government IDs: {string.Join(", ", invalidIds)}");
-                }
+                if (invalidIds.Any()) throw new Exception($"Invalid government IDs: {string.Join(", ", invalidIds)}");
 
                 // ✅ التحقق من الفرع
                 var branch = await branchRepository.GetByIdAsync(deliveryDTO.BranchId);
-                if (branch == null)
-                {
-                    throw new Exception("Branch not found.");
-                }
+                if (branch == null) throw new Exception("Branch not found.");
 
                 // ✅ التحقق مما إذا كان المستخدم موجودًا بالفعل
                 var existingUser = await userManager.FindByEmailAsync(deliveryDTO.Email);
-                if (existingUser != null)
-                {
-                    throw new Exception("A user with this email already exists.");
-                }
+                if (existingUser != null) throw new Exception("A user with this email already exists.");
 
                 // ✅ إنشاء مستخدم جديد
                 var user = new ApplicationUser
@@ -81,14 +74,17 @@ namespace Shipping.Services.ModelService
                     PhoneNumber = deliveryDTO.Phone,
                     Address = deliveryDTO.Address,
                 };
+
                 // ✅ إضافة المستخدم إلى قاعدة البيانات
                 //حطيت هنا password علشان يهيشهولي 
                 IdentityResult Result = await userManager.CreateAsync(user, deliveryDTO.Password);
+                if (!Result.Succeeded) throw new Exception($"Failed to create user: {string.Join(", ", Result.Errors.Select(e => e.Description))}");
 
-                if (!Result.Succeeded)
-                {
-                    throw new Exception($"Failed to create user: {string.Join(", ", Result.Errors.Select(e => e.Description))}");
-                }
+                // ✅ التاكد من وجود دور delivery
+                bool roleExists = await roleManager.RoleExistsAsync("delivery");
+                if (!roleExists) throw new Exception("Role 'delivery' does not exist.");
+
+                // ✅ اضافة المستخدم لدور delivery
                 await userManager.AddToRoleAsync(user, "delivery");
 
                 // ✅ إنشاء كيان التوصيل وربطه بالمستخدم الجديد
@@ -96,8 +92,8 @@ namespace Shipping.Services.ModelService
                 {
                     AppUser_Id = user.Id,
                     Branch_Id = deliveryDTO.BranchId,
-                    IsDeleted =false
-
+                    DiscountType = Enum.Parse<DiscountType>(deliveryDTO.DiscountType),
+                    CompanyPercentage = deliveryDTO.CompanyPercentage,
                 };
                 delivery.DeliveryGovernments.AddRange(deliveryDTO.GovernmentsId.Select(id => new DeliveryGovernment { Government_Id = id }).ToList());
 
@@ -105,7 +101,6 @@ namespace Shipping.Services.ModelService
                 await unitOfWork.SaveChangesAsync(); // ✅ حفظ البيانات
 
                 await unitOfWork.Context.Database.CommitTransactionAsync(); // ✅ تأكيد المعاملة
-
                 return true;
             }
             catch (Exception ex)
@@ -125,19 +120,15 @@ namespace Shipping.Services.ModelService
             .ToListAsync();
         }
 
-        public async Task<bool> UpdateDeliveryAsync(int deliveryId, DeliveryDTO deliveryDTO)
+        public async Task<bool> UpdateDeliveryAsync(int deliveryId, DeliveryEditDTO deliveryDTO)
         {
             try
             {
                 await unitOfWork.Context.Database.BeginTransactionAsync();
 
                 var deliveryRepository = unitOfWork.GetRepository<Delivery>();
-                var delivery = await deliveryRepository.GetByIdAsync(deliveryId);
-
-                if (delivery == null)
-                {
-                    throw new Exception("Delivery not found.");
-                }
+                var delivery = await deliveryRepository.GetByIdAsync(deliveryId);   
+                if (delivery == null) throw new Exception("Not Found.");
 
                 // 🟢 تحديث بيانات المستخدم المرتبط بالتوصيل
                 if (delivery.AppUser_Id != null)
@@ -161,7 +152,10 @@ namespace Shipping.Services.ModelService
                 // 🟢 تحديث بيانات التوصيل
                 delivery.Branch_Id = deliveryDTO.BranchId;
                 delivery.IsDeleted = false;
-
+                delivery.CompanyPercentage = deliveryDTO.CompanyPercentage;
+                delivery.DiscountType = Enum.Parse<DiscountType>(deliveryDTO.DiscountType);
+                delivery.IsDeleted = deliveryDTO.IsDeleted;          
+                
                 // جلب جميع المحافظات
                 var deliveryGovernmentRepo = unitOfWork.GetRepository<DeliveryGovernment>();
 
@@ -188,8 +182,8 @@ namespace Shipping.Services.ModelService
                     deliveryGovernmentRepo.Delete(gov);
                 }
 
-                 unitOfWork.SaveChangesAsync();
-                 unitOfWork.Context.Database.CommitTransactionAsync();
+                await unitOfWork.SaveChangesAsync();
+                await unitOfWork.Context.Database.CommitTransactionAsync();
                 return true;
             }
             catch (Exception ex)

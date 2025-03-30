@@ -5,9 +5,10 @@ namespace Shipping.Models
 {
     public enum DiscountType
     {
-        Fixed,          // Fixed Discount 
-        Percentage      // Percentage Discount
+        Fixed,
+        Percentage
     }
+
     public class Delivery
     {
         public int Id { get; set; }

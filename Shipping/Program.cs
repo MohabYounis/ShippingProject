@@ -50,7 +50,6 @@ namespace Shipping
           
             builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 
-
             // Register AutoMapper
             builder.Services.AddAutoMapper(typeof(Program));
 
@@ -123,7 +122,6 @@ namespace Shipping
                 });
 
 
-
             // For Profile Image
             builder.Services.Configure<FormOptions>(options =>
             {
@@ -131,9 +129,7 @@ namespace Shipping
             });
 
 
-
             var app = builder.Build();
-
 
 
             // Configure the HTTP request pipeline.

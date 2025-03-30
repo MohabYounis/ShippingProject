@@ -21,10 +21,7 @@ namespace Shipping.MapperConfig
 
             CreateMap<MerchantCreateDTO, ApplicationUser>().AfterMap((src, dest) =>
             {
-                if (dest.Merchant == null)
-                {
-                    dest.Merchant = new Merchant();
-                }
+                if (dest.Merchant == null) dest.Merchant = new Merchant();
 
                 dest.Merchant.AppUser_Id = dest.Id;
                 dest.Merchant.StoreName = src.StoreName;

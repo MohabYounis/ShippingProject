@@ -16,14 +16,11 @@ namespace Shipping.Controllers
         public RolePermissionController(IRolePermissionService rolePermissionService)
         {
             this.rolePermissionService = rolePermissionService;
-     
         }
 
 
         //get all
-
         [HttpGet("All")]
-
         public async Task<IActionResult> GetAllRolePermissions()
         {
             //getting from db
@@ -32,7 +29,6 @@ namespace Shipping.Controllers
             {
                 return NotFound("there is no rolePermissions ");
             }
-
             //mapping to DTO
             var rolePermissionDtos = rolePermissions.Select(rp => new RolePermissionDTO
             {
@@ -48,16 +44,11 @@ namespace Shipping.Controllers
 
             }).ToList();
 
-
-
-
             return Ok(rolePermissionDtos);
         }
 
         //get all
-
         [HttpGet("Exist")]
-
         public async Task<IActionResult> GetAllRolePermissionsExist()
         {
             //getting from db
@@ -66,7 +57,6 @@ namespace Shipping.Controllers
             {
                 return NotFound("there is no rolePermissions ");
             }
-
             //mapping to DTO
             var rolePermissionDtos = rolePermissions.Select(rp => new RolePermissionDTO
             {
@@ -81,9 +71,6 @@ namespace Shipping.Controllers
                 CanDelete = rp.CanDelete
 
             }).ToList();
-
-
-
 
             return Ok(rolePermissionDtos);
         }
@@ -120,8 +107,6 @@ namespace Shipping.Controllers
         [HttpPost("{role_id}/{permission_id}")]
         public async Task<IActionResult> AddRolePermissin(string role_id, int permission_id, [FromBody] CreateRolePermission rolePermissionDTO)
         {
-
-
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -154,15 +139,12 @@ namespace Shipping.Controllers
             {
                 return StatusCode(500, ex.Message);
             }
-
-
         }
+
 
             // update role permission
             [HttpPut("{role_id}/{permission_id}")]
-
         public async Task<IActionResult> UpdateRolePermission(string role_id, int permission_id, [FromBody] UpdateRolePermission rolePermissionDTO)
-     
         {
             if (!ModelState.IsValid)
             {
@@ -197,19 +179,13 @@ namespace Shipping.Controllers
                     case UpdateREsult.AlreadyDeleted: return Conflict("RolePermission already deleted");
 
                     default:return StatusCode(500, "Failed to update RolePermission");
-
                 }
-
-            
             }
             catch (Exception ex)
             {
                 return StatusCode(500,ex.Message);
             }
         }
-
-
-
 
 
         //delete role permission
@@ -239,9 +215,5 @@ namespace Shipping.Controllers
                 return StatusCode(500, $"An error occurred: {ex.Message}");
             }
         }
-
-
-
-
     }
 }
