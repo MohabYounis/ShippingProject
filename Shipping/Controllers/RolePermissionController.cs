@@ -142,8 +142,8 @@ namespace Shipping.Controllers
         }
 
 
-        // update role permission
-        [HttpPut("{role_id}/{permission_id}")]
+            // update role permission
+            [HttpPut("{role_id}/{permission_id}")]
         public async Task<IActionResult> UpdateRolePermission(string role_id, int permission_id, [FromBody] UpdateRolePermission rolePermissionDTO)
         {
             if (!ModelState.IsValid)

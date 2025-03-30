@@ -8,6 +8,9 @@ using Shipping.Services.ModelService;
 using Shipping.UnitOfWorks;
 using SHIPPING.Services;
 using Microsoft.OpenApi.Models;
+using Shipping.Controllers;
+using Shipping.Repository.ImodelRepository;
+using Shipping.Repository.modelRepository;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Http.Features;
@@ -40,11 +43,11 @@ namespace Shipping
             {
                 options.UseLazyLoadingProxies().UseSqlServer(builder.Configuration.GetConnectionString("CS"));
             });
-
+          
             // Register Identity
             builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
                 .AddEntityFrameworkStores<ShippingContext>();
-
+          
             builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 
             // Register AutoMapper
@@ -53,6 +56,22 @@ namespace Shipping
             //Register of Unit Of work
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<ISpecialShippingRateRepository, SpecialShippingRateRepository>();
+
+
+
+            //register of RolePermissionRepository
+            builder.Services.AddScoped<IRolePermissinRepository, RolePermissinRepository>();
+
+            //register of RolePermissionService
+
+            builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
+
+            //role
+            builder.Services.AddScoped<IApplicationRoleService, ApplicationRoleService>();
+
+
+
+
 
 
             // Register Generic Repository
