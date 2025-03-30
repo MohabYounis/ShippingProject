@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Shipping.DTOs;
 using Shipping.DTOs.CityDTOs;
+using Shipping.DTOs.GovernmentDTOs;
 using Shipping.DTOs.MerchantDTOs;
 using Shipping.ImodelRepository;
 using Shipping.Models;
@@ -149,6 +150,14 @@ namespace Shipping.Controllers
             }
             try
             {
+                var cityByName = await cityService.GetByNameAsync(cityFromReq.Name);
+                if (cityByName != null)
+                {
+                    response.IsSuccess = false;
+                    response.Data = "City is already exist.";
+                    return BadRequest(response);
+                }
+
                 var city = mapper.Map<City>(cityFromReq);
                 await serviceCityGernric.AddAsync(city);
                 await serviceCityGernric.SaveChangesAsync();

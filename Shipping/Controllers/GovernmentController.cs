@@ -15,10 +15,12 @@ namespace Shipping.Controllers
     public class GovernmentController : ControllerBase
     {
         private readonly IGovernmentService _governmentService;
+        private readonly  IServiceGeneric<Government> genericService;
 
-        public GovernmentController(IGovernmentService governmentService)
+        public GovernmentController(IGovernmentService governmentService, IServiceGeneric<Government> genericService)
         {
             _governmentService = governmentService;
+            this.genericService = genericService;
         }
 
 
@@ -102,6 +104,12 @@ namespace Shipping.Controllers
             }
             try
             {
+                var gov = await genericService.GetByNameAsync(governmentDto.Name);
+                if (gov != null)
+                {
+                    return BadRequest("Governorate is already exist.");
+                }
+
                 await _governmentService.AddGovernmentAsync(governmentDto);
                 return Ok(new { message = "Government added successfully!" });
 

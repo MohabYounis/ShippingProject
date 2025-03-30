@@ -62,10 +62,10 @@ namespace Shipping.Controllers
 
                     var result = new
                     {
-                        TotalGovernments = totalReasons,                // العدد الإجمالي للعناصر
+                        TotalReasons = totalReasons,                    // العدد الإجمالي للعناصر
                         Page = page,                                    // الصفحة الحالية
                         PageSize = pageSize,                            // عدد العناصر في الصفحة
-                        Governments = paginatedReasons                  // العناصر الحالية
+                        Reasons = paginatedReasons                      // العناصر الحالية
                     };
 
                     return Ok(result);
