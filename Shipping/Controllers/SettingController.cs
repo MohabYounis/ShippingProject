@@ -7,6 +7,7 @@ using Shipping.Models;
 using Shipping.Services;
 using Shipping.Services.IModelService;
 using Shipping.Services.ModelService;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Shipping.Controllers
 {
@@ -15,16 +16,13 @@ namespace Shipping.Controllers
     public class SettingController : ControllerBase
     {
         private readonly IServiceGeneric<Setting> settingService;
-        private readonly GeneralResponse response;
 
-        public SettingController(IServiceGeneric<Setting> settingService, GeneralResponse response)
+        public SettingController(IServiceGeneric<Setting> settingService)
         {
             this.settingService = settingService;
-            this.response = response;
         }
 
 
-        // Get All setting
         [HttpGet]
         public async Task<ActionResult<GeneralResponse>> GetAll()
         {
@@ -34,24 +32,20 @@ namespace Shipping.Controllers
                 var settingsDtos = settings.Select(s => new SettingDTO
                 {
                     Id = s.Id,
-                    ShippingToVillageCost =s.ShippingToVillageCost,
-                    DeliveryAutoAccept=s.DeliveryAutoAccept,
+                    ShippingToVillageCost = s.ShippingToVillageCost,
+                    DeliveryAutoAccept = s.DeliveryAutoAccept,
                     IsDeleted = s.IsDeleted,
                 }).ToList();
 
-                response.IsSuccess = true;
-                response.Data = settingsDtos;
+                return Ok(GeneralResponse.Success(settingsDtos));
             }
             catch (Exception ex)
             {
-                response.IsSuccess = false;
-                response.Data = ex.Message;
+                return StatusCode(500, GeneralResponse.Failure(ex.Message));
             }
-
-            return response;
         }
 
-        // Get setting by ID
+
         [HttpGet("{id:int}")]
         public async Task<ActionResult<GeneralResponse>> GetById(int id)
         {
@@ -66,45 +60,29 @@ namespace Shipping.Controllers
                     IsDeleted = setting.IsDeleted
                 };
 
-                response.IsSuccess = true;
-                response.Data = settingDto;
-            }
-            catch (KeyNotFoundException ex)
-            {
-                response.IsSuccess = false;
-                response.Data = $"Setting with ID {id} was not found.";
+                return Ok(GeneralResponse.Success(settingDto));
             }
             catch (Exception ex)
             {
-                response.IsSuccess = false;
-                response.Data = ex.Message;
+                return StatusCode(500, GeneralResponse.Failure(ex.Message));
             }
-
-            return response;
         }
 
 
-        //Add setting
         [HttpPost]
         public async Task<ActionResult<GeneralResponse>> Create([FromBody] SettingCreateDTOS settingcreateDto)
         {
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                response.IsSuccess = false;
-                response.Data = ModelState.ToDictionary(
-                    kvp => kvp.Key,
-                    kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToList()
-                );
+                string errors = string.Join("; ", ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage));
+                return BadRequest(GeneralResponse.Failure(errors));
             }
             try
             {
                 var existingSetting = await settingService.GetAllAsync();
-                if (existingSetting.Any())
-                {
-                    response.IsSuccess = false;
-                    response.Data = "A Setting has already been created. You cannot add another one.";
-                    return response;
-                }
+                if (existingSetting.Any()) return BadRequest(GeneralResponse.Failure("A Setting has already been created. You cannot add another one."));
 
                 var setting = new Setting
                 {
@@ -113,56 +91,43 @@ namespace Shipping.Controllers
 
                 await settingService.AddAsync(setting);
                 await settingService.SaveChangesAsync();
+                return Ok(GeneralResponse.Success("Setting created successfully."));
 
-                response.IsSuccess = true;
-                response.Data = "Setting created successfully.";
             }
             catch (Exception ex)
             {
-                response.IsSuccess = false;
-                response.Data = ex.Message;
+                return StatusCode(500, GeneralResponse.Failure(ex.Message));
             }
-            
-            return response;
         }
 
-        // Update setting by ID 
+
         [HttpPut("{id:int}")]
         public async Task<ActionResult<GeneralResponse>> EditById(int id, [FromBody] SettingEditDTO settingUpdateDto)
         {
             if (!ModelState.IsValid)
             {
-                response.IsSuccess = false;
-                response.Data = ModelState.ToDictionary(
-                    kvp => kvp.Key,
-                    kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToList()
-                );
+                string errors = string.Join("; ", ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage));
+                return BadRequest(GeneralResponse.Failure(errors));
             }
             try
             {
                 var setting = await settingService.GetByIdAsync(id);
-                if (setting == null)
-                {
-                    response.IsSuccess = false;
-                    response.Data = $"Setting with ID {id} was not found.";
-                }
+                if (setting == null) return NotFound(GeneralResponse.Failure($"Setting with ID {id} was not found."));
 
                 setting.ShippingToVillageCost = settingUpdateDto.ShippingToVillageCost;
                 setting.DeliveryAutoAccept = settingUpdateDto.DeliveryAutoAccept;
-                
+
                 await settingService.UpdateAsync(setting);
                 await settingService.SaveChangesAsync();
-
-                response.IsSuccess = true;
-                response.Data = "Setting updated successfully.";
+                return Ok(GeneralResponse.Success("Setting updated successfully."));
             }
             catch (Exception ex)
             {
-                response.IsSuccess = false;
-                response.Data = ex.Message;
-            }
+                return StatusCode(500, GeneralResponse.Failure(ex.Message));
 
-            return response;
+            }
         }
     }
 }

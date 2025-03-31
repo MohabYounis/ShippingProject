@@ -22,7 +22,6 @@ namespace Shipping.Controllers
         }
 
 
-
         [HttpGet("All")]
         public async Task<IActionResult> GetAllShipping()
         {
@@ -37,9 +36,7 @@ namespace Shipping.Controllers
                 return NotFound("there is no shipping types ");
             }
 
-
             //mapping shippingDTO
-
             var shippingTypeDtos = shippingTypes.Select(s => new ShippingTypeDTO
             {
                 Id = s.Id,
@@ -50,7 +47,6 @@ namespace Shipping.Controllers
             }).ToList();
 
             return Ok(shippingTypeDtos);
-
         }
 
 
@@ -67,25 +63,24 @@ namespace Shipping.Controllers
                 return NotFound("there is no shipping types ");
             }
 
-          //  mapping
-          var ShippingTypeDtos = shippingTypes.Select(s => new ShippingTypeDTO
-          {
-              Id = s.Id,
-              Type = s.Type,
-              Description = s.Description,
-              Cost = s.Cost,
-              IsDeleted = s.IsDeleted
-          }).ToList();
+            //  mapping
+            var ShippingTypeDtos = shippingTypes.Select(s => new ShippingTypeDTO
+            {
+                Id = s.Id,
+                Type = s.Type,
+                Description = s.Description,
+                Cost = s.Cost,
+                IsDeleted = s.IsDeleted
+            }).ToList();
+
             return Ok(ShippingTypeDtos);
-
         }
-
 
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetShipping(int id)
         {
-            if(id <= 0)
+            if (id <= 0)
             {
                 return BadRequest("id must be greater than 0");
             }
@@ -108,8 +103,6 @@ namespace Shipping.Controllers
             };
 
             return Ok(shippingTypeDto);
-
-
         }
 
 
@@ -128,7 +121,6 @@ namespace Shipping.Controllers
                 Description = ShippingDto.Description,
                 Cost = ShippingDto.Cost,
             };
-
             try
             {
                 //adding to db
@@ -144,20 +136,20 @@ namespace Shipping.Controllers
             }
         }
 
-        [HttpPut("{id}")]
 
-        public async Task<IActionResult> UpdateShipping(  int id, [FromBody] ShippingTypeDTO ShippingDto)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateShipping(int id, [FromBody] ShippingTypeDTO ShippingDto)
         {
             //check id 
-            if (id <= 0)  return BadRequest("id must be greater than 0");
-            
+            if (id <= 0) return BadRequest("id must be greater than 0");
+
             //check 
-            if (!ModelState.IsValid)  return BadRequest(ModelState);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
             //getting from db
 
             var ShippingType = await shippingService.GetByIdAsync(id);
-           if (ShippingType == null)
+            if (ShippingType == null)
             {
                 return NotFound($"there is no shipping type with this id {id}");
             }
@@ -168,12 +160,10 @@ namespace Shipping.Controllers
             ShippingType.Description = ShippingDto.Description;
             ShippingType.Cost = ShippingDto.Cost;
 
-
             await shippingService.UpdateAsync(ShippingType);
             await shippingService.SaveChangesAsync();
 
             return Ok("Shipping updated successfully");
-
         }
 
 
@@ -185,7 +175,6 @@ namespace Shipping.Controllers
             {
                 return BadRequest("id must be greater than 0");
             }
-
             //getting from db
             var shippingType = await shippingService.GetByIdAsync(id);
 
@@ -201,23 +190,6 @@ namespace Shipping.Controllers
             await shippingService.SaveChangesAsync();
 
             return Ok("Shipping deleted successfully");
-
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
 }
