@@ -29,8 +29,6 @@ namespace Shipping.MapperConfig
                 dest.Merchant.City = src.City;
                 dest.Merchant.PickupCost = src.PickupCost;
                 dest.Merchant.RejectedOrderPercentage = src.RejectedOrderPercentage;
-                dest.Merchant.IsDeleted = src.IsDeleted;
-                dest.IsDeleted = src.IsDeleted;
 
                 dest.Merchant.BranchMerchants = src.Branches_Id?
                 .Select(branchId => new BranchMerchant

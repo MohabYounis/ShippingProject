@@ -8,6 +8,8 @@ using Shipping.Models;
 using Shipping.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Shipping.Controllers
 {
@@ -16,12 +18,10 @@ namespace Shipping.Controllers
     public class ProfileController : ControllerBase
     {
         private readonly UserManager<ApplicationUser> userManager;
-        private readonly GeneralResponse response;
 
-        public ProfileController(UserManager<ApplicationUser> userManager, GeneralResponse response)
+        public ProfileController(UserManager<ApplicationUser> userManager)
         {
             this.userManager = userManager;
-            this.response = response;
         }
 
 
@@ -33,12 +33,7 @@ namespace Shipping.Controllers
             try
             {
                 var user = await userManager.FindByIdAsync(id);
-                if (user == null)
-                {
-                    response.IsSuccess = false;
-                    response.Data = "Not Found";
-                    return NotFound(response);
-                }
+                if (user == null) return NotFound(GeneralResponse.Failure("Not Found."));
 
                 var role = await userManager.GetRolesAsync(user);
                 ProfileDto profileDto = new ProfileDto()
@@ -52,18 +47,14 @@ namespace Shipping.Controllers
                     ProfileImagePath = user.ProfileImagePath ?? string.Empty,
                 };
 
-                response.IsSuccess = true;
-                response.Data = profileDto;
-                return Ok(response);
+                return Ok(GeneralResponse.Success(profileDto));
             }
             catch (Exception ex)
             {
-                response.IsSuccess = false;
-                response.Data = ex.Message;
-                return StatusCode(500, response);
+                return StatusCode(500, GeneralResponse.Failure(ex.Message));
             }
         }
-            
+
 
         // Upload profile image
         [HttpPost("{id}/upload-profile-image")]
@@ -73,26 +64,13 @@ namespace Shipping.Controllers
             try
             {
                 var user = await userManager.FindByIdAsync(id);
-                if (user == null)
-                {
-                    response.IsSuccess = false;
-                    response.Data = "User not found.";
-                    return NotFound(response);
-                }
-
-                if (imageFile == null || imageFile.Length == 0)
-                {
-                    response.IsSuccess = false;
-                    response.Data = "No image uploaded.";
-                    return BadRequest(response);
-                }
+                if (user == null) return NotFound(GeneralResponse.Failure("Not Found."));
+                if (imageFile == null || imageFile.Length == 0) return BadRequest(GeneralResponse.Failure("No image uploaded."));
 
                 // تأكد من وجود مجلد الصور
                 var imagesFolderPath = Path.Combine("wwwroot", "images");
                 if (!Directory.Exists(imagesFolderPath))
-                {
                     Directory.CreateDirectory(imagesFolderPath);
-                }
 
                 // رفع الصورة وحفظها
                 var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
@@ -106,23 +84,13 @@ namespace Shipping.Controllers
                 // تحديث المسار في قاعدة البيانات
                 user.ProfileImagePath = $"/images/{fileName}";
                 var updateResult = await userManager.UpdateAsync(user);
+                if (!updateResult.Succeeded) return BadRequest(GeneralResponse.Failure("Failed to update user profile image."));
 
-                if (!updateResult.Succeeded)
-                {
-                    response.IsSuccess = false;
-                    response.Data = "Failed to update user profile image.";
-                    return BadRequest(response);
-                }
-
-                response.IsSuccess = true;
-                response.Data = "Image uploaded successfully.";
-                return Ok(response);
+                return Ok(GeneralResponse.Success("Image uploaded successfully."));
             }
             catch (Exception ex)
             {
-                response.IsSuccess = false;
-                response.Data = ex.Message;
-                return StatusCode(500, response);
+                return StatusCode(500, GeneralResponse.Failure(ex.Message));
             }
         }
     }
