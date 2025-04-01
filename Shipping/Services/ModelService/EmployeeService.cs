@@ -19,24 +19,47 @@ namespace Shipping.Services.ModelService
             this.userManager= userManager;
         }
 
-        public override async Task<IEnumerable<Employee>> GetAllAsync()
+        public  async Task<IEnumerable<Employee>> GetAllAsync(int pageIndex=1, int pageSize=10)
         {
             var query =await unitOfWork.GetRepository<Employee>().GetAllAsync();
             return await query
                 .Include(e => e.ApplicationUser)
                 .Include(e => e.Branch)
+
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
         }
 
-        public override async Task<IEnumerable<Employee>> GetAllExistAsync()
+        public  async Task<IEnumerable<Employee>> GetAllExistAsync(int pageIndex = 1, int pageSize = 10)
         {
             var query =await unitOfWork.GetRepository<Employee>().GetAllExistAsync();
             return await query
                 .Include(e => e.ApplicationUser)
                 .Include(e => e.Branch)
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
         }
-        //
+
+        //search
+        public async Task<IEnumerable<Employee>> GetEmployeesBySearch(string term, bool includeDelted = true)
+        {
+            IQueryable<Employee> query = null;
+            if (!includeDelted)
+            {
+                query = await unitOfWork.GetRepository<Employee>().GetAllExistAsync();
+            }
+
+            query = await unitOfWork.GetRepository<Employee>().GetAllAsync();
+
+            return await query
+                .Include(e => e.ApplicationUser)
+                .Include(e => e.Branch)
+                .Where(e => EF.Functions.Like(e.ApplicationUser.UserName, $"%{term}%"))
+                .ToListAsync();
+        }
+
 
 
 

@@ -33,10 +33,15 @@ namespace Shipping.Controllers
 
 
 
-        [HttpGet("All")]
-        public async Task<IActionResult> GetAllEmployees()
+        [HttpGet]
+        public async Task<IActionResult> GetAllEmployees([FromQuery] bool includeDelted = true, int pageIndex = 1, int pageSize = 10)
         {
-            var employees = await empService.GetAllAsync();
+            IEnumerable<Employee>? employees = null;
+
+            if (!includeDelted) { employees = await empService.GetAllExistAsync(pageIndex,pageSize); }
+
+
+           else  employees = await empService.GetAllAsync(pageIndex, pageSize);
             if (employees == null || !employees.Any())
             {
                 return NotFound("there is no employees ");
@@ -54,31 +59,6 @@ namespace Shipping.Controllers
 
             return Ok(employeeDtos);
         }
-
-
-        [HttpGet("exist")]
-        public async Task<IActionResult> GetAllExistEmployees()
-        {
-            var employeesExist = await empService.GetAllExistAsync();
-            if (employeesExist == null || !employeesExist.Any())
-            {
-                return NotFound("there is no employees ");
-            }
-
-            List<EmployeeDTO> employeeDtos = employeesExist.Select(e => new EmployeeDTO
-            {
-                Id = e.Id,
-                Name = e.ApplicationUser?.UserName,
-                Address = e.ApplicationUser?.Address,
-                userId = e.ApplicationUser?.Id,
-
-                branchId = e.Branch.Id,
-                IsDeleted = e.IsDeleted
-            }).ToList();
-
-            return Ok(employeeDtos);
-        }
-
 
 
         [HttpGet("{id}")]
@@ -323,5 +303,36 @@ namespace Shipping.Controllers
             }
         }
 
+        //search by name
+
+        [HttpGet("SearchByName")]
+        public async Task<IActionResult> SearchByName([FromQuery] string term)
+        {
+            try
+            {
+                var employees = await empService.GetEmployeesBySearch(term);
+                if (employees == null || !employees.Any()) return NotFound($"ther is no any employee whose name contains {term} ");
+                //mapping
+                var employeesDto = employees.Select(e => new EmployeeDTO
+                {
+                    Id = e.Id,
+                    IsDeleted = e.IsDeleted,
+                    userId = e.AppUser_Id,
+                    Name = e.ApplicationUser.UserName,
+                    Phone = e.ApplicationUser?.PhoneNumber,
+                    Address = e.ApplicationUser?.Address,
+                    branchId = e.Branch_Id
+                }).ToList();
+
+                return Ok(employeesDto);
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+
+
+        }
     }
 }
