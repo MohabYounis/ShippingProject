@@ -30,10 +30,15 @@ namespace Shipping.Controllers
 
 
 
-        [HttpGet("All")]
-        public async Task<IActionResult> GetAllEmployees()
+        [HttpGet]
+        public async Task<IActionResult> GetAllEmployees([FromQuery] bool includeDelted=true)
         {
-            var employees = await empService.GetAllAsync();
+            IEnumerable<Employee>? employees = null;
+
+            if (!includeDelted) {  employees = await empService.GetAllExistAsync(); }
+
+
+            employees = await empService.GetAllAsync();
             if (employees == null || !employees.Any())
             {
                 return NotFound("there is no employees ");
@@ -52,27 +57,7 @@ namespace Shipping.Controllers
         }
 
 
-        [HttpGet("exist")]
-        public async Task<IActionResult> GetAllExistEmployees()
-        {
-            var employeesExist = await empService.GetAllExistAsync();
-            if (employeesExist == null || !employeesExist.Any())
-            {
-                return NotFound("there is no employees ");
-            }
-
-            List<EmployeeDTO> employeeDtos = employeesExist.Select(e => new EmployeeDTO
-            {
-                Id = e.Id,
-                Name = e.ApplicationUser?.UserName,
-                Address = e.ApplicationUser?.Address,
-                branchId = e.Branch.Id,
-                IsDeleted = e.IsDeleted
-            }).ToList();
-
-            return Ok(employeeDtos);
-        }
-
+     
 
 
         [HttpGet("{id}")]
