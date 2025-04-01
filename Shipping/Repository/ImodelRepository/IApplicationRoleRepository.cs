@@ -6,13 +6,16 @@ namespace Shipping.Repository.ImodelRepository
 {
     public interface IApplicationRoleRepository
     {
-        Task<ApplicationRoleDTO> GetByIdAsync(string id);
-        Task<IEnumerable<ApplicationRoleDTO>> GetAllAsync();
-        Task AddAsync(ApplicationRoleDTO entity);
+        Task<ApplicationRole> GetByIdAsync(string id);
+
+        Task<ApplicationRole> GetByNameAsync(string roleName);
+        Task<IEnumerable<ApplicationRole>> GetAllAsyncExist();
+        Task<IEnumerable<ApplicationRole>> GetAllAsync();
+        Task AddAsync(ApplicationRole entity);
         Task UpdateById(string id);
         Task DeleteByID(string id);
-        void Update(ApplicationRoleDTO entity);
-        Task Delete(string id);
-        void SaveDB();
+        void Update(ApplicationRole entity);
+        void Delete(ApplicationRole entity);
+        Task SaveDB();
     }
 }

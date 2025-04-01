@@ -1,6 +1,4 @@
-﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
-using Shipping.DTOs;
+﻿using Microsoft.EntityFrameworkCore;
 using Shipping.Models;
 using Shipping.Repository.ImodelRepository;
 using Shipping.UnitOfWorks;
@@ -10,82 +8,79 @@ namespace Shipping.Repository.modelRepository
 {
     public class ApplicationRoleRepository : IApplicationRoleRepository
     {
-        private readonly IMapper mapper;
 
         public ShippingContext Context { get; }
-        public ApplicationRoleRepository(ShippingContext context , IMapper mapper)
+        public ApplicationRoleRepository(ShippingContext context)
         {
-           this.Context = context ?? throw new ArgumentNullException(nameof(context));
-            this.mapper = mapper;
+            this.Context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public async Task AddAsync(ApplicationRoleDTO entity)
+        public async Task AddAsync(ApplicationRole entity)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
 
-           var role = mapper.Map<ApplicationRoleDTO, ApplicationRole>(entity);
-
-            await Context.AddAsync(role);
+            await Context.AddAsync(entity);
         }
 
-        public async Task Delete(string id)
+        public void Delete(ApplicationRole entity)
         {
-            var entityObj = await Context.Roles.FirstOrDefaultAsync(r => r.Id == id);
-            if (entityObj == null) throw new ArgumentNullException(nameof(entityObj));
-            entityObj.IsDeleted = true;
-            Context.SaveChanges();
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
+            EF.Property<bool>(entity, "IsDeleted");
+            entity.GetType().GetProperty("IsDeleted")?.SetValue(entity, true);
+            Context.Update(entity);
         }
 
         public async Task DeleteByID(string id)
         {
-            ApplicationRoleDTO entityObj = await GetByIdAsync(id);
-            if (entityObj == null) throw new KeyNotFoundException($"Entity with ID {id} not found.");
-            EF.Property<bool>(entityObj, "IsDeleted"); 
-            entityObj.GetType().GetProperty("IsDeleted")?.SetValue(entityObj, true); 
-            Context.Update(entityObj);
+            ApplicationRole tentityObj = await GetByIdAsync(id);
+            if (tentityObj == null) throw new KeyNotFoundException($"Entity with ID {id} not found.");
+            EF.Property<bool>(tentityObj, "IsDeleted");
+            tentityObj.GetType().GetProperty("IsDeleted")?.SetValue(tentityObj, true);
+            Context.Update(tentityObj);
         }
 
-        public async Task<IEnumerable<ApplicationRoleDTO>> GetAllAsync()
+        public async Task<IEnumerable<ApplicationRole>> GetAllAsyncExist()
         {
-            var allRoles = await Context.Set<ApplicationRole>()
+            return await Context.Set<ApplicationRole>()
                      .Where(e => !EF.Property<bool>(e, "IsDeleted"))
                      .ToListAsync();
-            return mapper.Map<IEnumerable<ApplicationRole>, IEnumerable<ApplicationRoleDTO>>(allRoles);
         }
 
-        public async Task<ApplicationRoleDTO> GetByIdAsync(string id)
+        //
+
+        public async Task<IEnumerable<ApplicationRole>> GetAllAsync()
         {
-           var role= await Context.Set<ApplicationRole>().FindAsync(id);
-            return mapper.Map<ApplicationRole, ApplicationRoleDTO>(role);
+            return await Context.Set<ApplicationRole>().ToListAsync();
         }
 
-        public void Update(ApplicationRoleDTO entity)
+        public async Task<ApplicationRole> GetByIdAsync(string id)
+        {
+            return await Context.Set<ApplicationRole>().FindAsync(id);
+        }
+
+        public void Update(ApplicationRole entity)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
+            Context.Update(entity);
+        }
 
-            var existingRole = Context.Roles.FirstOrDefault(r => r.Id == entity.Id);
-            if (existingRole != null)
-            {
-                mapper.Map(entity, existingRole);
-                Context.SaveChanges();
-            }
-            else
-            {
-                throw new KeyNotFoundException("Role not found.");
-            }
+        public async Task<ApplicationRole> GetByNameAsync(string roleName)
+        {
+            return await Context.Set<ApplicationRole>()
+                                .FirstOrDefaultAsync(r => EF.Functions.Like(r.Name, roleName));
         }
 
         public async Task UpdateById(string id)
         {
-            ApplicationRoleDTO tentityObj = await GetByIdAsync(id);
+            ApplicationRole tentityObj = await GetByIdAsync(id);
             if (tentityObj == null) throw new KeyNotFoundException($"Entity with ID {id} not found.");
-            var role = mapper.Map<ApplicationRoleDTO, ApplicationRole>(tentityObj);
-            Context.Update(role);
+            Context.Update(tentityObj);
         }
 
-        public void SaveDB()
+        public async Task SaveDB()
         {
-            Context.SaveChanges();
-        }    
+            await Context.SaveChangesAsync();
+        }
+
     }
 }

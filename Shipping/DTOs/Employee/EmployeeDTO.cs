@@ -9,6 +9,8 @@ namespace Shipping.DTOs.Employee
         public bool IsDeleted { get; set; }
 
         // app user fields
+
+        public string userId { get; set; }  
         public string Name { get; set; }
         public string Email { get; set; }
         [DataType(DataType.Password)]

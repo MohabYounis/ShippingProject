@@ -14,6 +14,9 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Shipping.ImodelRepository;
 using Shipping.modelRepository;
+using Shipping.Controllers;
+using Shipping.Repository.ImodelRepository;
+using Shipping.Repository.modelRepository;
 
 namespace Shipping
 {
@@ -54,6 +57,20 @@ namespace Shipping
             //Register of Unit Of work
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<ISpecialShippingRateRepository, SpecialShippingRateRepository>();
+
+
+
+        
+            //register of RolePermissionService
+
+            builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
+
+            //role
+            builder.Services.AddScoped<IApplicationRoleService, ApplicationRoleService>();
+
+
+
+
 
 
             // Register Generic Repository
