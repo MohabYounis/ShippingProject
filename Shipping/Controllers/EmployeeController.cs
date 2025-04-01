@@ -18,14 +18,16 @@ namespace Shipping.Controllers
 
         UserManager<ApplicationUser> userManager;
         IEmployeeService empService;
+        //
+        IApplicationRoleService roleService;
 
-
-        public EmployeeController(IServiceGeneric<Employee> employeeService, IEmployeeService empService, UserManager<ApplicationUser> userManager, IServiceGeneric<Branch> branchService)
+        public EmployeeController(IServiceGeneric<Employee> employeeService, IEmployeeService empService, UserManager<ApplicationUser> userManager, IServiceGeneric<Branch> branchService, IApplicationRoleService roleService)
         {
             this.employeeService = employeeService;
             this.userManager = userManager;
             this.branchService = branchService;
             this.empService = empService;
+            this.roleService = roleService;
         }
 
 
@@ -113,6 +115,14 @@ namespace Shipping.Controllers
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+            //
+            var validRoles = new List<string> { "Employee", "BranchManager", "Sales" };
+
+
+            if (!validRoles.Contains(employeeDto.Role.Trim(), StringComparer.OrdinalIgnoreCase))
+            {
+                return BadRequest($"Invalid role: '{employeeDto.Role}'. Allowed roles: {string.Join(", ", validRoles)}");
+            }
 
             // Get branch
 
@@ -142,6 +152,13 @@ namespace Shipping.Controllers
                 {
                     return BadRequest("app" + string.Join(", ", result.Errors.Select(e => e.Description)));
                 }
+
+  
+                //check role
+                var role= await roleService.GetByNameAsync(employeeDto.Role.Trim());
+                if (role == null) return BadRequest($"Role {employeeDto.Role} not found");
+                // assign role 
+                await userManager.AddToRoleAsync(appUser, role.Name);
 
 
                 //   mapping manually employeeDto to employee
@@ -267,6 +284,42 @@ namespace Shipping.Controllers
                 return StatusCode(500, $"An error occurred: {ex.Message}");
 
 
+            }
+        }
+
+
+
+        //by role name
+        [HttpGet("GetEmployeesByRole")]
+        public async Task<IActionResult> GetEmployeesByRole(string roleName)
+        {
+            try
+            {
+                var employees = await empService.GetEmployeesByRole(roleName);
+                if (employees == null || !employees.Any()) return NotFound($"ther is no  employees have {roleName} role");
+                //mapping
+                var employeesDto = employees.Select(e => new EmployeeDTO
+                {
+                    Id = e.Id,
+                    IsDeleted = e.IsDeleted,
+
+                    userId = e.AppUser_Id,
+                    Name = e.ApplicationUser.UserName,
+                    Phone = e.ApplicationUser?.PhoneNumber,
+                    Address = e.ApplicationUser?.Address,
+
+                    branchId = e.Branch_Id
+
+                }).ToList();
+
+
+
+                return Ok(employeesDto);
+            }
+
+            catch (Exception ex) { 
+            
+            return StatusCode(500, ex.Message);
             }
         }
 
