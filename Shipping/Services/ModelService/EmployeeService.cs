@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using static Dapper.SqlMapper;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.AspNetCore.Identity;
+using Shipping.DTOs.pagination;
+using Shipping.DTOs.Employee;
 
 namespace Shipping.Services.ModelService
 {
@@ -19,27 +21,72 @@ namespace Shipping.Services.ModelService
             this.userManager= userManager;
         }
 
-        public  async Task<IEnumerable<Employee>> GetAllAsync(int pageIndex=1, int pageSize=10)
+        public  async Task<GenericPagination<EmployeeDTO>> GetAllAsync(int pageIndex=1, int pageSize=10)
         {
             var query =await unitOfWork.GetRepository<Employee>().GetAllAsync();
-            return await query
+           var employees=  await query
                 .Include(e => e.ApplicationUser)
                 .Include(e => e.Branch)
 
                 .Skip((pageIndex - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
+            //maping
+
+            var epmloyeesDto = employees.Select(e => new EmployeeDTO
+            {
+                Id = e.Id,
+                Name = e.ApplicationUser?.UserName,
+                Address = e.ApplicationUser?.Address,
+                userId = e.ApplicationUser?.Id,
+                branchId = e.Branch.Id,
+                IsDeleted = e.IsDeleted
+            }).ToList();
+
+            return new  GenericPagination<EmployeeDTO>
+            {
+                pageIndex = pageIndex,
+                pageSize = pageSize,
+                totalCount = query.Count(),
+                Items = epmloyeesDto
+            };
+
+
         }
 
-        public  async Task<IEnumerable<Employee>> GetAllExistAsync(int pageIndex = 1, int pageSize = 10)
+        public async Task<GenericPagination<EmployeeDTO>> GetAllExistAsync(int pageIndex = 1, int pageSize = 10)
         {
             var query =await unitOfWork.GetRepository<Employee>().GetAllExistAsync();
-            return await query
+            var employees = await query
                 .Include(e => e.ApplicationUser)
                 .Include(e => e.Branch)
                 .Skip((pageIndex - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
+
+            //mapping
+
+            var epmloyeesDto = employees.Select(e => new EmployeeDTO
+            {
+                Id = e.Id,
+                Name = e.ApplicationUser?.UserName,
+                Address = e.ApplicationUser?.Address,
+                userId = e.ApplicationUser?.Id,
+                branchId = e.Branch.Id,
+                IsDeleted = e.IsDeleted
+            }).ToList();
+
+            return new GenericPagination<EmployeeDTO>
+            {
+                pageIndex = pageIndex,
+                pageSize = pageSize,
+                totalCount = query.Count(),
+                Items = epmloyeesDto
+            };
+
+
+
+
         }
 
         //search

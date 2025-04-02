@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage;
+using Shipping.DTOs.Employee;
+using Shipping.DTOs.pagination;
 using Shipping.Models;
 
 namespace Shipping.Services.IModelService
@@ -6,8 +8,8 @@ namespace Shipping.Services.IModelService
     public interface IEmployeeService : IServiceGeneric<Employee>
     {
 
-        Task<IEnumerable<Employee>> GetAllAsync(int pageIndex = 1, int pageSize = 10);
-        Task<IEnumerable<Employee>> GetAllExistAsync(int pageIndex = 1, int pageSize = 10);
+        Task<GenericPagination<EmployeeDTO>> GetAllAsync(int pageIndex = 1, int pageSize = 10);       
+        Task<GenericPagination<EmployeeDTO>> GetAllExistAsync(int pageIndex = 1, int pageSize = 10);       
         Task<IDbContextTransaction> BeginTransactionAsync();
         Task<IEnumerable<Employee>> GetEmployeesByRole(string roleName);
 
