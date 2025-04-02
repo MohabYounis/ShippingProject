@@ -4,9 +4,7 @@
     {
         public int Id { get; set; }
         public float DefaultWeight { get; set; }
-        public decimal DefaultPrice { get; set; }
         public decimal AdditionalKgPrice { get; set; }
         public bool IsDeleted { get; set; } = false;
-        public virtual List<Order>? Orders { get; } = new List<Order>();
     }
 }

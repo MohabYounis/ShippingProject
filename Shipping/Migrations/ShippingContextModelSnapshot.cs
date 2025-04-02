@@ -212,6 +212,9 @@ namespace Shipping.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<string>("ProfileImagePath")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
@@ -243,6 +246,9 @@ namespace Shipping.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("BranchId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
@@ -262,6 +268,8 @@ namespace Shipping.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BranchId");
 
                     b.ToTable("Branches");
                 });
@@ -467,6 +475,9 @@ namespace Shipping.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("Branch_Id")
+                        .HasColumnType("int");
+
                     b.Property<int>("City_Id")
                         .HasColumnType("int");
 
@@ -490,26 +501,47 @@ namespace Shipping.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal>("CompanyRight")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("DeliverToVillage")
                         .HasColumnType("bit");
 
-                    b.Property<int>("Delivery_Id")
+                    b.Property<string>("DeliveryNotes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("DeliveryRight")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("Delivery_Id")
                         .HasColumnType("int");
 
-                    b.Property<int>("Dovernment_Id")
+                    b.Property<string>("EmployeeNotes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Government_Id")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<string>("MerchantNotes")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("Merchant_Id")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("OrderCost")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("OrderStatus")
                         .HasColumnType("int");
+
+                    b.Property<float>("OrderTotalWeight")
+                        .HasColumnType("real");
 
                     b.Property<int>("OrderType")
                         .HasColumnType("int");
@@ -520,8 +552,9 @@ namespace Shipping.Migrations
                     b.Property<int>("RejectReason_ID")
                         .HasColumnType("int");
 
-                    b.Property<int>("Setting_Id")
-                        .HasColumnType("int");
+                    b.Property<string>("SerialNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("ShippingCost")
                         .HasColumnType("decimal(18,2)");
@@ -529,29 +562,19 @@ namespace Shipping.Migrations
                     b.Property<int>("ShippingType_Id")
                         .HasColumnType("int");
 
-                    b.Property<float>("TotalWeight")
-                        .HasColumnType("real");
-
-                    b.Property<int>("WeightPricing_Id")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
+
+                    b.HasIndex("Branch_Id");
 
                     b.HasIndex("City_Id");
 
                     b.HasIndex("Delivery_Id");
 
-                    b.HasIndex("Dovernment_Id");
+                    b.HasIndex("Government_Id");
 
                     b.HasIndex("Merchant_Id");
 
-                    b.HasIndex("RejectReason_ID");
-
-                    b.HasIndex("Setting_Id");
-
                     b.HasIndex("ShippingType_Id");
-
-                    b.HasIndex("WeightPricing_Id");
 
                     b.ToTable("Orders");
                 });
@@ -625,6 +648,21 @@ namespace Shipping.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("RejectReason");
+                });
+
+            modelBuilder.Entity("Shipping.Models.RejectedOrder", b =>
+                {
+                    b.Property<int>("Order_Id")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RejectReason_Id")
+                        .HasColumnType("int");
+
+                    b.HasKey("Order_Id", "RejectReason_Id");
+
+                    b.HasIndex("RejectReason_Id");
+
+                    b.ToTable("RejectedOrders");
                 });
 
             modelBuilder.Entity("Shipping.Models.RolePermission", b =>
@@ -738,9 +776,6 @@ namespace Shipping.Migrations
                     b.Property<decimal>("AdditionalKgPrice")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal>("DefaultPrice")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<float>("DefaultWeight")
                         .HasColumnType("real");
 
@@ -801,6 +836,13 @@ namespace Shipping.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Shipping.Models.Branch", b =>
+                {
+                    b.HasOne("Shipping.Models.Branch", null)
+                        .WithMany("Branchts")
+                        .HasForeignKey("BranchId");
                 });
 
             modelBuilder.Entity("Shipping.Models.BranchMerchant", b =>
@@ -914,6 +956,12 @@ namespace Shipping.Migrations
 
             modelBuilder.Entity("Shipping.Models.Order", b =>
                 {
+                    b.HasOne("Shipping.Models.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("Branch_Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Shipping.Models.City", "City")
                         .WithMany("Orders")
                         .HasForeignKey("City_Id")
@@ -922,13 +970,11 @@ namespace Shipping.Migrations
 
                     b.HasOne("Shipping.Models.Delivery", "Delivery")
                         .WithMany("Orders")
-                        .HasForeignKey("Delivery_Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("Delivery_Id");
 
                     b.HasOne("Shipping.Models.Government", "Government")
                         .WithMany("Orders")
-                        .HasForeignKey("Dovernment_Id")
+                        .HasForeignKey("Government_Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -938,29 +984,13 @@ namespace Shipping.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Shipping.Models.RejectReason", "RejectReason")
-                        .WithMany("ORders")
-                        .HasForeignKey("RejectReason_ID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Shipping.Models.Setting", "Setting")
-                        .WithMany("Orders")
-                        .HasForeignKey("Setting_Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Shipping.Models.ShippingType", "ShippingType")
                         .WithMany("Orders")
                         .HasForeignKey("ShippingType_Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Shipping.Models.WeightPricing", "WeightPricing")
-                        .WithMany("Orders")
-                        .HasForeignKey("WeightPricing_Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Navigation("Branch");
 
                     b.Navigation("City");
 
@@ -970,13 +1000,7 @@ namespace Shipping.Migrations
 
                     b.Navigation("Merchant");
 
-                    b.Navigation("RejectReason");
-
-                    b.Navigation("Setting");
-
                     b.Navigation("ShippingType");
-
-                    b.Navigation("WeightPricing");
                 });
 
             modelBuilder.Entity("Shipping.Models.Product", b =>
@@ -988,6 +1012,25 @@ namespace Shipping.Migrations
                         .IsRequired();
 
                     b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("Shipping.Models.RejectedOrder", b =>
+                {
+                    b.HasOne("Shipping.Models.Order", "Order")
+                        .WithMany("RejectedOrders")
+                        .HasForeignKey("Order_Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Shipping.Models.RejectReason", "RejectReason")
+                        .WithMany("RejectedOrders")
+                        .HasForeignKey("RejectReason_Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+
+                    b.Navigation("RejectReason");
                 });
 
             modelBuilder.Entity("Shipping.Models.RolePermission", b =>
@@ -1046,6 +1089,8 @@ namespace Shipping.Migrations
                 {
                     b.Navigation("BranchMerchants");
 
+                    b.Navigation("Branchts");
+
                     b.Navigation("Employees");
 
                     b.Navigation("Governments");
@@ -1084,6 +1129,8 @@ namespace Shipping.Migrations
             modelBuilder.Entity("Shipping.Models.Order", b =>
                 {
                     b.Navigation("Products");
+
+                    b.Navigation("RejectedOrders");
                 });
 
             modelBuilder.Entity("Shipping.Models.Permission", b =>
@@ -1093,20 +1140,10 @@ namespace Shipping.Migrations
 
             modelBuilder.Entity("Shipping.Models.RejectReason", b =>
                 {
-                    b.Navigation("ORders");
-                });
-
-            modelBuilder.Entity("Shipping.Models.Setting", b =>
-                {
-                    b.Navigation("Orders");
+                    b.Navigation("RejectedOrders");
                 });
 
             modelBuilder.Entity("Shipping.Models.ShippingType", b =>
-                {
-                    b.Navigation("Orders");
-                });
-
-            modelBuilder.Entity("Shipping.Models.WeightPricing", b =>
                 {
                     b.Navigation("Orders");
                 });

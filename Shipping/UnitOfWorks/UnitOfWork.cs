@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Shipping.ImodelRepository;
+using Shipping.modelRepository;
 using Shipping.Models;
 using Shipping.Repository;
 using System.Collections.Concurrent;
@@ -12,15 +14,18 @@ namespace Shipping.UnitOfWorks
         
         private bool disposed = false;
         private IDbContextTransaction _transaction;
-
         public ShippingContext Context { get; }
+        private readonly Lazy<ISpecialShippingRateRepository> _specialShippingRateRepository;
+
         public UnitOfWork(ShippingContext context)
         {
             this.Context = context ?? throw new ArgumentNullException(nameof(context));
+            _specialShippingRateRepository = new Lazy<ISpecialShippingRateRepository>(() => new SpecialShippingRateRepository(this));
         }
         // Concurrent Dictionary for  lazy intialization of repositories
         private readonly ConcurrentDictionary<Type, Lazy<object>> repositories = new ConcurrentDictionary<Type, Lazy<object>>();
 
+        public ISpecialShippingRateRepository SpecialShippingRateRepository => _specialShippingRateRepository.Value;
 
         public IRepositoryGeneric<TEntity> GetRepository<TEntity>() where TEntity : class
         {

@@ -21,6 +21,7 @@ namespace Shipping.Controllers
             this.permissionService = permissionService;
         }
 
+
         [HttpGet("all")]
         public async Task<ActionResult<IEnumerable<Permission>>> GetAll()
         {
@@ -36,10 +37,7 @@ namespace Shipping.Controllers
                 IsDeleted = p.IsDeleted,
             });
 
-
-
             return Ok(permisionsDTO);
-
         }
 
         [HttpGet("Exist")]
@@ -57,10 +55,7 @@ namespace Shipping.Controllers
                 IsDeleted = p.IsDeleted,
             });
 
-
-
             return Ok(permisionsDTO);
-
         }
 
 
@@ -81,6 +76,7 @@ namespace Shipping.Controllers
             };
             return Ok(permissionDTO);
         }
+
 
         [HttpPost]
         public async Task<ActionResult<Permission>> AddPermission([FromBody] CreatePermissionsDTO permissionDTO)
@@ -104,8 +100,8 @@ namespace Shipping.Controllers
             {
                 return StatusCode(500, "error while saving in DataBase");
             }
-
         }
+
 
         [HttpPut("{id}")]
         public async Task<IActionResult> PutPermission(int id, [FromBody] CreatePermissionsDTO permissionDTO)
@@ -133,6 +129,7 @@ namespace Shipping.Controllers
                 return StatusCode(500, "error while saving in DataBase");
             }
         }
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePermission(int id)
