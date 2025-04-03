@@ -9,6 +9,13 @@
     <h1>SignalR Test Page</h1>
     <div>
         <div>
+            <label>ID</label>
+            <input type="text" id="idd" />
+        </div>
+        <input type="button" id="delete" value="deleteCity" onclick="deleteCity()" />
+        <hr />
+
+        <div>
             <label>Name</label>
             <input type="text" id="name" />
         </div>
@@ -16,6 +23,11 @@
         <div>
             <label>Government_Id</label>
             <input type="number" id="governmentId" />
+        </div>
+        
+        <div>
+            <label>IsDeleted</label>
+            <input type="checkbox" id="isDeleted" />
         </div>
 
         <div>
@@ -29,6 +41,7 @@
         </div>
         <input type="button" id="get" value="getAll" onclick="getAllCities()" />
         <input type="button" id="create" value="createCity" onclick="createCity()" />
+        <input type="button" id="edit" value="editCity" onclick="editCity()" />
         <hr />
         <table class="table table-striped table-hover">
             <thead class="table-dark">
@@ -135,12 +148,61 @@
             }
         }
         /* ================================================================================================== */
+         async function deleteCity() {
+            try {
+                var idValue = document.getElementById("idd").value.trim();
+                console.log(idValue)
+                const response = await fetch(`api/city/${idValue}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+            } catch (error) {
+                console.error('Error deleting city:', error);
+            }
+        }
+        /* ================================================================================================== */
+        async function editCity() {
+            try {
+                var idValue = document.getElementById("idd").value.trim();
+
+                const nameValue = document.getElementById("name").value.trim();
+                const govId = parseInt(document.getElementById("governmentId").value);
+                const pickShip = parseInt(document.getElementById("pickupShipping").value);
+                const stShip = parseInt(document.getElementById("standardShipping").value);
+                const isDelet = document.getElementById("isDeleted").checked;
+
+                let newCity = {
+                    name: nameValue,
+                    government_Id: govId,
+                    PickupShipping: pickShip,
+                    StandardShipping: stShip,
+                    IsDeleted: isDelet
+                }
+
+                const response = await fetch(`api/city/${idValue}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(newCity)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Error Editing city:', error);
+            }
+        }
+        /* ================================================================================================== */
         var connection;
-        var cities = [];
-        var currentPage = 1;
-        var pageSize = 10;
-        var searchText = "";
-        var allFilter = "all";
 
         window.onload = function () {
             console.log("done")
@@ -167,7 +229,63 @@
 
                     // إضافة الصف في بداية الجدول بدلاً من النهاية
                     tableBodyy.insertBefore(row, tableBodyy.firstChild);
+            });
+
+            connection.on("itemDeleted", function (id) {
+                // البحث عن جميع خلايا TD في الجدول
+                const allTds = document.querySelectorAll('#tableBody > tr > td');
+                // البحث عن الخلية التي تحتوي على ID المطلوب
+                let targetRow = null;
+
+                allTds.forEach(td => {
+                    if (td.textContent.trim() === id.toString()) {
+
+                        targetRow = td.closest('tr'); // الحصول على الصف الأب
+                    }
                 });
+
+                // إذا وجدنا الصف، نقوم بحذفه
+                if (targetRow) {
+                    targetRow.remove();
+                }
+            })
+
+
+            connection.on("itemEdited", function (cityDto) {
+                // البحث عن جميع خلايا TD في الجدول
+                const allTds = document.querySelectorAll('#tableBody > tr > td');
+                // البحث عن الخلية التي تحتوي على ID المطلوب
+                let targetRow = null;
+
+                allTds.forEach(td => {
+                    if (td.textContent.trim() == cityDto.id) {
+
+                        targetRow = td.closest('tr'); // الحصول على الصف الأب
+
+                        // تحديث جميع الخلايا الشقيقة في الصف
+                        const allTdsInRow = targetRow.querySelectorAll('td');
+                        allTdsInRow.forEach(cell => {
+                            // تحديث كل خلية حسب موقعها أو حسب احتياجاتك
+                            if (cell.cellIndex === 1) { // الخلية الثانية (العمود الثاني)
+                                cell.textContent = cityDto.name; // تحديث باسم المدينة الجديد
+                            }
+                            else if (cell.cellIndex === 2) { // الخلية الثالثة
+                                cell.textContent = cityDto.governmentName; // تحديث بعدد السكان
+                            }
+                            else if (cell.cellIndex === 3) { // الخلية الثالثة
+                                cell.textContent = cityDto.isDeleted; // تحديث بعدد السكان
+                            }
+                            else if (cell.cellIndex === 4) { // الخلية الثالثة
+                                cell.textContent = cityDto.pickupShipping; // تحديث بعدد السكان
+                            }
+                            else if (cell.cellIndex === 5) { // الخلية الثالثة
+                                cell.textContent = cityDto.standardShipping; // تحديث بعدد السكان
+                            }
+                            // يمكنك إضافة المزيد من الشروط حسب عدد الأعمدة
+                        });
+                    }
+                });
+            })
         };
     </script>
 </body>
