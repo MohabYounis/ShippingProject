@@ -6,6 +6,7 @@ using Shipping.DTOs.Role;
 using Shipping.DTOs.RolePermission;
 using Shipping.Models;
 using Shipping.Services.IModelService;
+using System.Diagnostics.Eventing.Reader;
 
 namespace Shipping.Controllers
 {
@@ -24,10 +25,15 @@ namespace Shipping.Controllers
 
 
         // GET: api/Role
-        [HttpGet("exist")]
-        public async Task<IActionResult> GetRoles()
+        [HttpGet]
+        public async Task<IActionResult> GetRoles([FromQuery] bool includeDelted=true)
         {
-            var roles = await _roleService.GetAllAsyncExist();
+            IEnumerable<ApplicationRole>? roles;
+            if (includeDelted)
+            {
+                roles = await _roleService.GetAllAsync();
+            }
+            else roles = await _roleService.GetAllAsyncExist();
             //check null
             if (roles == null)
             {
@@ -57,39 +63,7 @@ namespace Shipping.Controllers
         }
 
 
-        // GET: api/Role
-        [HttpGet("All")]
-        public async Task<IActionResult> GetALLRoles()
-        {
-            var roles = await _roleService.GetAllAsync();
-            //check null
-            if (roles == null)
-            {
-                return NotFound("No roles found.");
-            }
-            //mapping
-            var roleDTO = roles.Select(role => new AppRoleDTO
-            {
-                Id = role.Id,
-                Name = role.Name,
-                IsDeleted = role.IsDeleted,
-                RolePermissions = role.RolePermissions
-            .Select(rp => new RolePermissionDTO
-            {
-                Permission_Id = rp.Permission_Id,
-                Role_Id = rp.Role_Id,
-                CanView = rp.CanView,
-                CanEdit = rp.CanEdit,
-                CanDelete = rp.CanDelete,
-                CanAdd = rp.CanAdd,
-                IsDeleted = rp.IsDeleted
-
-            }).ToList()
-            }).ToList();
-
-            return Ok(roleDTO);
-        }
-
+     
         // GET: api/Role/{id}
         [HttpGet("{id}")]
         public async Task<IActionResult> GetRoleById(string id)

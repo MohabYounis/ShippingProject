@@ -21,14 +21,24 @@ namespace Shipping.Controllers
 
         //get all
         [HttpGet("All")]
-        public async Task<IActionResult> GetAllRolePermissions()
+        public async Task<IActionResult> GetAllRolePermissions([FromQuery] bool includeDelted = true)
         {
-            //getting from db
-            var rolePermissions = await rolePermissionService.GetAllAsync();
-            if (rolePermissions == null || !rolePermissions.Any())
+            IEnumerable<RolePermission>? rolePermissions;
+
+            if (includeDelted)
             {
-                return NotFound("there is no rolePermissions ");
+                rolePermissions = await rolePermissionService.GetAllAsync();
             }
+            else
+            {
+                rolePermissions = await rolePermissionService.GetAllExistAsync();
+            }
+
+
+                if (rolePermissions == null || !rolePermissions.Any())
+                {
+                return NotFound("there is no rolePermissions ");
+                }
             //mapping to DTO
             var rolePermissionDtos = rolePermissions.Select(rp => new RolePermissionDTO
             {
@@ -47,34 +57,7 @@ namespace Shipping.Controllers
             return Ok(rolePermissionDtos);
         }
 
-        //get all
-        [HttpGet("Exist")]
-        public async Task<IActionResult> GetAllRolePermissionsExist()
-        {
-            //getting from db
-            var rolePermissions = await rolePermissionService.GetAllExistAsync();
-            if (rolePermissions == null || !rolePermissions.Any())
-            {
-                return NotFound("there is no rolePermissions ");
-            }
-            //mapping to DTO
-            var rolePermissionDtos = rolePermissions.Select(rp => new RolePermissionDTO
-            {
-                Role_Id = rp.Role_Id,
-                Permission_Id = rp.Permission_Id,
-                //RoleName = rp.Role.Name,
-                //PermissionName = rp.Permission.Name,
-                IsDeleted = rp.IsDeleted,
-                CanEdit = rp.CanEdit,
-                CanView = rp.CanView,
-                CanAdd = rp.CanAdd,
-                CanDelete = rp.CanDelete
-
-            }).ToList();
-
-            return Ok(rolePermissionDtos);
-        }
-
+    
 
         //get one row
         [HttpGet("{role_id}/{permission_id}")]
