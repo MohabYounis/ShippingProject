@@ -122,17 +122,17 @@ namespace Shipping.Controllers
                 if (cityByName != null) return BadRequest(GeneralResponse.Failure("City is already exist."));
                 
                 var city = mapper.Map<City>(cityFromReq);
-                
+
                 await cityService.AddAsync(city);
                 await cityService.SaveChangesAsync();
 
                 var cityById = await cityService.GetByIdAsync(city.Id);
                 var cityDto = mapper.Map<CityGetDTO>(cityById);
 
-                // إرسال الحدث بعد التأكد من حفظ المدينة في قاعدة البيانات
+                // إرسال الحدث بعد التأكد من حفظ المدينة في قاعدة البيانات ===> SignalR
                 await hubContext.Clients.All.SendAsync("cityCreated", cityDto);
 
-                return Ok(GeneralResponse.Success("City created successfully."));
+                return Ok(GeneralResponse.Success(cityDto, "City created successfully."));
             }
             catch (Exception ex)
             {
@@ -157,6 +157,13 @@ namespace Shipping.Controllers
                 city.Id = id;
                 await cityService.UpdateAsync(city);
                 await cityService.SaveChangesAsync();
+
+                var cityById = await cityService.GetByIdAsync(id);
+                var cityDto = mapper.Map<CityGetDTO>(cityById);
+
+                // SignalR
+                await hubContext.Clients.All.SendAsync("itemEdited", cityDto);
+
                 return Ok(GeneralResponse.Success("City updated successfully."));
             }
             catch (Exception ex)
@@ -173,6 +180,10 @@ namespace Shipping.Controllers
             {
                 await cityService.DeleteAsync(id);
                 await cityService.SaveChangesAsync();
+
+                // SignalR
+                await hubContext.Clients.All.SendAsync("itemDeleted", id);
+
                 return Ok(GeneralResponse.Success("City deleted successfully."));
             }
             catch (Exception ex)
