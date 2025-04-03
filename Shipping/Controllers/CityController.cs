@@ -4,12 +4,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Shipping.DTOs;
 using Shipping.DTOs.CityDTOs;
+using Shipping.DTOs.GovernmentDTOs;
 using Shipping.DTOs.MerchantDTOs;
 using Shipping.ImodelRepository;
 using Shipping.Models;
 using Shipping.Services;
 using Shipping.Services.IModelService;
 using Shipping.Services.ModelService;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Shipping.Controllers
 {
@@ -18,14 +20,12 @@ namespace Shipping.Controllers
     public class CityController : ControllerBase
     {
         IServiceGeneric<City> serviceCityGernric;
-        GeneralResponse response;
         private readonly IMapper mapper;
         private readonly ICityService cityService;
 
-        public CityController(IServiceGeneric<City> serviceCityGernric, GeneralResponse response, IMapper mapper, ICityService cityService)
+        public CityController(IServiceGeneric<City> serviceCityGernric, IMapper mapper, ICityService cityService)
         {
             this.serviceCityGernric = serviceCityGernric;
-            this.response = response;
             this.mapper = mapper;
             this.cityService = cityService;
         }
@@ -39,19 +39,9 @@ namespace Shipping.Controllers
                 IEnumerable<City> cities;
                 if (all == "all") cities = await cityService.GetAllAsync();
                 else if (all == "exist") cities = await cityService.GetAllExistAsync();
-                else
-                {
-                    response.IsSuccess = false;
-                    response.Data = "Parameter Not Exist";
-                    return BadRequest(response);
-                }
+                else return BadRequest(GeneralResponse.Failure("Parameter Not Exist."));
 
-                if (cities == null || !cities.Any())
-                {
-                    response.IsSuccess = false;
-                    response.Data = "No Found";
-                    return NotFound(response);
-                }
+                if (cities == null || !cities.Any()) return NotFound(GeneralResponse.Failure("Not Found."));
                 else
                 {
                     if (!string.IsNullOrEmpty(searchTxt))
@@ -64,12 +54,7 @@ namespace Shipping.Controllers
                             )
                             .ToList();
 
-                        if (!cities.Any())
-                        {
-                            response.IsSuccess = false;
-                            response.Data = "No Found";
-                            return NotFound(response);
-                        }
+                        if (!cities.Any()) return NotFound(GeneralResponse.Failure("Not Found."));
                     }
 
                     var totalCities = cities.Count();
@@ -91,77 +76,57 @@ namespace Shipping.Controllers
                         Merchants = citiesDTO                   // العناصر الحالية
                     };
 
-                    response.IsSuccess = true;
-                    response.Data = result;
-                    return Ok(response);
+                    return Ok(GeneralResponse.Success(result));
                 }
             }
             catch (Exception ex)
             {
-                response.IsSuccess = false;
-                response.Data = ex.Message;
-                return StatusCode(500, response);
+                return StatusCode(500, GeneralResponse.Failure(ex.Message));
             }
         }
 
 
         [HttpGet("{id:int}")]
-        public async Task <ActionResult<GeneralResponse>> GetById(int id)
+        public async Task<ActionResult<GeneralResponse>> GetById(int id)
         {
             try
             {
                 var city = await serviceCityGernric.GetByIdAsync(id);
-                var cityDTO = mapper.Map <CityGetDTO>(city);
-
-                if (city == null)
-                {
-                    response.IsSuccess = false;
-                    response.Data = "Not Found";
-                    return NotFound(response);
-                }
-                else
-                {
-                    response.IsSuccess = true;
-                    response.Data = cityDTO;
-                    return Ok(response);
-                }
+                if (city == null) return NotFound(GeneralResponse.Failure("Not Found."));
+                
+                var cityDTO = mapper.Map<CityGetDTO>(city);
+                return Ok(GeneralResponse.Success(cityDTO));
             }
             catch (Exception ex)
             {
-                response.IsSuccess = false;
-                response.Data = ex.Message;
-                return StatusCode(500, response);
+                return StatusCode(500, GeneralResponse.Failure(ex.Message));
             }
         }
 
 
         [HttpPost]
-        public async Task <ActionResult<GeneralResponse>> Create(CityCreateDTO cityFromReq)
+        public async Task<ActionResult<GeneralResponse>> Create(CityCreateDTO cityFromReq)
         {
             if (!ModelState.IsValid)
             {
-                response.IsSuccess = false;
-                response.Data = ModelState.ToDictionary(
-                    kvp => kvp.Key,
-                    kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToList()
-                );
-                return BadRequest(response);
+                string errors = string.Join("; ", ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage));
+                return BadRequest(GeneralResponse.Failure(errors));
             }
             try
             {
+                var cityByName = await cityService.GetByNameAsync(cityFromReq.Name);
+                if (cityByName != null) return BadRequest(GeneralResponse.Failure("City is already exist."));
+                
                 var city = mapper.Map<City>(cityFromReq);
                 await serviceCityGernric.AddAsync(city);
                 await serviceCityGernric.SaveChangesAsync();
-
-                response.IsSuccess = true;
-                response.Data = "City created successfully.";
-                return CreatedAtAction("Create", response);
+                return Ok(GeneralResponse.Success("City created successfully."));
             }
             catch (Exception ex)
             {
-                response.IsSuccess = false;
-                response.Data = ex.Message;
-                return StatusCode(500, response);
+                return StatusCode(500, GeneralResponse.Failure(ex.Message));
             }
         }
 
@@ -171,12 +136,10 @@ namespace Shipping.Controllers
         {
             if (!ModelState.IsValid)
             {
-                response.IsSuccess = false;
-                response.Data = ModelState.ToDictionary(
-                    kvp => kvp.Key,
-                    kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToList()
-                );
-                return BadRequest(response);
+                string errors = string.Join("; ", ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage));
+                return BadRequest(GeneralResponse.Failure(errors));
             }
             try
             {
@@ -184,37 +147,27 @@ namespace Shipping.Controllers
                 city.Id = id;
                 await serviceCityGernric.UpdateAsync(city);
                 await serviceCityGernric.SaveChangesAsync();
-
-                response.IsSuccess = true;
-                response.Data = "City updated successfully.";
-                return Ok(response);
+                return Ok(GeneralResponse.Success("City updated successfully."));
             }
             catch (Exception ex)
             {
-                response.IsSuccess = false;
-                response.Data = ex.Message;
-                return StatusCode(500, response);
+                return StatusCode(500, GeneralResponse.Failure(ex.Message));
             }
         }
 
 
         [HttpDelete("{id:int}")]
-        public async Task <ActionResult<GeneralResponse>> Delete (int id)
+        public async Task<ActionResult<GeneralResponse>> Delete(int id)
         {
             try
             {
                 await serviceCityGernric.DeleteAsync(id);
                 await serviceCityGernric.SaveChangesAsync();
-
-                response.IsSuccess = true;
-                response.Data = "City deleted successfully.";
-                return Ok(response);
+                return Ok(GeneralResponse.Success("City deleted successfully."));
             }
             catch (Exception ex)
             {
-                response.IsSuccess = false;
-                response.Data = ex.Message;
-                return StatusCode(500, response);
+                return StatusCode(500, GeneralResponse.Failure(ex.Message));
             }
         }
     }

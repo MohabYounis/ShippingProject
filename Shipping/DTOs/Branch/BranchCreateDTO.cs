@@ -2,7 +2,7 @@
 
 namespace Shipping.DTOs.Branch
 {
-    public class CreateAndEditBranchDTO
+    public class BranchCreateDTO
     {
         [Required]
         public string Name { get; set; }
@@ -10,6 +10,5 @@ namespace Shipping.DTOs.Branch
         public string Mobile { get; set; }
         [Required]
         public string Location { get; set; }
-
     }
 }

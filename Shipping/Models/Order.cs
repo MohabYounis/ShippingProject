@@ -71,7 +71,7 @@ namespace Shipping.Models
         public virtual Delivery? Delivery { get; set; }
         public virtual Government? Government { get; set; }
         public virtual City? City { get; set; }
-        public virtual RejectReason? RejectReason { get; set; }
+        public virtual List<RejectedOrder>? RejectedOrders { get; set; } = new();
         public virtual Branch? Branch { get; set; }
 
         public Order()

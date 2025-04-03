@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Shipping.Models;
 
@@ -11,9 +12,11 @@ using Shipping.Models;
 namespace Shipping.Migrations
 {
     [DbContext(typeof(ShippingContext))]
-    partial class ShippingContextModelSnapshot : ModelSnapshot
+    [Migration("20250329211216_editDataBaseRelations")]
+    partial class editDataBaseRelations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -574,6 +577,8 @@ namespace Shipping.Migrations
 
                     b.HasIndex("Merchant_Id");
 
+                    b.HasIndex("RejectReason_ID");
+
                     b.HasIndex("ShippingType_Id");
 
                     b.ToTable("Orders");
@@ -648,21 +653,6 @@ namespace Shipping.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("RejectReason");
-                });
-
-            modelBuilder.Entity("Shipping.Models.RejectedOrder", b =>
-                {
-                    b.Property<int>("Order_Id")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RejectReason_Id")
-                        .HasColumnType("int");
-
-                    b.HasKey("Order_Id", "RejectReason_Id");
-
-                    b.HasIndex("RejectReason_Id");
-
-                    b.ToTable("RejectedOrders");
                 });
 
             modelBuilder.Entity("Shipping.Models.RolePermission", b =>
@@ -984,6 +974,12 @@ namespace Shipping.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Shipping.Models.RejectReason", "RejectReason")
+                        .WithMany("ORders")
+                        .HasForeignKey("RejectReason_ID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Shipping.Models.ShippingType", "ShippingType")
                         .WithMany("Orders")
                         .HasForeignKey("ShippingType_Id")
@@ -1000,6 +996,8 @@ namespace Shipping.Migrations
 
                     b.Navigation("Merchant");
 
+                    b.Navigation("RejectReason");
+
                     b.Navigation("ShippingType");
                 });
 
@@ -1012,25 +1010,6 @@ namespace Shipping.Migrations
                         .IsRequired();
 
                     b.Navigation("Order");
-                });
-
-            modelBuilder.Entity("Shipping.Models.RejectedOrder", b =>
-                {
-                    b.HasOne("Shipping.Models.Order", "Order")
-                        .WithMany("RejectedOrders")
-                        .HasForeignKey("Order_Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Shipping.Models.RejectReason", "RejectReason")
-                        .WithMany("RejectedOrders")
-                        .HasForeignKey("RejectReason_Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Order");
-
-                    b.Navigation("RejectReason");
                 });
 
             modelBuilder.Entity("Shipping.Models.RolePermission", b =>
@@ -1129,8 +1108,6 @@ namespace Shipping.Migrations
             modelBuilder.Entity("Shipping.Models.Order", b =>
                 {
                     b.Navigation("Products");
-
-                    b.Navigation("RejectedOrders");
                 });
 
             modelBuilder.Entity("Shipping.Models.Permission", b =>
@@ -1140,7 +1117,7 @@ namespace Shipping.Migrations
 
             modelBuilder.Entity("Shipping.Models.RejectReason", b =>
                 {
-                    b.Navigation("RejectedOrders");
+                    b.Navigation("ORders");
                 });
 
             modelBuilder.Entity("Shipping.Models.ShippingType", b =>

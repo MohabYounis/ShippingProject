@@ -62,6 +62,9 @@ namespace SHIPPING.Services
             await unitOfWork.SaveChangesAsync();
         }
 
-       
+        public async Task<Tentity> GetByNameAsync(string name)
+        {
+            return await unitOfWork.GetRepository<Tentity>().GetByNameAsync(name);
+        }
     }
 }

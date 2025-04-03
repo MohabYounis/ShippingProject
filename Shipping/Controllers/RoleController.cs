@@ -6,6 +6,7 @@ using Shipping.DTOs.Role;
 using Shipping.DTOs.RolePermission;
 using Shipping.Models;
 using Shipping.Services.IModelService;
+using System.Diagnostics.Eventing.Reader;
 
 namespace Shipping.Controllers
 {
@@ -14,20 +15,25 @@ namespace Shipping.Controllers
     public class RoleController : ControllerBase
     {
         private readonly IApplicationRoleService _roleService;
-
         UserManager<ApplicationUser> userManger;
+
         public RoleController(IApplicationRoleService roleService, UserManager<ApplicationUser> roleManger)
         {
             _roleService = roleService ?? throw new ArgumentNullException(nameof(roleService));
-
             this.userManger = roleManger;
         }
 
+
         // GET: api/Role
-        [HttpGet("exist")]
-        public async Task<IActionResult> GetRoles()
+        [HttpGet]
+        public async Task<IActionResult> GetRoles([FromQuery] bool includeDelted=true)
         {
-            var roles = await _roleService.GetAllAsyncExist();
+            IEnumerable<ApplicationRole>? roles;
+            if (includeDelted)
+            {
+                roles = await _roleService.GetAllAsync();
+            }
+            else roles = await _roleService.GetAllAsyncExist();
             //check null
             if (roles == null)
             {
@@ -53,45 +59,11 @@ namespace Shipping.Controllers
             }).ToList()
             }).ToList();
 
-
             return Ok(roleDTO);
         }
 
 
-        // GET: api/Role
-        [HttpGet("All")]
-        public async Task<IActionResult> GetALLRoles()
-        {
-            var roles = await _roleService.GetAllAsync();
-            //check null
-            if (roles == null)
-            {
-                return NotFound("No roles found.");
-            }
-            //mapping
-            var roleDTO = roles.Select(role => new AppRoleDTO
-            {
-                Id = role.Id,
-                Name = role.Name,
-                IsDeleted = role.IsDeleted,
-                RolePermissions = role.RolePermissions
-            .Select(rp => new RolePermissionDTO
-            {
-                Permission_Id = rp.Permission_Id,
-                Role_Id = rp.Role_Id,
-                CanView = rp.CanView,
-                CanEdit = rp.CanEdit,
-                CanDelete = rp.CanDelete,
-                CanAdd = rp.CanAdd,
-                IsDeleted = rp.IsDeleted
-
-            }).ToList()
-            }).ToList();
-
-
-            return Ok(roleDTO);
-        }
-
+     
         // GET: api/Role/{id}
         [HttpGet("{id}")]
         public async Task<IActionResult> GetRoleById(string id)
@@ -118,7 +90,6 @@ namespace Shipping.Controllers
             };
 
             return Ok(roleDTO);
-
         }
 
 
@@ -168,7 +139,6 @@ namespace Shipping.Controllers
             {
                 return BadRequest(ModelState);
             }
-
             try
             {
                 var existingRole = await _roleService.GetByIdAsync(id);
@@ -190,6 +160,7 @@ namespace Shipping.Controllers
                 return NotFound($"error occured while updating");
             }
         }
+
 
         // DELETE: api/Role/{id}
         [HttpDelete("{id}")]
@@ -214,18 +185,13 @@ namespace Shipping.Controllers
         }
 
 
-
-
-
         //assign role to user
-
         // POST: api/Role/AssignRole
         [HttpPost("AssignRole")]
         public async Task<IActionResult> AssignRole(string UserId , string RoleName)
         {
             try
             {
-
                 //check user
                 var user = await userManger.FindByIdAsync(UserId);
                 if (user == null)
@@ -251,17 +217,8 @@ namespace Shipping.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message + "gfdsssss ");
+                return BadRequest(ex.Message + "gfdsssss");
             }
         }
-
-
-
-
-
-
-
-
-
     }
 }

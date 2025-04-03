@@ -8,15 +8,15 @@ using Shipping.Services.ModelService;
 using Shipping.UnitOfWorks;
 using SHIPPING.Services;
 using Microsoft.OpenApi.Models;
+using Shipping.Controllers;
+using Shipping.Repository.ImodelRepository;
+using Shipping.Repository.modelRepository;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Shipping.ImodelRepository;
 using Shipping.modelRepository;
-using Shipping.Controllers;
-using Shipping.Repository.ImodelRepository;
-using Shipping.Repository.modelRepository;
 
 namespace Shipping
 {
@@ -43,13 +43,12 @@ namespace Shipping
             {
                 options.UseLazyLoadingProxies().UseSqlServer(builder.Configuration.GetConnectionString("CS"));
             });
-
+          
             // Register Identity
             builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
                 .AddEntityFrameworkStores<ShippingContext>();
-
+          
             builder.Services.AddScoped<IEmployeeService, EmployeeService>();
-
 
             // Register AutoMapper
             builder.Services.AddAutoMapper(typeof(Program));
@@ -94,8 +93,6 @@ namespace Shipping
             builder.Services.AddScoped<ICityService, CityService>();
             //Register Order Service
             builder.Services.AddScoped<IOrderService, OrderService>();
-            // Register Generic Service
-            builder.Services.AddScoped<GeneralResponse>();
 
             builder.Services.AddScoped<IApplicationRoleService, ApplicationRoleService>();
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -121,7 +118,6 @@ namespace Shipping
                 });
 
 
-
             // For Profile Image
             builder.Services.Configure<FormOptions>(options =>
             {
@@ -129,9 +125,7 @@ namespace Shipping
             });
 
 
-
             var app = builder.Build();
-
 
 
             // Configure the HTTP request pipeline.

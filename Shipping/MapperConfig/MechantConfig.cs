@@ -21,10 +21,7 @@ namespace Shipping.MapperConfig
 
             CreateMap<MerchantCreateDTO, ApplicationUser>().AfterMap((src, dest) =>
             {
-                if (dest.Merchant == null)
-                {
-                    dest.Merchant = new Merchant();
-                }
+                if (dest.Merchant == null) dest.Merchant = new Merchant();
 
                 dest.Merchant.AppUser_Id = dest.Id;
                 dest.Merchant.StoreName = src.StoreName;
@@ -32,8 +29,6 @@ namespace Shipping.MapperConfig
                 dest.Merchant.City = src.City;
                 dest.Merchant.PickupCost = src.PickupCost;
                 dest.Merchant.RejectedOrderPercentage = src.RejectedOrderPercentage;
-                dest.Merchant.IsDeleted = src.IsDeleted;
-                dest.IsDeleted = src.IsDeleted;
 
                 dest.Merchant.BranchMerchants = src.Branches_Id?
                 .Select(branchId => new BranchMerchant
