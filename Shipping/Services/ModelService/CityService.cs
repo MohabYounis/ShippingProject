@@ -34,5 +34,12 @@ namespace Shipping.Services.ModelService
                 .Include(e => e.Government)
                 .ToList();
         }
+
+        public override async Task<City> GetByIdAsync(int id)
+        {
+            var query = await unitOfWork.GetRepository<City>().GetAllAsync();
+            return await query.Include(e => e.Government)
+                .FirstOrDefaultAsync(c => c.Id == id);
+        }
     }
 }

@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Shipping.ImodelRepository;
 using Shipping.modelRepository;
+using Shipping.SignalRHubs;
 
 namespace Shipping
 {
@@ -34,6 +35,9 @@ namespace Shipping
 
             //Add Swagger
             builder.Services.AddEndpointsApiExplorer();
+
+            // إضافة SignalR للخدمات
+            builder.Services.AddSignalR();
 
             builder.Services.AddSwaggerGen(c =>
             {
@@ -145,6 +149,9 @@ namespace Shipping
                 app.UseSwagger(); 
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Shipping API V1"));
             }
+
+            // تكوين نقطة نهاية لـ SignalR
+            app.MapHub<CityHub>("/cityHub");
 
             //app.UseHttpsRedirection();
 
