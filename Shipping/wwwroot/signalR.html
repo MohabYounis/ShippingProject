@@ -1,0 +1,174 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>SignalR Test</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+</head>
+<body>
+    <h1>SignalR Test Page</h1>
+    <div>
+        <div>
+            <label>Name</label>
+            <input type="text" id="name" />
+        </div>
+
+        <div>
+            <label>Government_Id</label>
+            <input type="number" id="governmentId" />
+        </div>
+
+        <div>
+            <label>PickupShipping</label>
+            <input type="number" id="pickupShipping" />
+        </div>
+
+        <div>
+            <label>StandardShipping</label>
+            <input type="number" id="standardShipping" />
+        </div>
+        <input type="button" id="get" value="getAll" onclick="getAllCities()" />
+        <input type="button" id="create" value="createCity" onclick="createCity()" />
+        <hr />
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>GovernmentName</th>
+                    <th>IsDeleted</th>
+                    <th>PickupShipping</th>
+                    <th>StandardShipping</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+        <div id="error-message" style="display: none; color: red;"></div>
+    </div>
+
+    <!-- Load SignalR client library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+
+    <script>
+
+        // دالة لجلب جميع المدن
+        async function getAllCities() {
+            try {
+                const response = await fetch('/api/city/all', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error(`خطأ في الشبكة: ${response.status}`);
+                }
+
+                const data1 = await response.json();
+
+                var data2 = data1.data.cities;
+                // تأكد أن البيانات هي مصفوفة
+                const citiesX = Array.isArray(data2) ? data2 : [data2];
+
+                displayCities(citiesX);
+            } catch (error) {
+                console.error('فشل في جلب البيانات:', error);
+                showError('حدث خطأ أثناء جلب البيانات');
+            }
+        }
+
+        // دالة لعرض المدن في الجدول
+        function displayCities(citiesX) {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = ''; // مسح المحتوى الحالي
+            citiesX.forEach(city => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                        <td>${city.id}</td>
+                        <td>${city.name}</td>
+                        <td>${city.governmentName}</td>
+                        <td>${city.isDeleted}</td>
+                        <td>${city.pickupShipping}</td>
+                        <td>${city.standardShipping}</td>
+                `;
+
+                tableBody.appendChild(row);
+            });
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => errorDiv.style.display = 'none', 5000);
+        }
+        /* ================================================================================================== */
+        async function createCity() {
+            try {
+                const nameValue = document.getElementById("name").value.trim();
+                const govId = parseInt(document.getElementById("governmentId").value);
+                const pickShip = parseInt(document.getElementById("pickupShipping").value);
+                const stShip = parseInt(document.getElementById("standardShipping").value);
+
+                let newCity = {
+                    name: nameValue,
+                    government_Id: govId,
+                    PickupShipping: pickShip,
+                    StandardShipping: stShip
+                }
+
+                console.log(newCity)
+                const response = await fetch('/api/city', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(newCity)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+            } catch (error) {
+                console.error('Error adding city:', error);
+            }
+        }
+        /* ================================================================================================== */
+        var connection;
+        var cities = [];
+        var currentPage = 1;
+        var pageSize = 10;
+        var searchText = "";
+        var allFilter = "all";
+
+        window.onload = function () {
+            console.log("done")
+            connection = new signalR.HubConnectionBuilder()
+                .withUrl("/cityHub")
+                .configureLogging(signalR.LogLevel.Information)
+                .build();
+
+            connection.start();
+
+            connection.on("cityCreated", function (city) {
+
+                let tableBodyy = document.getElementById("tableBody");
+                    const row = document.createElement('tr');
+
+                    row.innerHTML = `
+                        <td>${city.id}</td>
+                        <td>${city.name}</td>
+                        <td>${city.governmentName}</td>
+                        <td>${city.isDeleted}</td>
+                        <td>${city.pickupShipping}</td>
+                        <td>${city.standardShipping}</td>
+                    `;
+
+                    // إضافة الصف في بداية الجدول بدلاً من النهاية
+                    tableBodyy.insertBefore(row, tableBodyy.firstChild);
+                });
+        };
+    </script>
+</body>
+</html>
