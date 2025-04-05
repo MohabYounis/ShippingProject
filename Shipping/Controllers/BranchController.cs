@@ -28,7 +28,7 @@ namespace Shipping.Controllers
 
 
         [HttpGet("{all:alpha}")]
-        public async Task<ActionResult<GeneralResponse>> GetWithPaginationAndSearch(string? searchTxt, string all = "all", int page = 1, int pageSize = 10)
+        public async Task<ActionResult> GetWithPaginationAndSearch(string? searchTxt, string all = "all", int page = 1, int pageSize = 10)
         {
             try
             {
@@ -89,12 +89,12 @@ namespace Shipping.Controllers
         
 
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<GeneralResponse>> GetById(int id)
+        public async Task<ActionResult> GetById(int id)
         {
             try
             {
                 var branch = await branchService.GetByIdAsync(id);
-                if (branch == null) return GeneralResponse.Failure("Not Found.");
+                if (branch == null) return NotFound(GeneralResponse.Failure("Not Found."));
                 else
                 {
                     var branchDto = new BranchDTO
@@ -118,7 +118,7 @@ namespace Shipping.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult<GeneralResponse>> Create([FromBody] BranchCreateDTO branchDto)
+        public async Task<ActionResult> Create([FromBody] BranchCreateDTO branchDto)
         {
             if (!ModelState.IsValid)
             {
@@ -194,7 +194,7 @@ namespace Shipping.Controllers
 
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult<GeneralResponse>> Update(int id, [FromBody] BranchEditDTO updatedBranchDto)
+        public async Task<ActionResult> Update(int id, [FromBody] BranchEditDTO updatedBranchDto)
         {
             if (!ModelState.IsValid)
             {
@@ -206,7 +206,7 @@ namespace Shipping.Controllers
             try
             {
                 var existingBranch = await branchService.GetByIdAsync(id);
-                if (existingBranch == null) return GeneralResponse.Failure("Not Found.");
+                if (existingBranch == null) return NotFound(GeneralResponse.Failure("Not Found."));
 
                 existingBranch.Name = updatedBranchDto.Name;
                 existingBranch.Mobile = updatedBranchDto.Mobile;
@@ -225,7 +225,7 @@ namespace Shipping.Controllers
 
 
         [HttpDelete("{id:int}")]
-        public async Task<ActionResult<GeneralResponse>> Delete(int id)
+        public async Task<ActionResult> Delete(int id)
         {
             try
             {
