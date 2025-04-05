@@ -35,7 +35,7 @@ namespace Shipping.Controllers
 
 
         [HttpGet("{all:alpha}")]
-        public async Task<ActionResult<GeneralResponse>> GetWithPaginationAndSearch(string? searchTxt, string all = "all", int page = 1, int pageSize = 10)
+        public async Task<ActionResult> GetWithPaginationAndSearch(string? searchTxt, string all = "all", int page = 1, int pageSize = 10)
         {
             try
             {
@@ -90,7 +90,7 @@ namespace Shipping.Controllers
 
 
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<GeneralResponse>> GetById(int id)
+        public async Task<ActionResult> GetById(int id)
         {
             try
             {
@@ -106,7 +106,7 @@ namespace Shipping.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult<GeneralResponse>> Create(MerchantCreateDTO merchantFromReq)
+        public async Task<ActionResult> Create(MerchantCreateDTO merchantFromReq)
         {
             if (!ModelState.IsValid)
             {
@@ -139,7 +139,7 @@ namespace Shipping.Controllers
 
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult<GeneralResponse>> EditById(int id, [FromBody]MerchantEditDTO merchantFromReq)
+        public async Task<ActionResult> EditById(int id, [FromBody]MerchantEditDTO merchantFromReq)
         {
             if(!ModelState.IsValid)
             {
@@ -239,7 +239,7 @@ namespace Shipping.Controllers
 
 
         [HttpDelete("{id:int}")]
-        public async Task<ActionResult<GeneralResponse>> DeleteById(int id)
+        public async Task<ActionResult> DeleteById(int id)
         {
             try
             {

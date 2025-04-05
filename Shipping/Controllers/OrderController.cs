@@ -29,6 +29,7 @@ namespace Shipping.Controllers
             this.deliveryService = deliveryService;
         }
 
+        //------------------------------------------------------------------------------------------------------------------------------------
 
         [HttpGet("{orderStatus:alpha}/{all:alpha}")]
         [EndpointSummary("Get orders by searching or by specific status to shipping employee")]
@@ -123,7 +124,7 @@ namespace Shipping.Controllers
 
         [HttpGet("Delivery/{id:int}/{orderStatus:alpha}/{all:alpha}")]
         [EndpointSummary("Get orders by searching or by specific status to delivery")]
-        public async Task<ActionResult<GeneralResponse>> GetWithPaginationAndSearchByDelivery(
+        public async Task<ActionResult> GetWithPaginationAndSearchByDelivery(
                                 int id, string? searchTxt,
                                 int? governId, int? cityId, string? serialNum,
                                 DateTime? startDate, DateTime? endDate,
@@ -205,7 +206,7 @@ namespace Shipping.Controllers
 
         [HttpGet("Merchant/{id:int}/{orderStatus:alpha}/{all:alpha}")]
         [EndpointSummary("Get orders by searching or by specific status to merchant")]
-        public async Task<ActionResult<GeneralResponse>> GetWithPaginationAndSearchByMerchant(
+        public async Task<ActionResult> GetWithPaginationAndSearchByMerchant(
                                 int id, string? searchTxt,
                                 int? governId, int? cityId, int? branchId,
                                 DateTime? startDate, DateTime? endDate,
@@ -284,7 +285,7 @@ namespace Shipping.Controllers
 
         [HttpPost]
         [EndpointSummary("Create order and calculate its shipping cost")]
-        public async Task<ActionResult<GeneralResponse>> CreateOrder(OrderCreateEditDTO orderFromReq)
+        public async Task<ActionResult> CreateOrder(OrderCreateEditDTO orderFromReq)
         {
             if (!ModelState.IsValid)
             {
@@ -316,7 +317,7 @@ namespace Shipping.Controllers
 
         [HttpPut("{id:int}")]
         [EndpointSummary("Edit the order's information.")]
-        public async Task<ActionResult<GeneralResponse>> EditById(int id, [FromBody] OrderCreateEditDTO orderEditDTO)
+        public async Task<ActionResult> EditById(int id, [FromBody] OrderCreateEditDTO orderEditDTO)
         {
             if (!ModelState.IsValid)
             {
@@ -365,7 +366,7 @@ namespace Shipping.Controllers
 
         [HttpDelete("{orderId:int}")]
         [EndpointSummary("Delete order by employee or merchant, or reject it by delivery.")]
-        public async Task<ActionResult<GeneralResponse>> DeleteOrReject([FromQuery] string userId, [FromRoute] int orderId)
+        public async Task<ActionResult> DeleteOrReject([FromQuery] string userId, [FromRoute] int orderId)
         {
             try
             {
@@ -378,6 +379,9 @@ namespace Shipping.Controllers
                 if (userRole)
                 {
                     order.Delivery_Id = null; // لغيت اسنادة لدلفري
+                    order.DeliveryRight = 0;
+                    order.CompanyRight = 0;
+                    order.DeliveryNotes = "";
                     order.OrderStatus = OrderStatus.Pending; // هعدل حالته علشان اعرف ارجع اسنده لدلفري تاني
 
                     await orderService.UpdateAsync(order);
@@ -402,7 +406,7 @@ namespace Shipping.Controllers
 
         [HttpPut("{orderId:int}/{userId:alpha}/{newStatus:alpha}")]
         [EndpointSummary("Change order status.")]
-        public async Task<ActionResult<GeneralResponse>> ChangeStatusById(int orderId, string userId, string newStatus, string note = "")
+        public async Task<ActionResult> ChangeStatusById(int orderId, string userId, string newStatus, string note = "")
         {
             try
             {
@@ -433,17 +437,11 @@ namespace Shipping.Controllers
 
         [HttpPut("{orderId:int}/{deliveryId:int}")]
         [EndpointSummary("Assign order to delivery.")]
-        public async Task<ActionResult<GeneralResponse>> AssignOrderToDelivery(int orderId, int deliveryId)
+        public async Task<ActionResult> AssignOrderToDelivery(int orderId, int deliveryId)
         {
             try
             {
-                var order = await orderService.GetByIdAsync(orderId);
-                var delivery = await deliveryService.GetByIdAsync(deliveryId);
-
-                if (delivery == null || order == null) return NotFound(GeneralResponse.Failure("Not Found."));
-                if (order.Delivery_Id != null) return BadRequest(GeneralResponse.Failure("Order is already assigned to a delivery has id: {order.Delivery_Id}."));
-
-                order.Delivery_Id = deliveryId;
+                var order = await orderService.AssignDeliveryToOrderAndCalculateCompanyAndDeliveryRightsAsync(orderId, deliveryId);
 
                 await orderService.UpdateAsync(order);
                 await orderService.SaveChangesAsync();

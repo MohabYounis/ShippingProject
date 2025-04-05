@@ -34,7 +34,7 @@ namespace Shipping.Controllers
 
 
         [HttpGet("{all:alpha}")]
-        public async Task<ActionResult<GeneralResponse>> GetWithPaginationAndSearch(string? searchTxt, string all = "all", int page = 1, int pageSize = 10)
+        public async Task<ActionResult> GetWithPaginationAndSearch(string? searchTxt, string all = "all", int page = 1, int pageSize = 10)
         {
             try
             {
@@ -89,7 +89,7 @@ namespace Shipping.Controllers
 
 
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<GeneralResponse>> GetById(int id)
+        public async Task<ActionResult> GetById(int id)
         {
             try
             {
@@ -107,7 +107,7 @@ namespace Shipping.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult<GeneralResponse>> Create([FromBody]CityCreateDTO cityFromReq)
+        public async Task<ActionResult> Create([FromBody]CityCreateDTO cityFromReq)
         {
             if (!ModelState.IsValid)
             {
@@ -142,7 +142,7 @@ namespace Shipping.Controllers
 
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult<GeneralResponse>> EditById(int id, [FromBody] CityEditDTO cityFromReq)
+        public async Task<ActionResult> EditById(int id, [FromBody] CityEditDTO cityFromReq)
         {
             if (!ModelState.IsValid)
             {
@@ -174,7 +174,7 @@ namespace Shipping.Controllers
 
 
         [HttpDelete("{id:int}")]
-        public async Task<ActionResult<GeneralResponse>> Delete(int id)
+        public async Task<ActionResult> Delete(int id)
         {
             try
             {

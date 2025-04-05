@@ -15,6 +15,6 @@ namespace Shipping.Services.IModelService
         Task<IEnumerable<Order>> GetAllExistByMerchantByStatus(int id, string orderStatus);
 
         Task<decimal> CalculateShippingCost(OrderCreateEditDTO createDTO);
-
+        Task<Order> AssignDeliveryToOrderAndCalculateCompanyAndDeliveryRightsAsync(int orderId, int deliveryId);
     }
 }

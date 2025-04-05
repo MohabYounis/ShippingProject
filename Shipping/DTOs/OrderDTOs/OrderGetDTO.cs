@@ -8,6 +8,6 @@
         public string ClientData { get; set; }
         public string Governrate { get; set; }
         public string City { get; set; }
-        public decimal ShippingCost { get; set; }
+        public decimal OrderCost { get; set; }
     }
 }

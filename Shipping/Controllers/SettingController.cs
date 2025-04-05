@@ -24,7 +24,7 @@ namespace Shipping.Controllers
 
 
         [HttpGet]
-        public async Task<ActionResult<GeneralResponse>> GetAll()
+        public async Task<ActionResult> GetAll()
         {
             try
             {
@@ -47,7 +47,7 @@ namespace Shipping.Controllers
 
 
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<GeneralResponse>> GetById(int id)
+        public async Task<ActionResult> GetById(int id)
         {
             try
             {
@@ -70,7 +70,7 @@ namespace Shipping.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult<GeneralResponse>> Create([FromBody] SettingCreateDTOS settingcreateDto)
+        public async Task<ActionResult> Create([FromBody] SettingCreateDTOS settingcreateDto)
         {
             if (!ModelState.IsValid)
             {
@@ -102,7 +102,7 @@ namespace Shipping.Controllers
 
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult<GeneralResponse>> EditById(int id, [FromBody] SettingEditDTO settingUpdateDto)
+        public async Task<ActionResult> EditById(int id, [FromBody] SettingEditDTO settingUpdateDto)
         {
             if (!ModelState.IsValid)
             {

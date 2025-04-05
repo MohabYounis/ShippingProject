@@ -16,15 +16,17 @@ namespace Shipping.Services.ModelService
         IServiceGeneric<ShippingType> shippingTypeService;
         IServiceGeneric<Merchant> merchantService;
         IServiceGeneric<Setting> settingService;
+        IDeliveryService deliveryService;
         public OrderService(IUnitOfWork unitOfWork, ISpecialShippingRateService specialShippingRateService, 
             IServiceGeneric<WeightPricing> weightService, IServiceGeneric<ShippingType> shippingTypeService,
-             IServiceGeneric<Merchant> merchantService, IServiceGeneric<Setting> settingService) : base(unitOfWork)
+             IServiceGeneric<Merchant> merchantService, IServiceGeneric<Setting> settingService, IDeliveryService deliveryService) : base(unitOfWork)
         {
             this.specialShippingRateService = specialShippingRateService;
             this.weightService = weightService;
             this.shippingTypeService = shippingTypeService;
             this.merchantService = merchantService;
             this.settingService = settingService;
+            this.deliveryService = deliveryService;
         }
 
 
@@ -248,5 +250,28 @@ namespace Shipping.Services.ModelService
             return TotalShippingCost;
         }
 
+        public async Task<Order> AssignDeliveryToOrderAndCalculateCompanyAndDeliveryRightsAsync(int orderId, int deliveryId)
+        {
+            var order = await GetByIdAsync(orderId);
+            var delivery = await deliveryService.GetByIdAsync(deliveryId);
+
+            if (delivery == null || order == null) throw new Exception("Not Found.");
+            if (order.Delivery_Id != null)  throw new Exception("Order is already assigned to a delivery has id: {order.Delivery_Id}.");
+
+            order.Delivery_Id = deliveryId;
+
+            if (delivery.DiscountType == DiscountType.Fixed)
+            {
+                order.DeliveryRight = delivery.CompanyPercentage;
+            }
+            else
+            {
+                order.DeliveryRight = (delivery.CompanyPercentage/100) * order.ShippingCost;
+            }
+
+            order.CompanyRight = order.ShippingCost - order.DeliveryRight;
+
+            return order;
+        }
     }
 }
