@@ -209,7 +209,6 @@ namespace Shipping.Services.ModelService
                 .Include(d => d.DeliveryGovernments)
                     .ThenInclude(dg => dg.Government)
                 .FirstOrDefaultAsync(d => d.Id == deliveryId);
-
             return delivery;
         }
 
