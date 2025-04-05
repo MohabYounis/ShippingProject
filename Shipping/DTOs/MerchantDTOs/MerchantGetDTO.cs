@@ -11,6 +11,7 @@ namespace Shipping.DTOs.MerchantDTOs
         public string Email { get; set; }
         public string Phone { get; set; }
         public string Address { get; set; }
+        public string CreatedDate { get; set; }
         [MaxLength(100)]
         [Display(Name = "Store Name")]
         public string StoreName { get; set; }

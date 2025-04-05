@@ -27,10 +27,9 @@ namespace SHIPPING.Services
             return await unitOfWork.GetRepository<Tentity>().GetAllExistAsync();
         }
 
-        public async Task<Tentity> GetByIdAsync(int id)
+        public virtual async Task<Tentity> GetByIdAsync(int id)
         {
             var entity = await unitOfWork.GetRepository<Tentity>().GetByIdAsync(id);
-            if (entity == null) throw new KeyNotFoundException($"Entity with ID {id} not found.");
             return entity;
         }
 
@@ -52,7 +51,7 @@ namespace SHIPPING.Services
 
             var prop = entity.GetType().GetProperty("IsDeleted");
             if (prop == null || !prop.CanWrite) throw new InvalidOperationException("The entity does not support soft deletion.");
-
+            
             bool isDeleted = (bool)(prop.GetValue(entity) ?? false);
             if (isDeleted) throw new InvalidOperationException($"Entity with ID {id} is already deleted.");
 
@@ -63,6 +62,9 @@ namespace SHIPPING.Services
             await unitOfWork.SaveChangesAsync();
         }
 
-       
+        public async Task<Tentity> GetByNameAsync(string name)
+        {
+            return await unitOfWork.GetRepository<Tentity>().GetByNameAsync(name);
+        }
     }
 }

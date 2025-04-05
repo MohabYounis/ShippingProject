@@ -27,16 +27,14 @@ namespace Shipping.Controllers
             this.userManager = userManager;
         }
 
+
         [HttpGet]
         public async Task<IActionResult> GetAllDelivery()
         {
             try
             {
                 var deliveries = await deliveryService.GetAllDeliveryWithGovernmentsAsync();
-                if (deliveries == null || !deliveries.Any())
-                {
-                    return NotFound("No deliveries found.");
-                }
+                if (deliveries == null || !deliveries.Any()) return NotFound("Not Found.");
 
                 List<ShowDeliveryDto> deliveryDTO = deliveries.Select(delivery => new ShowDeliveryDto
                 {
@@ -47,16 +45,20 @@ namespace Shipping.Controllers
                     Name = delivery.ApplicationUser?.UserName,
                     BranchName = delivery.Branch?.Name,
                     GovernmentName = delivery.DeliveryGovernments.Select(dg => dg.Government?.Name).ToList(),
+                    DiscountType = delivery.DiscountType.ToString(),
+                    CompanyPercentage = delivery.CompanyPercentage,
                     IsDeleted = delivery.IsDeleted
                 }).ToList();
+
                 return Ok(deliveryDTO);
             }
             catch (Exception ex) 
             {
                 return BadRequest(ex.Message);
             }
-
         }
+
+
         [HttpGet("AllExist")]
         public async Task<IActionResult> GetAllExist()
         {
@@ -65,10 +67,7 @@ namespace Shipping.Controllers
                 var deliveries = await deliveryService.GetAllDeliveryWithGovernmentsAsync();
                 var deliveryExist = deliveries.Where(i => !i.IsDeleted).ToList();
 
-                if (deliveries == null || !deliveries.Any())
-                {
-                    return NotFound("No deliveries found.");
-                }
+                if (deliveries == null || !deliveries.Any()) return NotFound("Not Found.");
 
                 List<ShowDeliveryDto> deliveryDTO = deliveryExist.Select(delivery => new ShowDeliveryDto
                 {
@@ -79,24 +78,51 @@ namespace Shipping.Controllers
                     Name = delivery.ApplicationUser?.UserName,
                     BranchName = delivery.Branch?.Name,
                     GovernmentName = delivery.DeliveryGovernments.Select(dg => dg.Government?.Name).ToList(),
+                    DiscountType = delivery.DiscountType.ToString(),
+                    CompanyPercentage = delivery.CompanyPercentage,
                     IsDeleted = delivery.IsDeleted
                 }).ToList();
+
                 return Ok(deliveryDTO);
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
+        }
 
+
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var delivery = await deliveryService.GetDeliveryByIdAsync(id);
+
+            if (delivery == null) return NotFound("Not Found.");
+
+            var Dto = new ShowDeliveryDto
+            {
+                Id = delivery.Id,
+                Name = delivery.ApplicationUser?.UserName,
+                Email = delivery.ApplicationUser?.Email,
+                Phone = delivery.ApplicationUser?.PhoneNumber,
+                Address = delivery.ApplicationUser?.Address,
+                BranchName = delivery.Branch?.Name,
+                GovernmentName = delivery.DeliveryGovernments?.Select(dg => dg.Government.Name).ToList(),
+                DiscountType = delivery.DiscountType.ToString(),
+                CompanyPercentage = delivery.CompanyPercentage,
+                IsDeleted = delivery.IsDeleted
+            };
+
+            return Ok(Dto);
         }
 
 
         [HttpPost]
-        public async Task<IActionResult> AddDelivery(DeliveryDTO deliveryDTO)
+        public async Task<IActionResult> AddDelivery(DeliveryCreateDTO deliveryDTO)
         {
             if (!ModelState.IsValid) 
             {
-                return BadRequest("hmada");
+                return BadRequest("null parameter");
             }
             try
             {
@@ -113,13 +139,10 @@ namespace Shipping.Controllers
             }
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateDelivery(int id, DeliveryDTO deliveryDTO)
+
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> UpdateDelivery(int id, DeliveryEditDTO deliveryDTO)
         {
-            if (deliveryDTO == null)
-            {
-                return BadRequest("Invalid data.");
-            }
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -133,52 +156,18 @@ namespace Shipping.Controllers
             return Ok("Delivery updated successfully.");
         }
 
-        [HttpGet("id")]
-        public async Task<IActionResult>GetById(int id)
-        {
-            var delivery = await deliveryService.GetDeliveryByIdAsync(id);
 
-            if (delivery == null)
-            {
-                return NotFound("Delivery not found.");
-            }
-            var Dto= new ShowDeliveryDto
-            {
-                Id = delivery.Id,
-                Name = delivery.ApplicationUser?.UserName,
-                Email = delivery.ApplicationUser?.Email,
-                Phone = delivery.ApplicationUser?.PhoneNumber,
-                Address = delivery.ApplicationUser?.Address,
-                BranchName = delivery.Branch?.Name,
-                GovernmentName = delivery.DeliveryGovernments?.Select(dg => dg.Government.Name).ToList(),
-                IsDeleted = delivery.IsDeleted
-            };
-
-            return Ok(Dto);
-        }
-
-        [HttpDelete("id")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
             var delivery = await deliveryService.GetDeliveryByIdAsync(id);
-            if (delivery == null)
-            {
-                return NotFound("Delivery Not Found");
-            }
-            if (delivery.IsDeleted)
-            {
-                return BadRequest("Deliver is aready deleted");
-            }
-           await deliveryService.DeleteAsync(id);
+            if (delivery == null) return NotFound("Not Found.");
+            if (delivery.IsDeleted) return BadRequest("Deliver is already deleted.");
 
-           await deliveryService.SaveChangesAsync();
+            await deliveryService.DeleteAsync(id);
+            await deliveryService.SaveChangesAsync();
             
-            return Ok("Deleted Succes");
+            return Ok("Delivery deleted Successfully.");
         }
-
-
-
-
-
     }
 }

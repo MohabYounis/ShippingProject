@@ -27,7 +27,6 @@ public class WeightPricingService : ServiceGeneric<WeightPricing>, IWeightPricin
         {
             firstWeightPricing.DefaultWeight = weightPricing.DefaultWeight;
             firstWeightPricing.AdditionalKgPrice = weightPricing.AdditionalKgPrice;
-            firstWeightPricing.DefaultPrice = weightPricing.DefaultPrice;
 
             repositoryGeneric.Update(firstWeightPricing);
             await unitOfWork.SaveChangesAsync();

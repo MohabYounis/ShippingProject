@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Shipping.DTOs.DeliveryDTOs
 {
-    public class DeliveryDTO
+    public class DeliveryCreateDTO
     {
         [Required(ErrorMessage = "Name is required.")]
         [StringLength(10, MinimumLength = 3, ErrorMessage = "Name must be between 3 and 10 characters.")]
@@ -28,7 +28,11 @@ namespace Shipping.DTOs.DeliveryDTOs
         [Required(ErrorMessage = "At least one government ID is required.")]
         public List<int> GovernmentsId { get; set; }
 
-        //public bool IsDeleted { get; set; } = false;
+        [Required(ErrorMessage = "Choose a discount type.")]
+        public string DiscountType { get; set; }                                        //added by Mohab
+
+        [Required(ErrorMessage = "Select the company percentage from order.")]
+        public decimal CompanyPercentage { get; set; }                                  //added by Mohab
     }
 
 }
