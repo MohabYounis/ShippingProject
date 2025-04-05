@@ -10,5 +10,6 @@ namespace Shipping.Services.IModelService
         Task<IEnumerable<Delivery>> GetAllDeliveryWithGovernmentsAsync();
         Task<bool> UpdateDeliveryAsync(int deliveryId, DeliveryEditDTO deliveryDTO);
         Task<Delivery> GetDeliveryByIdAsync(int deliveryId);
+        Task<IEnumerable<Delivery>> GetDeliveryByBranchIdAsync(int branchId);
     }
 }
