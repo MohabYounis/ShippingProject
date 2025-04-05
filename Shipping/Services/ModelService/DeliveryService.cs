@@ -42,6 +42,7 @@ namespace Shipping.Services.ModelService
             return existingGovernments;
         }
 
+
        
         public async Task<bool> AddDeliveryAsync(DeliveryCreateDTO deliveryDTO)
         {
@@ -118,6 +119,15 @@ namespace Shipping.Services.ModelService
             .Include(d => d.DeliveryGovernments)
              .ThenInclude(dg => dg.Government)
             .ToListAsync();
+        }
+        public async Task<IEnumerable<Delivery>> GetDeliveryByBranchIdAsync(int id)
+        {
+           return await unitOfWork.Context.Set<Delivery>()
+            .Include(d => d.ApplicationUser)
+            .Include(d => d.Branch)
+            .Include(d => d.DeliveryGovernments)
+             .ThenInclude(dg => dg.Government)
+            .Where(d => d.Branch_Id == id).ToListAsync();
         }
 
         public async Task<bool> UpdateDeliveryAsync(int deliveryId, DeliveryEditDTO deliveryDTO)
@@ -203,7 +213,6 @@ namespace Shipping.Services.ModelService
                 .Include(d => d.DeliveryGovernments)
                     .ThenInclude(dg => dg.Government)
                 .FirstOrDefaultAsync(d => d.Id == deliveryId);
-
             return delivery;
         }
     }
