@@ -5,9 +5,10 @@ namespace Shipping.Models
 {
     public enum DiscountType
     {
-        Fixed = 1,       // Fixed Discount 
-        Percentage = 2,  // Percentage Discount
+        Fixed,
+        Percentage
     }
+
     public class Delivery
     {
         public int Id { get; set; }
@@ -22,7 +23,6 @@ namespace Shipping.Models
         public virtual ApplicationUser ApplicationUser { get; set; }
         public virtual Branch? Branch { get; set; }
         public virtual List<Order>? Orders { get; } = new List<Order>();
-
         public virtual List<DeliveryGovernment>? DeliveryGovernments { get; } = new List<DeliveryGovernment>();
     }
 }

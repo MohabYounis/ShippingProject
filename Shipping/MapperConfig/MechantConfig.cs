@@ -15,15 +15,13 @@ namespace Shipping.MapperConfig
                 dest.Email = src.ApplicationUser.Email;
                 dest.Phone = src.ApplicationUser.PhoneNumber;
                 dest.Address = src.ApplicationUser.Address;
+                dest.CreatedDate = (src.ApplicationUser.CreatedDate)?.ToString("dd MMM yyyy");
                 dest.BranchsNames = string.Join(Environment.NewLine, src.BranchMerchants.Select(bm => bm.Branch?.Name ?? "Unknown")); // Get Branch Names
             }).ReverseMap();
 
             CreateMap<MerchantCreateDTO, ApplicationUser>().AfterMap((src, dest) =>
             {
-                if (dest.Merchant == null)
-                {
-                    dest.Merchant = new Merchant();
-                }
+                if (dest.Merchant == null) dest.Merchant = new Merchant();
 
                 dest.Merchant.AppUser_Id = dest.Id;
                 dest.Merchant.StoreName = src.StoreName;
@@ -31,8 +29,6 @@ namespace Shipping.MapperConfig
                 dest.Merchant.City = src.City;
                 dest.Merchant.PickupCost = src.PickupCost;
                 dest.Merchant.RejectedOrderPercentage = src.RejectedOrderPercentage;
-                dest.Merchant.IsDeleted = src.IsDeleted;
-                dest.IsDeleted = src.IsDeleted;
 
                 dest.Merchant.BranchMerchants = src.Branches_Id?
                 .Select(branchId => new BranchMerchant

@@ -1,4 +1,5 @@
-﻿using Shipping.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using Shipping.Models;
 using Shipping.Services.IModelService;
 using Shipping.UnitOfWorks;
 using SHIPPING.Services;
