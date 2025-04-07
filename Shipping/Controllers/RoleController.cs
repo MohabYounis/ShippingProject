@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Shipping.DTOs.Role;
 using Shipping.DTOs.RolePermission;
 using Shipping.Models;
@@ -62,8 +63,6 @@ namespace Shipping.Controllers
             return Ok(roleDTO);
         }
 
-
-     
         // GET: api/Role/{id}
         [HttpGet("{id}")]
         public async Task<IActionResult> GetRoleById(string id)
@@ -91,7 +90,6 @@ namespace Shipping.Controllers
 
             return Ok(roleDTO);
         }
-
 
         // POST: api/Role
         [HttpPost]
@@ -130,7 +128,6 @@ namespace Shipping.Controllers
             }
         }
         
-        
         // PUT: api/Role/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateRole(string id, [FromBody] UpdateRoleDTO role)
@@ -161,7 +158,6 @@ namespace Shipping.Controllers
             }
         }
 
-
         // DELETE: api/Role/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteRole(string id)
@@ -184,8 +180,6 @@ namespace Shipping.Controllers
             }
         }
 
-
-        //assign role to user
         // POST: api/Role/AssignRole
         [HttpPost("AssignRole")]
         public async Task<IActionResult> AssignRole(string UserId , string RoleName)
@@ -220,5 +214,64 @@ namespace Shipping.Controllers
                 return BadRequest(ex.Message + "gfdsssss");
             }
         }
+
+
+        [HttpGet("search")]
+        public async Task<IActionResult> GetRoles( [FromQuery] string? searchTxt, [FromQuery] bool includeDeleted = true,
+                                                   [FromQuery] int page = 1,[FromQuery] int pageSize = 10)
+        {
+            try
+            {
+                var rolesQueryable = await _roleService.GetQueryableRolesAsync(includeDeleted);
+
+                if (!string.IsNullOrEmpty(searchTxt))
+                {
+                    rolesQueryable = rolesQueryable.Where(role =>
+     role.Name != null && EF.Functions.Like(role.Name, $"%{searchTxt}%"));
+                }
+
+                var totalRoles = rolesQueryable.Count();
+
+                var pagedRoles = rolesQueryable
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                if (!pagedRoles.Any())
+                    return NotFound("No roles found.");
+
+                var roleDTOs = pagedRoles.Select(role => new AppRoleDTO
+                {
+                    Id = role.Id,
+                    Name = role.Name,
+                    IsDeleted = role.IsDeleted,
+                    RolePermissions = role.RolePermissions?.Select(rp => new RolePermissionDTO
+                    {
+                        Permission_Id = rp.Permission_Id,
+                        Role_Id = rp.Role_Id,
+                        CanView = rp.CanView,
+                        CanEdit = rp.CanEdit,
+                        CanDelete = rp.CanDelete,
+                        CanAdd = rp.CanAdd,
+                        IsDeleted = rp.IsDeleted
+                    }).ToList()
+                }).ToList();
+
+                var result = new
+                {
+                    TotalRoles = totalRoles,
+                    Page = page,
+                    PageSize = pageSize,
+                    Roles = roleDTOs
+                };
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
     }
 }
