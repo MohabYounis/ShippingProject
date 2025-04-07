@@ -59,7 +59,6 @@ public class WeightPricingService : ServiceGeneric<WeightPricing>, IWeightPricin
     // Update the existing record with the new values
     firstWeightPricing.DefaultWeight = weightPricing.DefaultWeight;
     firstWeightPricing.AdditionalKgPrice = weightPricing.AdditionalKgPrice;
-    firstWeightPricing.DefaultPrice = weightPricing.DefaultPrice;
 
     repositoryGeneric.Update(firstWeightPricing);
     await unitOfWork.SaveChangesAsync();
