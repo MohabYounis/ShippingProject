@@ -19,7 +19,6 @@ namespace Shipping.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-
     public class CityController : ControllerBase
     {
         private readonly IMapper mapper;
