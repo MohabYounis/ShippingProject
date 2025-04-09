@@ -134,10 +134,9 @@ namespace Shipping
             {
                 options.AddPolicy("CorsPolicy", builder =>
                 {
-                    builder.WithOrigins("http://localhost:4200") //http://localhost:5050
+                    builder.AllowAnyOrigin()
                            .AllowAnyMethod()
-                           .AllowAnyHeader()
-                           .AllowCredentials();
+                           .AllowAnyHeader();
                 });
             });
 
