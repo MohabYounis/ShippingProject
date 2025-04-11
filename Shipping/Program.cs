@@ -70,6 +70,8 @@ namespace Shipping
             builder.Services.AddScoped<IApplicationRoleService, ApplicationRoleService>();
 
 
+            //
+            builder.Services.AddScoped<IApplicationRoleRepository, ApplicationRoleRepository>();
 
 
 
@@ -127,6 +129,22 @@ namespace Shipping
             });
 
 
+            // Add CORS policy
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", builder =>
+                {
+                    builder.AllowAnyOrigin()
+                           .AllowAnyMethod()
+                           .AllowAnyHeader();
+                });
+            });
+
+            //add memory cashe
+            builder.Services.AddMemoryCache();
+
+
+
             var app = builder.Build();
 
 
@@ -140,6 +158,11 @@ namespace Shipping
             app.UseStaticFiles();
 
             app.UseRouting();
+
+
+            
+            // Enable CORS
+            app.UseCors("AllowAll");
 
             app.UseAuthorization();
 

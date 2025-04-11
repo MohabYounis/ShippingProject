@@ -9,7 +9,13 @@ namespace Shipping.Models
         public DateTime? CreatedDate { get; set; } = DateTime.Now;
         public bool IsDeleted { get; set; } = false;
         public virtual Merchant? Merchant { get; set; }
-        public virtual Employee? Employee { get; set; } 
+        public virtual Employee? Employee { get; set; }
         public virtual Delivery? Delivery { get; set; }
+
+        //
+        public virtual ICollection<IdentityUserRole<string>> UserRoles { get; set; }
+
     }
+
+
 }

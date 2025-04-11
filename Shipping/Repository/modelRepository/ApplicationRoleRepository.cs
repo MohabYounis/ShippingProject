@@ -82,5 +82,32 @@ namespace Shipping.Repository.modelRepository
             await Context.SaveChangesAsync();
         }
 
+
+
+        // get role using user id 
+        public async Task<ApplicationRole> GetRoleByUserIdAsync(string userId)
+        {
+            var userRoles = await Context.UserRoles
+                .Where(ur => ur.UserId == userId)
+                .Join(Context.Roles, ur => ur.RoleId, r => r.Id,
+                    (ur, r) => new { ur.RoleId, r.Name })
+                .FirstOrDefaultAsync();
+
+            if (userRoles != null)
+            {
+                return new ApplicationRole
+                {
+                    Id = userRoles.RoleId,
+                    Name = userRoles.Name
+                };
+            }
+
+            return null; // إذا لم يتم العثور على دور
+        }
+
+
+
+
+
     }
 }

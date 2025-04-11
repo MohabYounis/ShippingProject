@@ -162,7 +162,7 @@ namespace Shipping.Controllers
 
         [HttpPut("{id}")]
 
-        public async Task<IActionResult> UpdateEmployee(int id, [FromBody] CreateEmployeeDTO employeeDto)
+        public async Task<IActionResult> UpdateEmployee(int id, [FromBody] UpdateEmployeeDTO employeeDto)
         {
             if (id <= 0)
                 return BadRequest("Invalid ID");
@@ -262,30 +262,43 @@ namespace Shipping.Controllers
 
         //by role name
         [HttpGet("GetEmployeesByRole")]
-        public async Task<IActionResult> GetEmployeesByRole(string roleName)
+        public async Task<IActionResult> GetEmployeesByRole([FromQuery] string roleName)
         {
             try
             {
                 var employees = await empService.GetEmployeesByRole(roleName);
-                if (employees == null || !employees.Any()) return NotFound($"ther is no  employees have {roleName} role");
+                if (employees == null || !employees.Any()) return Ok (new List<EmployeeDTO>());
+
+
+                //get roles from cache
+                var roleDictionary = await roleService.GetRoleDictionaryAsync();
+
+
                 //mapping
-                var employeesDto = employees.Select(e => new EmployeeDTO
+                var epmloyeesDto = employees.Select(e =>
                 {
-                    Id = e.Id,
-                    IsDeleted = e.IsDeleted,
+                    //get role id
+                    var roleId = e.ApplicationUser?.UserRoles.FirstOrDefault()?.RoleId;
 
-                    userId = e.AppUser_Id,
-                    Name = e.ApplicationUser.UserName,
-                    Phone = e.ApplicationUser?.PhoneNumber,
-                    Address = e.ApplicationUser?.Address,
+                    return new EmployeeDTO
+                    {
+                        Id = e.Id,
+                        IsDeleted = e.IsDeleted,
 
-                    branchId = e.Branch_Id
-
+                        userId = e.AppUser_Id,
+                        Name = e.ApplicationUser.UserName,
+                        Phone = e.ApplicationUser?.PhoneNumber,
+                        Address = e.ApplicationUser?.Address,
+                        // using roleId 
+                        RoleId = roleId,
+                        Role = roleDictionary.TryGetValue(roleId ?? "", out var roleName) ? roleName : " no role",
+                        branchId = e.Branch_Id,
+                        BranchName = e.Branch.Name
+                    };
                 }).ToList();
 
 
-
-                return Ok(employeesDto);
+                return Ok(epmloyeesDto);
             }
 
             catch (Exception ex) { 
@@ -302,20 +315,37 @@ namespace Shipping.Controllers
             try
             {
                 var employees = await empService.GetEmployeesBySearch(term);
-                if (employees == null || !employees.Any()) return NotFound($"ther is no any employee whose name contains {term} ");
+                if (employees == null || !employees.Any()) return Ok(new List<EmployeeDTO>());
+
+                //get roles from cache
+                var roleDictionary = await roleService.GetRoleDictionaryAsync();
+
+
                 //mapping
-                var employeesDto = employees.Select(e => new EmployeeDTO
+                var epmloyeesDto = employees.Select(e =>
                 {
-                    Id = e.Id,
-                    IsDeleted = e.IsDeleted,
-                    userId = e.AppUser_Id,
-                    Name = e.ApplicationUser.UserName,
-                    Phone = e.ApplicationUser?.PhoneNumber,
-                    Address = e.ApplicationUser?.Address,
-                    branchId = e.Branch_Id
+                    //get role id
+                    var roleId = e.ApplicationUser.UserRoles.FirstOrDefault().RoleId;
+
+                    return new EmployeeDTO
+                    {
+                        Id = e.Id,
+                        IsDeleted = e.IsDeleted,
+
+                        userId = e.AppUser_Id,
+                        Name = e.ApplicationUser.UserName,
+                        Phone = e.ApplicationUser?.PhoneNumber,
+                        Address = e.ApplicationUser?.Address,
+                        // using roleId 
+                        RoleId = roleId,
+                        Role = roleDictionary.TryGetValue(roleId ?? "", out var roleName) ? roleName : " no role",
+                        branchId = e.Branch_Id,
+                        BranchName = e.Branch.Name
+                    };
                 }).ToList();
 
-                return Ok(employeesDto);
+
+                return Ok(epmloyeesDto);
 
             }
             catch (Exception ex)

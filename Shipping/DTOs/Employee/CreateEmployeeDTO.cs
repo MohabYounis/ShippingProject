@@ -20,7 +20,7 @@ namespace Shipping.DTOs.Employee
         // branch fields
         public int branchId { get; set; }
         // role 
-       // public string RoleId { get; set; }
+       public string RoleId { get; set; }
 
     }
 }

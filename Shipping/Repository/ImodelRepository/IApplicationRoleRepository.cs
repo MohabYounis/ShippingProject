@@ -17,5 +17,8 @@ namespace Shipping.Repository.ImodelRepository
         void Update(ApplicationRole entity);
         void Delete(ApplicationRole entity);
         Task SaveDB();
+
+        //
+        Task<ApplicationRole> GetRoleByUserIdAsync(string userId);
     }
 }

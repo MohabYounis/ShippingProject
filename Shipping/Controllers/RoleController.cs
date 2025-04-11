@@ -26,14 +26,11 @@ namespace Shipping.Controllers
 
         // GET: api/Role
         [HttpGet]
-        public async Task<IActionResult> GetRoles([FromQuery] bool includeDelted=true)
+        public async Task<IActionResult> GetRoles()
         {
             IEnumerable<ApplicationRole>? roles;
-            if (includeDelted)
-            {
-                roles = await _roleService.GetAllAsync();
-            }
-            else roles = await _roleService.GetAllAsyncExist();
+           
+             roles = await _roleService.GetAllAsyncExist();
             //check null
             if (roles == null)
             {

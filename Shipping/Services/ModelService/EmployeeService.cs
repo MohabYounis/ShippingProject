@@ -15,10 +15,12 @@ namespace Shipping.Services.ModelService
     public class EmployeeService : ServiceGeneric<Employee>, IEmployeeService
     {
         UserManager<ApplicationUser> userManager;
-
-        public EmployeeService(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager) : base(unitOfWork)
+        // cashed roles 
+        readonly IApplicationRoleService roleCacheService;
+        public EmployeeService(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager, IApplicationRoleService roleCacheService) : base(unitOfWork)
         {
             this.userManager= userManager;
+            this.roleCacheService = roleCacheService;
         }
 
         public  async Task<GenericPagination<EmployeeDTO>> GetAllAsync(int pageIndex=1, int pageSize=10)
@@ -31,16 +33,31 @@ namespace Shipping.Services.ModelService
                 .Skip((pageIndex - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
-            //maping
-
-            var epmloyeesDto = employees.Select(e => new EmployeeDTO
+            //get roles from cache
+            var roleDictionary = await roleCacheService.GetRoleDictionaryAsync();
+           
+            
+            //mapping
+            var epmloyeesDto =  employees.Select( e => 
             {
+                //get role id
+                var roleId = e.ApplicationUser?.UserRoles?.FirstOrDefault()?.RoleId;
+
+                return new EmployeeDTO { 
                 Id = e.Id,
-                Name = e.ApplicationUser?.UserName,
+                IsDeleted = e.IsDeleted,
+
+                userId = e.AppUser_Id,
+                Name = e.ApplicationUser.UserName,
+                Phone = e.ApplicationUser?.PhoneNumber,
                 Address = e.ApplicationUser?.Address,
-                userId = e.ApplicationUser?.Id,
-                branchId = e.Branch.Id,
-                IsDeleted = e.IsDeleted
+                    Email = e.ApplicationUser?.Email,
+                    // using roleId 
+                    RoleId = roleId,
+                    Role = roleDictionary.TryGetValue(roleId ?? "", out var roleName) ? roleName : " no role",
+                branchId = e.Branch_Id,
+                BranchName = e.Branch.Name
+                };
             }).ToList();
 
             return new  GenericPagination<EmployeeDTO>
@@ -64,27 +81,47 @@ namespace Shipping.Services.ModelService
                 .Take(pageSize)
                 .ToListAsync();
 
-            //mapping
+            //get roles from cache
+            var roleDictionary = await roleCacheService.GetRoleDictionaryAsync();
 
-            var epmloyeesDto = employees.Select(e => new EmployeeDTO
+
+            //mapping
+            var employeeDtosTasks = employees.Select(async e =>
             {
-                Id = e.Id,
-                Name = e.ApplicationUser?.UserName,
-                Address = e.ApplicationUser?.Address,
-                userId = e.ApplicationUser?.Id,
-                branchId = e.Branch.Id,
-                IsDeleted = e.IsDeleted
+                //get role id
+                var roleDto =await roleCacheService.GetRoleByUserIdAsync(e.AppUser_Id);
+
+                return new EmployeeDTO
+                {
+                    Id = e.Id,
+                    IsDeleted = e.IsDeleted,
+
+                    userId = e.AppUser_Id,
+                    Name = e.ApplicationUser.UserName,
+                    Phone = e.ApplicationUser?.PhoneNumber,
+                    Address = e.ApplicationUser?.Address,
+                    Email = e.ApplicationUser?.Email,
+                    // using roleId 
+                    RoleId = roleDto.Id,
+                    Role = roleDictionary.TryGetValue(roleDto.Name ?? "", out var roleName) ? roleName : " no role",
+                    branchId = e.Branch_Id,
+                    BranchName = e.Branch.Name
+                };
             }).ToList();
+
+
+
+            //await all tasks to complete
+            var employeeDtos = await Task.WhenAll(employeeDtosTasks);
+
 
             return new GenericPagination<EmployeeDTO>
             {
                 pageIndex = pageIndex,
                 pageSize = pageSize,
                 totalCount = query.Count(),
-                Items = epmloyeesDto
+                Items = employeeDtos
             };
-
-
 
 
         }
