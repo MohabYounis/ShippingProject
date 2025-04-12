@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Shipping.DTOs;
@@ -22,19 +23,21 @@ namespace Shipping.Services.ModelService
         // cache
         private readonly IMemoryCache memoryCache;
         private const string RolesCacheKey = "RolesCacheKey";
-
-        public ApplicationRoleService(ShippingContext context, IRepositoryGeneric<ApplicationRole> roleRepo, IApplicationRoleRepository userRoleRepo, IMemoryCache memoryCache) :base(context)
+        //
+        private readonly UserManager<ApplicationUser> userManager;
+        public ApplicationRoleService(ShippingContext context,  UserManager<ApplicationUser> userManager, IRepositoryGeneric<ApplicationRole> roleRepo, IApplicationRoleRepository userRoleRepo, IMemoryCache memoryCache) :base(context , userManager)
         {
             this.roleRepo = roleRepo;  
             this.memoryCache = memoryCache;
             this.userRoleRepo = userRoleRepo;
+            this.userManager = userManager;
         }
        public async Task<IEnumerable<ApplicationRoleDTO>> GetAllAsync()
         {
-            var query = await roleRepo.GetAllAsync();  // تنتظر الـ Task للحصول على IQueryable
+            var query = await roleRepo.GetAllAsync(); 
 
             var result = await query
-                .Where(r => !EF.Property<bool>(r, "IsDeleted")) 
+                .Where(r => !EF.Property<bool>(r, "IsDeleted")) //existing
                 .Select(r => new ApplicationRoleDTO
                 {
                     Id = r.Id,
@@ -78,6 +81,7 @@ namespace Shipping.Services.ModelService
         //
         public async Task<ApplicationRoleDTO> GetRoleByUserIdAsync(string userId)
         {
+
             var applicationRole = await userRoleRepo.GetRoleByUserIdAsync(userId);
 
             if (applicationRole == null)
@@ -85,17 +89,38 @@ namespace Shipping.Services.ModelService
                 return null;
             }
 
+            //cashed dic
+            var roleDictionary = await GetRoleDictionaryAsync();
 
-            //mapping
-            var roleDTO = new ApplicationRoleDTO
+            var roleEntry = roleDictionary.FirstOrDefault(r => r.Value.Equals(applicationRole.Name, StringComparison.OrdinalIgnoreCase));
+            if (roleEntry.Key == null)
             {
-                Id = applicationRole.Id,
-                Name = applicationRole.Name
+                return null;
+            }
+
+            return new ApplicationRoleDTO
+            {
+                Id = roleEntry.Key,
+                Name = roleEntry.Value
             };
-
-            return roleDTO;
         }
+        public async Task<ApplicationRoleDTO> GetByNameAsync(string roleName)
+        {
+            var roleDictionary = await GetRoleDictionaryAsync();
+            var roleEntry = roleDictionary.FirstOrDefault(r => r.Value.Equals(roleName, StringComparison.OrdinalIgnoreCase));
+            if (roleEntry.Key == null)
+            {
+                return null;
+            }
 
-
+            return new ApplicationRoleDTO
+            {
+                Id = roleEntry.Key,
+                Name = roleEntry.Value
+            };
+        }
     }
+
+
 }
+

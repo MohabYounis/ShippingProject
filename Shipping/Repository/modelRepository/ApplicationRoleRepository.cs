@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Shipping.Models;
 using Shipping.Repository.ImodelRepository;
 using Shipping.UnitOfWorks;
@@ -10,11 +11,13 @@ namespace Shipping.Repository.modelRepository
     {
 
         public ShippingContext Context { get; }
-        public ApplicationRoleRepository(ShippingContext context)
-        {
-            this.Context = context ?? throw new ArgumentNullException(nameof(context));
-        }
 
+         readonly UserManager<ApplicationUser> userManager;
+        public ApplicationRoleRepository(ShippingContext context, UserManager<ApplicationUser> userManager)
+        {
+            this.Context = context;
+            this.userManager = userManager;
+        }
         public async Task AddAsync(ApplicationRole entity)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
@@ -87,26 +90,32 @@ namespace Shipping.Repository.modelRepository
         // get role using user id 
         public async Task<ApplicationRole> GetRoleByUserIdAsync(string userId)
         {
-            var userRoles = await Context.UserRoles
-                .Where(ur => ur.UserId == userId)
-                .Join(Context.Roles, ur => ur.RoleId, r => r.Id,
-                    (ur, r) => new { ur.RoleId, r.Name })
-                .FirstOrDefaultAsync();
-
-            if (userRoles != null)
+            //get user 
+            var user = await userManager.FindByIdAsync(userId);
+            if (user == null)
             {
-                return new ApplicationRole
-                {
-                    Id = userRoles.RoleId,
-                    Name = userRoles.Name
-                };
+                return null;
             }
 
-            return null; // إذا لم يتم العثور على دور
+            //get roles
+            var roles = await userManager.GetRolesAsync(user);
+            if (roles == null || !roles.Any())
+            {
+                return null;
+            }
+
+            var roleName = roles.FirstOrDefault();
+            var role = await Context.Roles
+                .Where(r => r.Name == roleName && !EF.Property<bool>(r, "IsDeleted"))
+                .FirstOrDefaultAsync();
+
+            if (role == null)
+            {
+                return null;
+            }
+
+            return role;
         }
-
-
-
 
 
     }

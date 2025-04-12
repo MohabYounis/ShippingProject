@@ -143,6 +143,14 @@ namespace Shipping
             //add memory cashe
             builder.Services.AddMemoryCache();
 
+            //
+            // Add logging
+            builder.Services.AddLogging(logging =>
+            {
+                logging.ClearProviders();
+                logging.AddConsole();
+                logging.AddDebug();
+            });
 
 
             var app = builder.Build();
