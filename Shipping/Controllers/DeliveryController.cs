@@ -152,9 +152,9 @@ namespace Shipping.Controllers
             if (branch == null) return NotFound("Branch not found.");
 
             var government = await deliveryService.GetGovernmentByBranchId(branchId);
-            if (government == null || !government.Any()) return NotFound("No deliveries found.");
+            if (government == null || !government.Any()) return NotFound(new {sucess=false,message= "No deliveries found." });
 
-            var deliveryDtos = government.Select(government => new GovernmentDTO
+            var governmentDtos = government.Select(government => new GovernmentDTO
             {
                 Id = government.Id,
                 Name = government.Name,
@@ -162,7 +162,7 @@ namespace Shipping.Controllers
                 IsDeleted=government.IsDeleted
             }).ToList();
 
-            return Ok(deliveryDtos);
+            return Ok(governmentDtos);
         }
 
 
@@ -173,20 +173,20 @@ namespace Shipping.Controllers
         {
             if (!ModelState.IsValid) 
             {
-                return BadRequest("null parameter");
+                return BadRequest(new { success = false, message = "Invalid data", errors = ModelState });
             }
             try
             {
                 var result = await deliveryService.AddDeliveryAsync(deliveryDTO);
                 if (result)
                 {
-                    return Ok("Delivery added successfully.");
+                    return Ok(new {sucess=true,message= "Delivery added successfully." });
                 }
-                return BadRequest("Failed to add delivery.");
+                return BadRequest(new {success=false,message= "Failed to add delivery." });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"An error occurred: {ex.Message}");
+                return StatusCode(500, new { success = false, message = $"An error occurred: {ex.Message}" });
             }
         }
 
@@ -196,15 +196,15 @@ namespace Shipping.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+               return BadRequest(new { success = false, message = "Invalid data", errors = ModelState });
             }
             var result = await deliveryService.UpdateDeliveryAsync(id, deliveryDTO);
             if (!result)
             {
-                return NotFound("Delivery not found or could not be updated.");
+                return NotFound(new { success = false, message = "Delivery not found or could not be updated." });
             }
 
-            return Ok("Delivery updated successfully.");
+            return Ok(new {success=true,message= "Delivery updated successfully." });
         }
 
 
@@ -212,7 +212,7 @@ namespace Shipping.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var delivery = await deliveryService.GetDeliveryByIdAsync(id);
-            if (delivery == null) return NotFound("Not Found.");
+            if (delivery == null) return NotFound(new {success=false,message= "Not Found." });
             if (delivery.IsDeleted) return BadRequest(new { success = false, message = "Delivery is already deleted." });
 
 
