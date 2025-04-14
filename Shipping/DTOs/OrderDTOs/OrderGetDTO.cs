@@ -9,5 +9,6 @@
         public string Governrate { get; set; }
         public string City { get; set; }
         public decimal OrderCost { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }
