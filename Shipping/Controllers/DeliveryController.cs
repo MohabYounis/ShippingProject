@@ -91,7 +91,7 @@ namespace Shipping.Controllers
                     .Take(pageSize)
                     .ToList();
 
-                    var deliveryExist = delivery.Where(i => !i.IsDeleted).ToList();
+                    var deliveryExist = delivery.ToList();
 
                     List<ShowDeliveryDto> deliveryDTO = deliveryExist.Select(delivery => new ShowDeliveryDto
                     {
