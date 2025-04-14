@@ -297,7 +297,7 @@ namespace Shipping.Controllers
             try
             {
                 var order = mapper.Map<Order>(orderFromReq);
-                if (order.Products.Count() == 0) return NotFound(GeneralResponse.Failure("Products Not Found."));
+                //if (order.Products.Count() == 0) return NotFound(GeneralResponse.Failure("Products Not Found."));
 
                 decimal totalShippingCost = await orderService.CalculateShippingCost(orderFromReq);
                 order.ShippingCost = totalShippingCost;
@@ -349,7 +349,7 @@ namespace Shipping.Controllers
                 existingOrder.MerchantNotes = orderEditDTO.MerchantNotes;
                 existingOrder.EmployeeNotes = orderEditDTO.EmployeeNotes;
                 existingOrder.DeliveryNotes = orderEditDTO.DeliveryNotes;
-                existingOrder.Products = orderEditDTO.Products;
+                //existingOrder.Products = orderEditDTO.Products;
 
                 await orderService.UpdateAsync(existingOrder);
                 await orderService.SaveChangesAsync();
