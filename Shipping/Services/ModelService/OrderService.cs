@@ -36,7 +36,7 @@ namespace Shipping.Services.ModelService
             var employees = await query;
             return employees
                 .Include(e => e.Merchant)
-                .Include(e => e.ShippingCost)
+                .Include(e => e.ShippingType)
                 .Include(e => e.Delivery)
                 .Include(e => e.Government)
                 .Include(e => e.City)
@@ -49,7 +49,7 @@ namespace Shipping.Services.ModelService
             var employees = await query;
             return employees
                .Include(e => e.Merchant)
-               .Include(e => e.ShippingCost)
+               .Include(e => e.ShippingType)
                .Include(e => e.Delivery)
                .Include(e => e.Government)
                .Include(e => e.City)
@@ -206,7 +206,7 @@ namespace Shipping.Services.ModelService
             }
             else
             {
-                TotalShippingCost += (decimal)specialRate.City.StandardShipping;
+                TotalShippingCost += (decimal?)specialRate?.City?.StandardShipping ?? 0;
 
             }
 
