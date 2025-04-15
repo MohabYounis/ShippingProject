@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Shipping.ImodelRepository;
 using Shipping.modelRepository;
+using System.Reflection;
 
 namespace Shipping
 {
@@ -152,6 +153,17 @@ namespace Shipping
                 logging.ClearProviders();
                 logging.AddConsole();
                 logging.AddDebug();
+            });
+
+
+
+
+
+            //
+            builder.Services.AddSwaggerGen(options =>
+            {
+                var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
             });
 
 
