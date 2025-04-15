@@ -329,32 +329,17 @@ namespace Shipping.Controllers
             try
             {
                 var existingOrder = await orderService.GetByIdAsync(id);
-                if (existingOrder == null) return NotFound(GeneralResponse.Failure("Not Found."));
+                if (existingOrder == null)
+                    return NotFound(GeneralResponse.Failure("Not Found."));
 
-                existingOrder.Merchant_Id = orderEditDTO.Merchant_Id;
-                existingOrder.Branch_Id = orderEditDTO.Branch_Id;
-                existingOrder.Government_Id = orderEditDTO.Government_Id;
-                existingOrder.ShippingType_Id = orderEditDTO.ShippingType_Id;
-                existingOrder.City_Id = orderEditDTO.City_Id;
-                existingOrder.OrderType = Enum.Parse<OrderType>(orderEditDTO.OrderType);
-                existingOrder.ClientName = orderEditDTO.ClientName;
-                existingOrder.ClientPhone1 = orderEditDTO.ClientPhone1;
-                existingOrder.ClientPhone2 = orderEditDTO.ClientPhone2;
-                existingOrder.ClientEmail = orderEditDTO.ClientEmail;
-                existingOrder.ClientAddress = orderEditDTO.ClientAddress;
-                existingOrder.DeliverToVillage = orderEditDTO.DeliverToVillage;
-                existingOrder.PaymentType = Enum.Parse<PaymentTypee>(orderEditDTO.PaymentType);
-                existingOrder.OrderCost = orderEditDTO.OrderCost;
-                existingOrder.OrderTotalWeight = orderEditDTO.OrderTotalWeight;
-                existingOrder.MerchantNotes = orderEditDTO.MerchantNotes;
-                existingOrder.EmployeeNotes = orderEditDTO.EmployeeNotes;
-                existingOrder.DeliveryNotes = orderEditDTO.DeliveryNotes;
-                //existingOrder.Products = orderEditDTO.Products;
+                // AutoMapper: Update existing entity with values from DTO
+                mapper.Map(orderEditDTO, existingOrder);
 
                 await orderService.UpdateAsync(existingOrder);
                 await orderService.SaveChangesAsync();
 
-                return Ok(GeneralResponse.Success( "Order updated successfully."));
+                return Ok(GeneralResponse.Success("Order updated successfully."));
+
             }
             catch (Exception ex)
             {
@@ -388,7 +373,7 @@ namespace Shipping.Controllers
                     await orderService.SaveChangesAsync();
 
                     string message = $"Delivery [{(user.UserName.ToUpper())}] has canceled the assignment of the order with serial number [{order.SerialNumber}]";
-                    return Ok(GeneralResponse.Success(order, message));
+                    return Ok(GeneralResponse.Success(message));
                 }
 
                 await orderService.DeleteAsync(orderId);
@@ -424,7 +409,8 @@ namespace Shipping.Controllers
                 await orderService.UpdateAsync(order);
                 await orderService.SaveChangesAsync();
 
-                return Ok(GeneralResponse.Success( $"Status updated from {lastStatus.ToString()} to {newStatus.ToUpper()} successfully."));
+                return Ok(GeneralResponse.Success($"Status updated from {lastStatus.ToString()} to {newStatus.ToUpper()} successfully."));
+
 
             }
             catch (Exception ex)
@@ -446,8 +432,7 @@ namespace Shipping.Controllers
                 await orderService.UpdateAsync(order);
                 await orderService.SaveChangesAsync();
 
-                return Ok(GeneralResponse.Success( $"Order assigned to delivery has id: {orderId}."));
-
+                return Ok(GeneralResponse.Success($"Order assigned to delivery has id: {orderId}."));
             }
             catch (Exception ex)
             {
