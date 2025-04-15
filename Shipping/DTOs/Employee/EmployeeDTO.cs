@@ -20,8 +20,14 @@ namespace Shipping.DTOs.Employee
         public string ConfirmPassword { get; set; }
         public string Phone { get; set; }
         public string Address { get; set; }
+        //role
+        public string RoleId { get; set; }
+        public string Role { get; set; }
 
+       
         // branch fields
         public int branchId { get; set; }
+        public string BranchName { get; set; }  
+        
     }
 }

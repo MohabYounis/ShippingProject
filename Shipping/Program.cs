@@ -17,8 +17,6 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Shipping.ImodelRepository;
 using Shipping.modelRepository;
-using Shipping.SignalRHubs;
-using Newtonsoft.Json;
 
 namespace Shipping
 {
@@ -33,13 +31,8 @@ namespace Shipping
 
             // Add OpenAPI (Swagger) support
             builder.Services.AddOpenApi();
-
             //Add Swagger
             builder.Services.AddEndpointsApiExplorer();
-
-            // إضافة SignalR للخدمات
-            builder.Services.AddSignalR();
-
             builder.Services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Shipping API", Version = "v1" });
@@ -50,42 +43,38 @@ namespace Shipping
             {
                 options.UseLazyLoadingProxies().UseSqlServer(builder.Configuration.GetConnectionString("CS"));
             });
-
-                builder.Services.AddControllers()
-                    .AddNewtonsoftJson(options =>
-                    {
-                        options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                    });
-            
-
-            // Register AutoMapper
-            builder.Services.AddAutoMapper(typeof(Program));
-
-            //Register of Unit Of work
-            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-            //   builder.Services.AddScoped(typeof(IRepositoryGeneric<>), typeof(RepositoryGeneric<>));
-
-
-            builder.Services.AddScoped<IRolePermissinRepository, RolePermissinRepository>();
-
-
-
+          
             // Register Identity
             builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
                 .AddEntityFrameworkStores<ShippingContext>();
           
             builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 
-            //register of SpecialShippingRateRepository
+            // Register AutoMapper
+            builder.Services.AddAutoMapper(typeof(Program));
+
+            //Register of Unit Of work
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<ISpecialShippingRateRepository, SpecialShippingRateRepository>();
 
-        
+
+
+            //register of RolePermissionRepository
+            builder.Services.AddScoped<IRolePermissinRepository, RolePermissinRepository>();
+
             //register of RolePermissionService
+
             builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
 
             //role
             builder.Services.AddScoped<IApplicationRoleService, ApplicationRoleService>();
+
+
+            //
+            builder.Services.AddScoped<IApplicationRoleRepository, ApplicationRoleRepository>();
+
+
+
 
             // Register Generic Repository
             builder.Services.AddScoped(typeof(IRepositoryGeneric<>), typeof(RepositoryGeneric<>));
@@ -98,23 +87,20 @@ namespace Shipping
 
             // Register RejectReason Service
             builder.Services.AddScoped<IRejectReasonService, RejectReasonService>();
-
             // Register Government Service
             builder.Services.AddScoped<IGovernmentService, GovernmentService>();
 
             //Register Merchant Service
-            builder.Services.AddScoped<IMerchantService, MerchantService>();
-
+            builder.Services.AddScoped<IMerchantService, MerchantService>(); //Register Merchant Service
             builder.Services.AddScoped<ISpecialShippingRateService, SpecialShippingRateService>();
-
             //Register City Service
             builder.Services.AddScoped<ICityService, CityService>();
-
             //Register Order Service
             builder.Services.AddScoped<IOrderService, OrderService>();
 
             builder.Services.AddScoped<IApplicationRoleService, ApplicationRoleService>();
-
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped(typeof(IRepositoryGeneric<>), typeof(RepositoryGeneric<>));
             builder.Services.AddScoped<IWeightPricingService, WeightPricingService>();
 
             //jwt
@@ -135,15 +121,18 @@ namespace Shipping
                     };
                 });
 
+
             // For Profile Image
             builder.Services.Configure<FormOptions>(options =>
             {
                 options.MultipartBodyLengthLimit = 104857600; // السماح برفع ملفات حتى 100 ميجابايت
             });
 
+
+            // Add CORS policy
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy("CorsPolicy", builder =>
+                options.AddPolicy("AllowAll", builder =>
                 {
                     builder.AllowAnyOrigin()
                            .AllowAnyMethod()
@@ -151,7 +140,21 @@ namespace Shipping
                 });
             });
 
+            //add memory cashe
+            builder.Services.AddMemoryCache();
+
+            //
+            // Add logging
+            builder.Services.AddLogging(logging =>
+            {
+                logging.ClearProviders();
+                logging.AddConsole();
+                logging.AddDebug();
+            });
+
+
             var app = builder.Build();
+
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -160,16 +163,14 @@ namespace Shipping
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Shipping API V1"));
             }
 
-            // تكوين نقطة نهاية لـ SignalR
-            app.MapHub<CityHub>("/cityHub");
-
-            //app.UseHttpsRedirection();
-
             app.UseStaticFiles();
 
-            app.UseCors("CorsPolicy");
-
             app.UseRouting();
+
+
+            
+            // Enable CORS
+            app.UseCors("AllowAll");
 
             app.UseAuthorization();
 

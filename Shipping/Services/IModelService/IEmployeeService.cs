@@ -11,10 +11,17 @@ namespace Shipping.Services.IModelService
         Task<GenericPagination<EmployeeDTO>> GetAllAsync(int pageIndex = 1, int pageSize = 10);       
         Task<GenericPagination<EmployeeDTO>> GetAllExistAsync(int pageIndex = 1, int pageSize = 10);       
         Task<IDbContextTransaction> BeginTransactionAsync();
-        Task<IEnumerable<Employee>> GetEmployeesByRole(string roleName);
+        Task<IEnumerable<EmployeeDTO>> GetEmployeesByRole(string roleName);
 
+        Task<EmployeeDTO> UpdateAsync(int id, UpdateEmployeeDTO employeeDto);
 
-        Task<IEnumerable<Employee>> GetEmployeesBySearch(string term, bool includeDelted = true);
+        Task<EmployeeDTO> AddAsync(CreateEmployeeDTO employeeDto);
+
+        Task<string> DeleteAsync(int id);
+        
+        Task<EmployeeDTO> GetByIdAsync(int id);
+
+        Task<IEnumerable<EmployeeDTO>> GetEmployeesBySearch(string term, bool includeDelted = true);
 
 
     }

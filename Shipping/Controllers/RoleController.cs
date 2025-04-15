@@ -27,14 +27,11 @@ namespace Shipping.Controllers
 
         // GET: api/Role
         [HttpGet]
-        public async Task<IActionResult> GetRoles([FromQuery] bool includeDelted=true)
+        public async Task<IActionResult> GetRoles()
         {
             IEnumerable<ApplicationRole>? roles;
-            if (includeDelted)
-            {
-                roles = await _roleService.GetAllAsync();
-            }
-            else roles = await _roleService.GetAllAsyncExist();
+           
+             roles = await _roleService.GetAllAsyncExist();
             //check null
             if (roles == null)
             {
@@ -148,7 +145,7 @@ namespace Shipping.Controllers
                 existingRole.Name = role.Name;
 
                 _roleService.Update(existingRole);
-                _roleService.SaveDB();
+                await _roleService.SaveDB();
 
                 return NoContent();
             }
@@ -170,7 +167,7 @@ namespace Shipping.Controllers
 
                 if (existingRole.IsDeleted) return BadRequest("already delted");
                  _roleService.Delete(existingRole);
-                _roleService.SaveDB();
+                await _roleService.SaveDB();
 
                 return NoContent();
             }
