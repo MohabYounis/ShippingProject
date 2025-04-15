@@ -9,7 +9,6 @@ namespace Shipping.Models
         public string? ProfileImagePath { get; set; }
         public DateTime? CreatedDate { get; set; } = DateTime.Now;
         public bool IsDeleted { get; set; } = false;
-        [JsonIgnore]
         public virtual Merchant? Merchant { get; set; }
         public virtual Employee? Employee { get; set; } 
         public virtual Delivery? Delivery { get; set; }

@@ -339,6 +339,7 @@ namespace Shipping.Controllers
                 await orderService.SaveChangesAsync();
 
                 return Ok(GeneralResponse.Success("Order updated successfully."));
+
             }
             catch (Exception ex)
             {
@@ -388,7 +389,7 @@ namespace Shipping.Controllers
 
         //------------------------------------------------------------------------------------------------------------------------------------
 
-        [HttpPut("{orderId:int}/{userId:alpha}/{newStatus:alpha}")]
+        [HttpPut("{orderId:int}/{userId:Guid}/{newStatus:alpha}")]
         [EndpointSummary("Change order status.")]
         public async Task<ActionResult> ChangeStatusById(int orderId, string userId, string newStatus, string note = "")
         {
@@ -409,6 +410,7 @@ namespace Shipping.Controllers
                 await orderService.SaveChangesAsync();
 
                 return Ok(GeneralResponse.Success($"Status updated from {lastStatus.ToString()} to {newStatus.ToUpper()} successfully."));
+
 
             }
             catch (Exception ex)
@@ -431,7 +433,6 @@ namespace Shipping.Controllers
                 await orderService.SaveChangesAsync();
 
                 return Ok(GeneralResponse.Success($"Order assigned to delivery has id: {orderId}."));
-
             }
             catch (Exception ex)
             {

@@ -26,7 +26,7 @@ namespace Shipping.Controllers
 
 
         // Get User by ID
-        [HttpGet("{id:alpha}")]
+        [HttpGet("{id:guid}")]
         [EndpointSummary("Get the user's data and view it in his profile page")]
         public async Task<ActionResult> GetById(string id)
         {

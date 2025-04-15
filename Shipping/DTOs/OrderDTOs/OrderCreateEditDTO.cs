@@ -64,5 +64,6 @@ namespace Shipping.DTOs.OrderDTOs
         [StringLength(250)]
         public string? DeliveryNotes { get; set; }
         public List<CreateEditProductForOrder>? Products { get; set; }
+
     }
 }

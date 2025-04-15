@@ -215,5 +215,11 @@ namespace Shipping.Services.ModelService
                 .FirstOrDefaultAsync(d => d.Id == deliveryId);
             return delivery;
         }
+
+        public async Task<IEnumerable<Government>> GetGovernmentByBranchId(int branchId)
+        {
+            var  governments=await unitOfWork.Context.Set<Government>().Where(g => g.Branch_Id == branchId).ToListAsync();
+            return governments ;
+        }
     }
 }

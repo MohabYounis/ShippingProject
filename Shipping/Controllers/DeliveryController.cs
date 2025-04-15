@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Shipping.DTOs;
 using Shipping.DTOs.DeliveryDTOs;
+using Shipping.DTOs.GovernmentDTOs;
 using Shipping.DTOs.MerchantDTOs;
 using Shipping.Models;
 using Shipping.Repository;
@@ -22,12 +23,14 @@ namespace Shipping.Controllers
         private readonly IDeliveryService deliveryService;
         private readonly IServiceGeneric<Branch> branchService;
         private readonly UserManager<ApplicationUser> userManager;
+        private readonly IServiceGeneric<Government> governmentService;
 
-        public DeliveryController(IDeliveryService DeliveryService,IServiceGeneric<Branch>branchService, UserManager<ApplicationUser> userManager)
+        public DeliveryController(IDeliveryService DeliveryService,IServiceGeneric<Branch>branchService, UserManager<ApplicationUser> userManager, IServiceGeneric<Government> governmentService)
         {
             deliveryService = DeliveryService;
             this.branchService = branchService;
             this.userManager = userManager;
+            this.governmentService = governmentService;
         }
 
         [HttpGet("{id:int}")]
@@ -88,7 +91,7 @@ namespace Shipping.Controllers
                     .Take(pageSize)
                     .ToList();
 
-                    var deliveryExist = delivery.Where(i => !i.IsDeleted).ToList();
+                    var deliveryExist = delivery.ToList();
 
                     List<ShowDeliveryDto> deliveryDTO = deliveryExist.Select(delivery => new ShowDeliveryDto
                     {
@@ -142,6 +145,26 @@ namespace Shipping.Controllers
 
             return Ok(deliveryDtos);
         }
+        [HttpGet("GovernmentByBranch/{branchId:int}")]
+        public async Task<IActionResult> GetGovernmentByBranch(int branchId)
+        {
+            var branch = await branchService.GetByIdAsync(branchId);
+            if (branch == null) return NotFound("Branch not found.");
+
+            var government = await deliveryService.GetGovernmentByBranchId(branchId);
+            if (government == null || !government.Any()) return NotFound(new {sucess=false,message= "No deliveries found." });
+
+            var governmentDtos = government.Select(government => new GovernmentDTO
+            {
+                Id = government.Id,
+                Name = government.Name,
+                Branch_Id=government.Branch_Id,
+                IsDeleted=government.IsDeleted
+            }).ToList();
+
+            return Ok(governmentDtos);
+        }
+
 
 
 
@@ -150,20 +173,20 @@ namespace Shipping.Controllers
         {
             if (!ModelState.IsValid) 
             {
-                return BadRequest("null parameter");
+                return BadRequest(new { success = false, message = "Invalid data", errors = ModelState });
             }
             try
             {
                 var result = await deliveryService.AddDeliveryAsync(deliveryDTO);
                 if (result)
                 {
-                    return Ok("Delivery added successfully.");
+                    return Ok(new {sucess=true,message= "Delivery added successfully." });
                 }
-                return BadRequest("Failed to add delivery.");
+                return BadRequest(new {success=false,message= "Failed to add delivery." });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"An error occurred: {ex.Message}");
+                return StatusCode(500, new { success = false, message = $"An error occurred: {ex.Message}" });
             }
         }
 
@@ -173,15 +196,15 @@ namespace Shipping.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+               return BadRequest(new { success = false, message = "Invalid data", errors = ModelState });
             }
             var result = await deliveryService.UpdateDeliveryAsync(id, deliveryDTO);
             if (!result)
             {
-                return NotFound("Delivery not found or could not be updated.");
+                return NotFound(new { success = false, message = "Delivery not found or could not be updated." });
             }
 
-            return Ok("Delivery updated successfully.");
+            return Ok(new {success=true,message= "Delivery updated successfully." });
         }
 
 
@@ -189,13 +212,14 @@ namespace Shipping.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var delivery = await deliveryService.GetDeliveryByIdAsync(id);
-            if (delivery == null) return NotFound("Not Found.");
-            if (delivery.IsDeleted) return BadRequest("Deliver is already deleted.");
+            if (delivery == null) return NotFound(new {success=false,message= "Not Found." });
+            if (delivery.IsDeleted) return BadRequest(new { success = false, message = "Delivery is already deleted." });
+
 
             await deliveryService.DeleteAsync(id);
             await deliveryService.SaveChangesAsync();
-            
-            return Ok("Delivery deleted Successfully.");
+
+            return Ok(new { success = true, message = "Delivery deleted successfully." });
         }
     }
 }
