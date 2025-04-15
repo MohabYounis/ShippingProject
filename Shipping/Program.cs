@@ -64,7 +64,12 @@ namespace Shipping
             //Register of Unit Of work
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-            builder.Services.AddScoped(typeof(IRepositoryGeneric<>), typeof(RepositoryGeneric<>));
+            //   builder.Services.AddScoped(typeof(IRepositoryGeneric<>), typeof(RepositoryGeneric<>));
+
+
+            builder.Services.AddScoped<IRolePermissinRepository, RolePermissinRepository>();
+
+
 
             // Register Identity
             builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
