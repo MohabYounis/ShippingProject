@@ -18,10 +18,10 @@ namespace Shipping.Models
         public decimal PickupCost { get; set; }
         [Range(0, 100, ErrorMessage=("Percentage must be between 0 and 100%"))]
         public decimal RejectedOrderPercentage  { get; set; }
-        [JsonIgnore]
+       
         public virtual ApplicationUser? ApplicationUser { get; set; }
         public virtual List<SpecialShippingRate>? SpecialShippingRates { get; set; } = new List<SpecialShippingRate>();
-        [JsonIgnore]
+       
         public virtual List<Order>? Orders { get; } = new List<Order>();
         public virtual List<BranchMerchant>? BranchMerchants { get; set; } = new List<BranchMerchant>();
     }

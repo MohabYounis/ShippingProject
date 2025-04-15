@@ -297,7 +297,7 @@ namespace Shipping.Controllers
             try
             {
                 var order = mapper.Map<Order>(orderFromReq);
-                //if (order.Products.Count() == 0) return NotFound(GeneralResponse.Failure("Products Not Found."));
+                if (order.Products.Count() == 0) return NotFound(GeneralResponse.Failure("Products Not Found."));
 
                 decimal totalShippingCost = await orderService.CalculateShippingCost(orderFromReq);
                 order.ShippingCost = totalShippingCost;
@@ -305,7 +305,7 @@ namespace Shipping.Controllers
                 await orderService.AddAsync(order);
                 await orderService.SaveChangesAsync();
 
-                return Ok(GeneralResponse.Success(order, "Order created successfully."));
+                return Ok(GeneralResponse.Success("Order created successfully."));
             }
             catch (Exception ex)
             {
@@ -354,7 +354,7 @@ namespace Shipping.Controllers
                 await orderService.UpdateAsync(existingOrder);
                 await orderService.SaveChangesAsync();
 
-                return Ok(GeneralResponse.Success(existingOrder, "Order updated successfully."));
+                return Ok(GeneralResponse.Success( "Order updated successfully."));
             }
             catch (Exception ex)
             {
@@ -394,7 +394,7 @@ namespace Shipping.Controllers
                 await orderService.DeleteAsync(orderId);
                 await orderService.SaveChangesAsync();
 
-                return Ok(GeneralResponse.Success(order, "Order deleted successfully by employee."));
+                return Ok(GeneralResponse.Success("Order deleted successfully by employee."));
             }
             catch (Exception ex)
             {
@@ -404,7 +404,7 @@ namespace Shipping.Controllers
 
         //------------------------------------------------------------------------------------------------------------------------------------
 
-        [HttpPut("{orderId:int}/{userId:alpha}/{newStatus:alpha}")]
+        [HttpPut("{orderId:int}/{userId:Guid}/{newStatus:alpha}")]
         [EndpointSummary("Change order status.")]
         public async Task<ActionResult> ChangeStatusById(int orderId, string userId, string newStatus, string note = "")
         {
@@ -424,7 +424,7 @@ namespace Shipping.Controllers
                 await orderService.UpdateAsync(order);
                 await orderService.SaveChangesAsync();
 
-                return Ok(GeneralResponse.Success(order, $"Status updated from {lastStatus.ToString()} to {newStatus.ToUpper()} successfully."));
+                return Ok(GeneralResponse.Success( $"Status updated from {lastStatus.ToString()} to {newStatus.ToUpper()} successfully."));
 
             }
             catch (Exception ex)
@@ -446,7 +446,7 @@ namespace Shipping.Controllers
                 await orderService.UpdateAsync(order);
                 await orderService.SaveChangesAsync();
 
-                return Ok(GeneralResponse.Success(order, $"Order assigned to delivery has id: {orderId}."));
+                return Ok(GeneralResponse.Success( $"Order assigned to delivery has id: {orderId}."));
 
             }
             catch (Exception ex)

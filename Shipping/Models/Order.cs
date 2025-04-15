@@ -66,9 +66,8 @@ namespace Shipping.Models
         public string? MerchantNotes { get; set; }
         public string? EmployeeNotes { get; set; }
         public string? DeliveryNotes { get; set; }
-        [JsonIgnore]
         public virtual Merchant? Merchant { get; set; }
-        //public virtual List<Product>? Products { get; set; } = new List<Product>();
+        public virtual List<Product>? Products { get; set; } = new List<Product>();
         public virtual ShippingType? ShippingType { get; set; }
         public virtual Delivery? Delivery { get; set; }
         public virtual Government? Government { get; set; }
