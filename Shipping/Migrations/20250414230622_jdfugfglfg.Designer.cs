@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Shipping.Models;
 
@@ -11,9 +12,11 @@ using Shipping.Models;
 namespace Shipping.Migrations
 {
     [DbContext(typeof(ShippingContext))]
-    partial class ShippingContextModelSnapshot : ModelSnapshot
+    [Migration("20250414230622_jdfugfglfg")]
+    partial class jdfugfglfg
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -707,7 +710,7 @@ namespace Shipping.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Settings");
+                    b.ToTable("ShippingToVillages");
                 });
 
             modelBuilder.Entity("Shipping.Models.ShippingType", b =>
@@ -984,7 +987,7 @@ namespace Shipping.Migrations
             modelBuilder.Entity("Shipping.Models.Product", b =>
                 {
                     b.HasOne("Shipping.Models.Order", "Order")
-                        .WithMany("Products")
+                        .WithMany()
                         .HasForeignKey("Order_Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1104,8 +1107,6 @@ namespace Shipping.Migrations
 
             modelBuilder.Entity("Shipping.Models.Order", b =>
                 {
-                    b.Navigation("Products");
-
                     b.Navigation("RejectedOrders");
                 });
 

@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 namespace Shipping.DTOs.ProductDtos
 {
     public class CreatProductDto
-    {
+    {   
         [Required(ErrorMessage = "Product Id is required.")]
         [ForeignKey("product")]
         public int OrderId { get; set; }

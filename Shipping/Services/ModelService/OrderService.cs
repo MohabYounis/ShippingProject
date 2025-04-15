@@ -16,15 +16,17 @@ namespace Shipping.Services.ModelService
         IServiceGeneric<ShippingType> shippingTypeService;
         IServiceGeneric<Merchant> merchantService;
         IServiceGeneric<Setting> settingService;
+        IDeliveryService deliveryService;
         public OrderService(IUnitOfWork unitOfWork, ISpecialShippingRateService specialShippingRateService, 
             IServiceGeneric<WeightPricing> weightService, IServiceGeneric<ShippingType> shippingTypeService,
-             IServiceGeneric<Merchant> merchantService, IServiceGeneric<Setting> settingService) : base(unitOfWork)
+             IServiceGeneric<Merchant> merchantService, IServiceGeneric<Setting> settingService, IDeliveryService deliveryService) : base(unitOfWork)
         {
             this.specialShippingRateService = specialShippingRateService;
             this.weightService = weightService;
             this.shippingTypeService = shippingTypeService;
             this.merchantService = merchantService;
             this.settingService = settingService;
+            this.deliveryService = deliveryService;
         }
 
 
@@ -34,7 +36,7 @@ namespace Shipping.Services.ModelService
             var employees = await query;
             return employees
                 .Include(e => e.Merchant)
-                .Include(e => e.ShippingCost)
+                .Include(e => e.ShippingType)
                 .Include(e => e.Delivery)
                 .Include(e => e.Government)
                 .Include(e => e.City)
@@ -47,7 +49,7 @@ namespace Shipping.Services.ModelService
             var employees = await query;
             return employees
                .Include(e => e.Merchant)
-               .Include(e => e.ShippingCost)
+               .Include(e => e.ShippingType)
                .Include(e => e.Delivery)
                .Include(e => e.Government)
                .Include(e => e.City)
@@ -196,7 +198,7 @@ namespace Shipping.Services.ModelService
             // سعر الشحن لمدينة ولقرية ان طلب
             var specialRate = await specialShippingRateService.GetSpecialRateByMerchant(createDTO.Merchant_Id, createDTO.City_Id);
             var setting = await settingService.GetAllExistAsync();
-            var settingFirst = setting.FirstOrDefault();
+            var settingFirst = setting.FirstOrDefault(n=>n.Id==1);
 
             if (specialRate != null)
             {
@@ -204,13 +206,16 @@ namespace Shipping.Services.ModelService
             }
             else
             {
-                TotalShippingCost += (decimal)specialRate.City.StandardShipping;
+                TotalShippingCost += (decimal?)specialRate?.City?.StandardShipping ?? 0;
 
             }
 
             if (createDTO.DeliverToVillage)
             {
-                TotalShippingCost += settingFirst.ShippingToVillageCost;
+
+                    TotalShippingCost += settingFirst.ShippingToVillageCost;
+               
+                
             }
             // -----------------------------------------------------------------
 
@@ -248,5 +253,28 @@ namespace Shipping.Services.ModelService
             return TotalShippingCost;
         }
 
+        public async Task<Order> AssignDeliveryToOrderAndCalculateCompanyAndDeliveryRightsAsync(int orderId, int deliveryId)
+        {
+            var order = await GetByIdAsync(orderId);
+            var delivery = await deliveryService.GetByIdAsync(deliveryId);
+
+            if (delivery == null || order == null) throw new Exception("Not Found.");
+            if (order.Delivery_Id != null)  throw new Exception("Order is already assigned to a delivery has id: {order.Delivery_Id}.");
+
+            order.Delivery_Id = deliveryId;
+
+            if (delivery.DiscountType == DiscountType.Fixed)
+            {
+                order.DeliveryRight = delivery.CompanyPercentage;
+            }
+            else
+            {
+                order.DeliveryRight = (delivery.CompanyPercentage/100) * order.ShippingCost;
+            }
+
+            order.CompanyRight = order.ShippingCost - order.DeliveryRight;
+
+            return order;
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Shipping.DTOs;
 using Shipping.DTOs.CityDTOs;
@@ -11,6 +12,7 @@ using Shipping.Models;
 using Shipping.Services;
 using Shipping.Services.IModelService;
 using Shipping.Services.ModelService;
+using Shipping.SignalRHubs;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Shipping.Controllers
@@ -19,20 +21,20 @@ namespace Shipping.Controllers
     [ApiController]
     public class CityController : ControllerBase
     {
-        IServiceGeneric<City> serviceCityGernric;
         private readonly IMapper mapper;
         private readonly ICityService cityService;
+        private readonly IHubContext<CityHub> hubContext;
 
-        public CityController(IServiceGeneric<City> serviceCityGernric, IMapper mapper, ICityService cityService)
+        public CityController( IMapper mapper, ICityService cityService, IHubContext<CityHub> hubContext)
         {
-            this.serviceCityGernric = serviceCityGernric;
             this.mapper = mapper;
             this.cityService = cityService;
+            this.hubContext = hubContext;
         }
 
 
         [HttpGet("{all:alpha}")]
-        public async Task<ActionResult<GeneralResponse>> GetWithPaginationAndSearch(string? searchTxt, string all = "all", int page = 1, int pageSize = 10)
+        public async Task<ActionResult> GetWithPaginationAndSearch(string? searchTxt, string all = "all", int page = 1, int pageSize = 10)
         {
             try
             {
@@ -73,7 +75,7 @@ namespace Shipping.Controllers
                         TotalCitiess = totalCities,             // العدد الإجمالي للعناصر
                         Page = page,                            // الصفحة الحالية
                         PageSize = pageSize,                    // عدد العناصر في الصفحة
-                        Merchants = citiesDTO                   // العناصر الحالية
+                        Cities = citiesDTO                      // العناصر الحالية
                     };
 
                     return Ok(GeneralResponse.Success(result));
@@ -87,11 +89,11 @@ namespace Shipping.Controllers
 
 
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<GeneralResponse>> GetById(int id)
+        public async Task<ActionResult> GetById(int id)
         {
             try
             {
-                var city = await serviceCityGernric.GetByIdAsync(id);
+                var city = await cityService.GetByIdAsync(id);
                 if (city == null) return NotFound(GeneralResponse.Failure("Not Found."));
                 
                 var cityDTO = mapper.Map<CityGetDTO>(city);
@@ -105,7 +107,7 @@ namespace Shipping.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult<GeneralResponse>> Create(CityCreateDTO cityFromReq)
+        public async Task<ActionResult> Create([FromBody]CityCreateDTO cityFromReq)
         {
             if (!ModelState.IsValid)
             {
@@ -120,9 +122,17 @@ namespace Shipping.Controllers
                 if (cityByName != null) return BadRequest(GeneralResponse.Failure("City is already exist."));
                 
                 var city = mapper.Map<City>(cityFromReq);
-                await serviceCityGernric.AddAsync(city);
-                await serviceCityGernric.SaveChangesAsync();
-                return Ok(GeneralResponse.Success("City created successfully."));
+
+                await cityService.AddAsync(city);
+                await cityService.SaveChangesAsync();
+
+                var cityById = await cityService.GetByIdAsync(city.Id);
+                var cityDto = mapper.Map<CityGetDTO>(cityById);
+
+                // إرسال الحدث بعد التأكد من حفظ المدينة في قاعدة البيانات ===> SignalR
+                await hubContext.Clients.All.SendAsync("cityCreated", cityDto);
+
+                return Ok(GeneralResponse.Success(cityDto, "City created successfully."));
             }
             catch (Exception ex)
             {
@@ -132,7 +142,7 @@ namespace Shipping.Controllers
 
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult<GeneralResponse>> EditById(int id, [FromBody] CityEditDTO cityFromReq)
+        public async Task<ActionResult> EditById(int id, [FromBody] CityEditDTO cityFromReq)
         {
             if (!ModelState.IsValid)
             {
@@ -145,8 +155,15 @@ namespace Shipping.Controllers
             {
                 var city = mapper.Map<City>(cityFromReq);
                 city.Id = id;
-                await serviceCityGernric.UpdateAsync(city);
-                await serviceCityGernric.SaveChangesAsync();
+                await cityService.UpdateAsync(city);
+                await cityService.SaveChangesAsync();
+
+                var cityById = await cityService.GetByIdAsync(id);
+                var cityDto = mapper.Map<CityGetDTO>(cityById);
+
+                // SignalR
+                await hubContext.Clients.All.SendAsync("itemEdited", cityDto);
+
                 return Ok(GeneralResponse.Success("City updated successfully."));
             }
             catch (Exception ex)
@@ -157,12 +174,16 @@ namespace Shipping.Controllers
 
 
         [HttpDelete("{id:int}")]
-        public async Task<ActionResult<GeneralResponse>> Delete(int id)
+        public async Task<ActionResult> Delete(int id)
         {
             try
             {
-                await serviceCityGernric.DeleteAsync(id);
-                await serviceCityGernric.SaveChangesAsync();
+                await cityService.DeleteAsync(id);
+                await cityService.SaveChangesAsync();
+
+                // SignalR
+                await hubContext.Clients.All.SendAsync("itemDeleted", id);
+
                 return Ok(GeneralResponse.Success("City deleted successfully."));
             }
             catch (Exception ex)

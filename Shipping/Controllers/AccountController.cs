@@ -28,6 +28,10 @@ namespace Shipping.Controllers
             {
                 return Unauthorized(new { message = "Invalid Email or Password" });
             }
+            if (user.IsDeleted)
+            {
+                return Unauthorized(new { message = "user Not authorized" });
+            }
             // التحقق من كلمة المرور
             var isPasswordValid = await userManager.CheckPasswordAsync(user, loginDto.Password);
             if (!isPasswordValid)
@@ -46,7 +50,7 @@ namespace Shipping.Controllers
 
             foreach (var role in roles)
             {
-                authClaims.Add(new Claim(ClaimTypes.Role, role)); // ← هنا يتم جلب الأدوار من قاعدة البيانات
+                authClaims.Add(new Claim(ClaimTypes.Role, role)); //  هنا يتم جلب الأدوار من قاعدة البيانات
             }
             var tokenHandler = new JwtSecurityTokenHandler();
             var tokenDescriptor = new SecurityTokenDescriptor

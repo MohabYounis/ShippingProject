@@ -13,6 +13,5 @@ namespace Shipping.Models
         public virtual List<Employee>? Employees { get; } = new List<Employee>();
         public virtual List<Government>? Governments { get; } = new List<Government>();
         public virtual List<BranchMerchant>? BranchMerchants { get; } = new List<BranchMerchant>();
-        public virtual List<Branch>? Branchts { get; } = new List<Branch>();
     }
 }

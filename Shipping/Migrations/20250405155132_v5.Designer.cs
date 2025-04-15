@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Shipping.Models;
 
@@ -11,9 +12,11 @@ using Shipping.Models;
 namespace Shipping.Migrations
 {
     [DbContext(typeof(ShippingContext))]
-    partial class ShippingContextModelSnapshot : ModelSnapshot
+    [Migration("20250405155132_v5")]
+    partial class v5
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -246,6 +249,9 @@ namespace Shipping.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("BranchId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
@@ -265,6 +271,8 @@ namespace Shipping.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BranchId");
 
                     b.ToTable("Branches");
                 });
@@ -559,6 +567,8 @@ namespace Shipping.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Branch_Id");
+
                     b.HasIndex("City_Id");
 
                     b.HasIndex("Delivery_Id");
@@ -707,7 +717,7 @@ namespace Shipping.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Settings");
+                    b.ToTable("ShippingToVillages");
                 });
 
             modelBuilder.Entity("Shipping.Models.ShippingType", b =>
@@ -831,6 +841,13 @@ namespace Shipping.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Shipping.Models.Branch", b =>
+                {
+                    b.HasOne("Shipping.Models.Branch", null)
+                        .WithMany("Branchts")
+                        .HasForeignKey("BranchId");
+                });
+
             modelBuilder.Entity("Shipping.Models.BranchMerchant", b =>
                 {
                     b.HasOne("Shipping.Models.Branch", "Branch")
@@ -942,6 +959,12 @@ namespace Shipping.Migrations
 
             modelBuilder.Entity("Shipping.Models.Order", b =>
                 {
+                    b.HasOne("Shipping.Models.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("Branch_Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Shipping.Models.City", "City")
                         .WithMany("Orders")
                         .HasForeignKey("City_Id")
@@ -969,6 +992,8 @@ namespace Shipping.Migrations
                         .HasForeignKey("ShippingType_Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Branch");
 
                     b.Navigation("City");
 
@@ -1066,6 +1091,8 @@ namespace Shipping.Migrations
             modelBuilder.Entity("Shipping.Models.Branch", b =>
                 {
                     b.Navigation("BranchMerchants");
+
+                    b.Navigation("Branchts");
 
                     b.Navigation("Employees");
 

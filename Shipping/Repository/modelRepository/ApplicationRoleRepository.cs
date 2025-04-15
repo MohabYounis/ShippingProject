@@ -82,5 +82,32 @@ namespace Shipping.Repository.modelRepository
             await Context.SaveChangesAsync();
         }
 
+        public Task<IQueryable<ApplicationRole>> GetQueryableRolesAsync(bool includeDeleted)
+        {
+            IQueryable<ApplicationRole> query = Context.Set<ApplicationRole>();
+
+            if (!includeDeleted)
+            {
+                query = query.Where(role => !EF.Property<bool>(role, "IsDeleted"));
+            }
+
+            return Task.FromResult(query);
+        }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

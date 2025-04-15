@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Shipping.Models
 {
@@ -59,8 +60,8 @@ namespace Shipping.Models
         public DateTime CreatedDate { get; set; } = DateTime.Now;
         public decimal OrderCost { get; set; } // depend on merchant pricing
         public decimal ShippingCost { get; set; } // depend on weight, additional weight, shipping type city price [standard or pickup], deliver to village, payment type and order type
-        public decimal DeliveryRight { get; set; }
-        public decimal CompanyRight { get; set; }
+        public decimal? DeliveryRight { get; set; }
+        public decimal? CompanyRight { get; set; }
         public float OrderTotalWeight { get; set; }
         public string? MerchantNotes { get; set; }
         public string? EmployeeNotes { get; set; }
@@ -72,7 +73,8 @@ namespace Shipping.Models
         public virtual Government? Government { get; set; }
         public virtual City? City { get; set; }
         public virtual List<RejectedOrder>? RejectedOrders { get; set; } = new();
-        public virtual Branch? Branch { get; set; }
+
+        //public virtual Branch? Branch { get; set; }
 
         public Order()
         {

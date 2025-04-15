@@ -1,0 +1,292 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>SignalR Test</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+</head>
+<body>
+    <h1>SignalR Test Page</h1>
+    <div>
+        <div>
+            <label>ID</label>
+            <input type="text" id="idd" />
+        </div>
+        <input type="button" id="delete" value="deleteCity" onclick="deleteCity()" />
+        <hr />
+
+        <div>
+            <label>Name</label>
+            <input type="text" id="name" />
+        </div>
+
+        <div>
+            <label>Government_Id</label>
+            <input type="number" id="governmentId" />
+        </div>
+        
+        <div>
+            <label>IsDeleted</label>
+            <input type="checkbox" id="isDeleted" />
+        </div>
+
+        <div>
+            <label>PickupShipping</label>
+            <input type="number" id="pickupShipping" />
+        </div>
+
+        <div>
+            <label>StandardShipping</label>
+            <input type="number" id="standardShipping" />
+        </div>
+        <input type="button" id="get" value="getAll" onclick="getAllCities()" />
+        <input type="button" id="create" value="createCity" onclick="createCity()" />
+        <input type="button" id="edit" value="editCity" onclick="editCity()" />
+        <hr />
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>GovernmentName</th>
+                    <th>IsDeleted</th>
+                    <th>PickupShipping</th>
+                    <th>StandardShipping</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+        <div id="error-message" style="display: none; color: red;"></div>
+    </div>
+
+    <!-- Load SignalR client library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+
+    <script>
+
+        // دالة لجلب جميع المدن
+        async function getAllCities() {
+            try {
+                const response = await fetch('/api/city/all', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error(`خطأ في الشبكة: ${response.status}`);
+                }
+
+                const data1 = await response.json();
+
+                var data2 = data1.data.cities;
+                // تأكد أن البيانات هي مصفوفة
+                const citiesX = Array.isArray(data2) ? data2 : [data2];
+
+                displayCities(citiesX);
+            } catch (error) {
+                console.error('فشل في جلب البيانات:', error);
+                showError('حدث خطأ أثناء جلب البيانات');
+            }
+        }
+
+        // دالة لعرض المدن في الجدول
+        function displayCities(citiesX) {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = ''; // مسح المحتوى الحالي
+            citiesX.forEach(city => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                        <td>${city.id}</td>
+                        <td>${city.name}</td>
+                        <td>${city.governmentName}</td>
+                        <td>${city.isDeleted}</td>
+                        <td>${city.pickupShipping}</td>
+                        <td>${city.standardShipping}</td>
+                `;
+
+                tableBody.appendChild(row);
+            });
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => errorDiv.style.display = 'none', 5000);
+        }
+        /* ================================================================================================== */
+        async function createCity() {
+            try {
+                const nameValue = document.getElementById("name").value.trim();
+                const govId = parseInt(document.getElementById("governmentId").value);
+                const pickShip = parseInt(document.getElementById("pickupShipping").value);
+                const stShip = parseInt(document.getElementById("standardShipping").value);
+
+                let newCity = {
+                    name: nameValue,
+                    government_Id: govId,
+                    PickupShipping: pickShip,
+                    StandardShipping: stShip
+                }
+
+                console.log(newCity)
+                const response = await fetch('/api/city', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(newCity)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+            } catch (error) {
+                console.error('Error adding city:', error);
+            }
+        }
+        /* ================================================================================================== */
+         async function deleteCity() {
+            try {
+                var idValue = document.getElementById("idd").value.trim();
+                console.log(idValue)
+                const response = await fetch(`api/city/${idValue}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+            } catch (error) {
+                console.error('Error deleting city:', error);
+            }
+        }
+        /* ================================================================================================== */
+        async function editCity() {
+            try {
+                var idValue = document.getElementById("idd").value.trim();
+
+                const nameValue = document.getElementById("name").value.trim();
+                const govId = parseInt(document.getElementById("governmentId").value);
+                const pickShip = parseInt(document.getElementById("pickupShipping").value);
+                const stShip = parseInt(document.getElementById("standardShipping").value);
+                const isDelet = document.getElementById("isDeleted").checked;
+
+                let newCity = {
+                    name: nameValue,
+                    government_Id: govId,
+                    PickupShipping: pickShip,
+                    StandardShipping: stShip,
+                    IsDeleted: isDelet
+                }
+
+                const response = await fetch(`api/city/${idValue}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(newCity)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Error Editing city:', error);
+            }
+        }
+        /* ================================================================================================== */
+        var connection;
+
+        window.onload = function () {
+            console.log("done")
+            connection = new signalR.HubConnectionBuilder()
+                .withUrl("/cityHub")
+                .configureLogging(signalR.LogLevel.Information)
+                .build();
+
+            connection.start();
+
+            connection.on("cityCreated", function (city) {
+
+                let tableBodyy = document.getElementById("tableBody");
+                    const row = document.createElement('tr');
+
+                    row.innerHTML = `
+                        <td>${city.id}</td>
+                        <td>${city.name}</td>
+                        <td>${city.governmentName}</td>
+                        <td>${city.isDeleted}</td>
+                        <td>${city.pickupShipping}</td>
+                        <td>${city.standardShipping}</td>
+                    `;
+
+                    // إضافة الصف في بداية الجدول بدلاً من النهاية
+                    tableBodyy.insertBefore(row, tableBodyy.firstChild);
+            });
+
+            connection.on("itemDeleted", function (id) {
+                // البحث عن جميع خلايا TD في الجدول
+                const allTds = document.querySelectorAll('#tableBody > tr > td');
+                // البحث عن الخلية التي تحتوي على ID المطلوب
+                let targetRow = null;
+
+                allTds.forEach(td => {
+                    if (td.textContent.trim() === id.toString()) {
+
+                        targetRow = td.closest('tr'); // الحصول على الصف الأب
+                    }
+                });
+
+                // إذا وجدنا الصف، نقوم بحذفه
+                if (targetRow) {
+                    targetRow.remove();
+                }
+            })
+
+
+            connection.on("itemEdited", function (cityDto) {
+                // البحث عن جميع خلايا TD في الجدول
+                const allTds = document.querySelectorAll('#tableBody > tr > td');
+                // البحث عن الخلية التي تحتوي على ID المطلوب
+                let targetRow = null;
+
+                allTds.forEach(td => {
+                    if (td.textContent.trim() == cityDto.id) {
+
+                        targetRow = td.closest('tr'); // الحصول على الصف الأب
+
+                        // تحديث جميع الخلايا الشقيقة في الصف
+                        const allTdsInRow = targetRow.querySelectorAll('td');
+                        allTdsInRow.forEach(cell => {
+                            // تحديث كل خلية حسب موقعها أو حسب احتياجاتك
+                            if (cell.cellIndex === 1) { // الخلية الثانية (العمود الثاني)
+                                cell.textContent = cityDto.name; // تحديث باسم المدينة الجديد
+                            }
+                            else if (cell.cellIndex === 2) { // الخلية الثالثة
+                                cell.textContent = cityDto.governmentName; // تحديث بعدد السكان
+                            }
+                            else if (cell.cellIndex === 3) { // الخلية الثالثة
+                                cell.textContent = cityDto.isDeleted; // تحديث بعدد السكان
+                            }
+                            else if (cell.cellIndex === 4) { // الخلية الثالثة
+                                cell.textContent = cityDto.pickupShipping; // تحديث بعدد السكان
+                            }
+                            else if (cell.cellIndex === 5) { // الخلية الثالثة
+                                cell.textContent = cityDto.standardShipping; // تحديث بعدد السكان
+                            }
+                            // يمكنك إضافة المزيد من الشروط حسب عدد الأعمدة
+                        });
+                    }
+                });
+            })
+        };
+    </script>
+</body>
+</html>
