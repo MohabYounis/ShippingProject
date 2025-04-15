@@ -155,6 +155,7 @@ namespace Shipping
                 logging.AddDebug();
             });
 
+            builder.Services.AddSignalR();
 
 
 
