@@ -35,11 +35,11 @@ namespace Shipping.Controllers
 
 
         [HttpGet]
-        public async Task<IActionResult> GetAllEmployees([FromQuery] bool includeDelted = true, int pageIndex = 1, int pageSize = 10)
+        public async Task<IActionResult> GetAllEmployees([FromQuery] bool includeDeleted = true, int pageIndex = 1, int pageSize = 10)
         {
             GenericPagination<EmployeeDTO>? employeeDtos = null;
 
-            if (!includeDelted) { employeeDtos = await empService.GetAllExistAsync(pageIndex,pageSize); }
+            if (!includeDeleted) { employeeDtos = await empService.GetAllExistAsync(pageIndex,pageSize); }
 
 
             else employeeDtos = await empService.GetAllAsync(pageIndex, pageSize);
