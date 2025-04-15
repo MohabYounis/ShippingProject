@@ -94,19 +94,6 @@ namespace Shipping.Repository.modelRepository
             }
         }
 
-<<<<<<< HEAD
-        public Task<IQueryable<ApplicationRole>> GetQueryableRolesAsync(bool includeDeleted)
-        {
-            IQueryable<ApplicationRole> query = Context.Set<ApplicationRole>();
-
-            if (!includeDeleted)
-            {
-                query = query.Where(role => !EF.Property<bool>(role, "IsDeleted"));
-            }
-
-            return Task.FromResult(query);
-        }
-=======
 
 
 
@@ -141,22 +128,5 @@ namespace Shipping.Repository.modelRepository
         }
 
 
->>>>>>> Ammar
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
