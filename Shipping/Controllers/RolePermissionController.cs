@@ -44,8 +44,8 @@ namespace Shipping.Controllers
             {
                 Role_Id = rp.Role_Id,
                 Permission_Id = rp.Permission_Id,
-                //RoleName = rp.Role.Name,
-                //PermissionName = rp.Permission.Name,
+                RoleName = rp.Role?.Name,
+                PermissionName = rp.Permission?.Name,
                 IsDeleted = rp.IsDeleted,
                 CanEdit= rp.CanEdit,
                 CanView = rp.CanView,
@@ -67,15 +67,15 @@ namespace Shipping.Controllers
             var rolePermission = await rolePermissionService.GetRolePermissin(role_id, permission_id);
             if (rolePermission == null)
             {
-                return NotFound($"RolePermission with RoleId {role_id} and PermissionId {permission_id} not found.");
+                return NotFound($"from add action RolePermission with RoleId {role_id} and PermissionId {permission_id} not found.");
             }
             //mapping to DTO
             var rolePermissionDTO = new RolePermissionDTO
             {
                 Role_Id = rolePermission.Role_Id,
                 Permission_Id = rolePermission.Permission_Id,
-                //RoleName = rolePermission.Role.Name,
-                //PermissionName = rolePermission.Permission.Name,
+                RoleName = rolePermission.Role?.Name,
+                PermissionName = rolePermission.Permission?.Name,
                 IsDeleted = rolePermission.IsDeleted,
                 CanEdit = rolePermission.CanEdit,
                 CanView = rolePermission.CanView,
@@ -131,14 +131,14 @@ namespace Shipping.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return NotFound();
             }
             try { 
             //getting role permission
             var rolePermission = await rolePermissionService.GetRolePermissin(role_id, permission_id);
             if (rolePermission == null)
             {
-                return NotFound($"RolePermission with RoleId {role_id} and PermissionId {permission_id} not found.");
+                return NotFound($"nilggf dddfd ffvvv RolePermission with RoleId {role_id} and PermissionId {rolePermissionDTO.Permission_Id} not found.");
             }
             
            
@@ -157,9 +157,9 @@ namespace Shipping.Controllers
                     case UpdateREsult.UpdatedSuccessfully:
                       await  rolePermissionService.SaveChangesAsync();
 
-                        return Ok("updated successfully");
+                        return Ok();
 
-                    case UpdateREsult.AlreadyDeleted: return Conflict("RolePermission already deleted");
+                    case UpdateREsult.AlreadyDeleted: return Conflict();
 
                     default:return StatusCode(500, "Failed to update RolePermission");
                 }

@@ -148,7 +148,7 @@ namespace Shipping.Controllers
                 existingRole.Name = role.Name;
 
                 _roleService.Update(existingRole);
-                _roleService.SaveDB();
+                await _roleService.SaveDB();
 
                 return NoContent();
             }
@@ -171,7 +171,7 @@ namespace Shipping.Controllers
 
                 if (existingRole.IsDeleted) return BadRequest("already delted");
                  _roleService.Delete(existingRole);
-                _roleService.SaveDB();
+                await _roleService.SaveDB();
 
                 return NoContent();
             }

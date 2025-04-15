@@ -24,12 +24,12 @@ namespace Shipping.Repository.modelRepository
 
             await Context.AddAsync(entity);
         }
-
         public void Delete(ApplicationRole entity)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
-            EF.Property<bool>(entity, "IsDeleted");
+
             entity.GetType().GetProperty("IsDeleted")?.SetValue(entity, true);
+
             Context.Update(entity);
         }
 
@@ -37,10 +37,12 @@ namespace Shipping.Repository.modelRepository
         {
             ApplicationRole tentityObj = await GetByIdAsync(id);
             if (tentityObj == null) throw new KeyNotFoundException($"Entity with ID {id} not found.");
-            EF.Property<bool>(tentityObj, "IsDeleted");
+
             tentityObj.GetType().GetProperty("IsDeleted")?.SetValue(tentityObj, true);
+
             Context.Update(tentityObj);
         }
+
 
         public async Task<IEnumerable<ApplicationRole>> GetAllAsyncExist()
         {
@@ -82,8 +84,16 @@ namespace Shipping.Repository.modelRepository
 
         public async Task SaveDB()
         {
-            await Context.SaveChangesAsync();
+            try
+            {
+                await Context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving changes: {ex.Message}");
+            }
         }
+
 
 
 
