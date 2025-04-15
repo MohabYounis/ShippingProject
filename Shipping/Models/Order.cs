@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.Metrics;
 using System.Text.Json.Serialization;
 
 namespace Shipping.Models
@@ -66,20 +67,20 @@ namespace Shipping.Models
         public string? MerchantNotes { get; set; }
         public string? EmployeeNotes { get; set; }
         public string? DeliveryNotes { get; set; }
-        [JsonIgnore]
         public virtual Merchant? Merchant { get; set; }
-        //public virtual List<Product>? Products { get; set; } = new List<Product>();
+        public virtual List<Product>? Products { get; set; } = new List<Product>();
         public virtual ShippingType? ShippingType { get; set; }
         public virtual Delivery? Delivery { get; set; }
         public virtual Government? Government { get; set; }
         public virtual City? City { get; set; }
         public virtual List<RejectedOrder>? RejectedOrders { get; set; } = new();
+        public virtual Branch? Branch { get; set; }
 
-        //public virtual Branch? Branch { get; set; }
-
+        [NotMapped]
+        public static int Counter { get; set; } = 40_000_000;
         public Order()
         {
-            SerialNumber = (Id + 40_000_000).ToString();
+            SerialNumber = (Counter++).ToString();
         }
     }
 }

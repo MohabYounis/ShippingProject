@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Shipping.DTOs.OrderDTOs;
+using Shipping.DTOs.ProductDtos;
 using Shipping.Models;
 using Shipping.Services.IModelService;
 
@@ -16,13 +17,40 @@ namespace Shipping.MapperConfig
                 dest.Governrate = src.Government.Name;
                 dest.City = src.City.Name;
             }).ReverseMap();
-            
-            
-            CreateMap<OrderCreateEditDTO, Order>().AfterMap((src, dest) =>
-            {
-                dest.OrderType = (OrderType) Enum.Parse(typeof(OrderType), (src.OrderType));
-                dest.PaymentType = (PaymentTypee) Enum.Parse(typeof(PaymentTypee), (src.PaymentType));
-            }).ReverseMap();
+
+
+            //CreateMap<OrderCreateEditDTO, Order>().AfterMap((src, dest) =>
+            //{
+            //    dest.OrderType = (OrderType) Enum.Parse(typeof(OrderType), (src.OrderType));
+            //    dest.PaymentType = (PaymentTypee) Enum.Parse(typeof(PaymentTypee), (src.PaymentType));
+            //}).ReverseMap();
+
+            CreateMap<CreateEditProductForOrder, Product>().ReverseMap();
+
+            CreateMap<OrderCreateEditDTO, Order>()
+                .AfterMap((src, dest) =>
+                {
+                    // Parse enums safely (with fallback if needed)
+                    if (!string.IsNullOrEmpty(src.OrderType))
+                        dest.OrderType = (OrderType)Enum.Parse(typeof(OrderType), src.OrderType);
+
+                    if (!string.IsNullOrEmpty(src.PaymentType))
+                        dest.PaymentType = (PaymentTypee)Enum.Parse(typeof(PaymentTypee), src.PaymentType);
+
+                    // Map products
+                    if (src.Products != null)
+                    {
+                        dest.Products = src.Products.Select(p => new Product
+                        {
+                            Name = p.Name,
+                            Quantity = p.Quantity,
+                            ItemWeight = p.ItemWeight
+                            // OrderId بيتحدد بعد الحفظ
+                        }).ToList();
+                    }
+                })
+                .ReverseMap();
+
         }
     }
 }

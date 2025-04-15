@@ -51,11 +51,11 @@ namespace Shipping
                 options.UseLazyLoadingProxies().UseSqlServer(builder.Configuration.GetConnectionString("CS"));
             });
 
-                builder.Services.AddControllers()
-                    .AddNewtonsoftJson(options =>
-                    {
-                        options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                    });
+            builder.Services.AddControllers()
+                .AddNewtonsoftJson(options =>
+                {
+                    options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+                });
             
 
             // Register AutoMapper
