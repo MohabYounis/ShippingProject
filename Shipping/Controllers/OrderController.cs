@@ -60,8 +60,7 @@ namespace Shipping.Controllers
                             .Where(item =>
                                 (item.ClientName?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false) ||
                                 (item.ClientPhone1?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                                (item.ClientPhone2?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                                (item.ClientEmail?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false)
+                                (item.ClientPhone2?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false)
                             )
                             .ToList();
 
@@ -119,7 +118,6 @@ namespace Shipping.Controllers
                 return StatusCode(500, GeneralResponse.Failure(ex.Message));
             }
         }
-
         //------------------------------------------------------------------------------------------------------------------------------------
 
         [HttpGet("Delivery/{id:int}/{orderStatus:alpha}/{all:alpha}")]

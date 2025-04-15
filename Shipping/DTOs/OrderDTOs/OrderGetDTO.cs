@@ -1,4 +1,6 @@
-﻿namespace Shipping.DTOs.OrderDTOs
+﻿using Shipping.Models;
+
+namespace Shipping.DTOs.OrderDTOs
 {
     public class OrderGetDTO
     {
@@ -9,6 +11,7 @@
         public string Governrate { get; set; }
         public string City { get; set; }
         public decimal OrderCost { get; set; }
+        public string OrderStatus { get; set; }
         public bool IsDeleted { get; set; }
     }
 }

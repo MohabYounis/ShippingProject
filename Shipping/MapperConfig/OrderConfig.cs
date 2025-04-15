@@ -13,9 +13,10 @@ namespace Shipping.MapperConfig
             CreateMap<Order, OrderGetDTO>().AfterMap((src, dest) =>
             {
                 dest.CreatedDate = src.CreatedDate.ToString("dd MMM yyyy hh.mmtt");
-                dest.ClientData = $"{src.ClientName}\n{src.ClientPhone1}\n{src.ClientPhone2}";
+                dest.ClientData = $"{src.ClientName}-{src.ClientPhone1}-{src.ClientPhone2}";
                 dest.Governrate = src.Government.Name;
                 dest.City = src.City.Name;
+                dest.OrderStatus = src.OrderStatus.ToString();
             }).ReverseMap();
 
 
