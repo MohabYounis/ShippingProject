@@ -12,7 +12,7 @@ namespace Shipping.Repository.modelRepository
 
         public ShippingContext Context { get; }
 
-         readonly UserManager<ApplicationUser> userManager;
+        readonly UserManager<ApplicationUser> userManager;
         public ApplicationRoleRepository(ShippingContext context, UserManager<ApplicationUser> userManager)
         {
             this.Context = context;
@@ -127,6 +127,9 @@ namespace Shipping.Repository.modelRepository
             return role;
         }
 
-
+        //public Task<IQueryable<ApplicationRole>> GetQueryableRolesAsync(bool includeDeleted)
+        //{
+        //    return new Task<IQueryable<ApplicationRole>>;
+        //}
     }
 }

@@ -7,7 +7,7 @@ namespace Shipping.Repository.ImodelRepository
     public interface IApplicationRoleRepository
     {
         Task<ApplicationRole> GetByIdAsync(string id);
-        Task<IQueryable<ApplicationRole>> GetQueryableRolesAsync(bool includeDeleted);
+       // Task<IQueryable<ApplicationRole>> GetQueryableRolesAsync(bool includeDeleted);
         Task<ApplicationRole> GetByNameAsync(string roleName);
         Task<IEnumerable<ApplicationRole>> GetAllAsyncExist();
         Task<IEnumerable<ApplicationRole>> GetAllAsync();

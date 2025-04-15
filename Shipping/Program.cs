@@ -50,12 +50,7 @@ namespace Shipping
           
             builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 
-            builder.Services.AddControllers()
-                .AddNewtonsoftJson(options =>
-                {
-                    options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                });
-            
+           
 
             // Register AutoMapper
             builder.Services.AddAutoMapper(typeof(Program));
