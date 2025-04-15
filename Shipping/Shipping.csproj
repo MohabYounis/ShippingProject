@@ -33,5 +33,8 @@
   <ItemGroup>
     <Folder Include="Migrations\" />
   </ItemGroup>
+	<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	<NoWarn>$(NoWarn);1591</NoWarn>
+
 
 </Project>
