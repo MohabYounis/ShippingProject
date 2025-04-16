@@ -23,7 +23,18 @@ namespace Shipping.Controllers
             this.genericService = genericService;
         }
 
-
+        /// <summary>
+        /// Retrieves a list of governments with optional search and pagination.
+        /// </summary>
+        /// <param name="searchTxt">Search keyword to filter by government name (optional).</param>
+        /// <param name="all">Use "all" to retrieve all governments, "exist" to retrieve only non-deleted ones.</param>
+        /// <param name="page">Page number (default is 1).</param>
+        /// <param name="pageSize">Number of items per page (default is 10).</param>
+        /// <returns>
+        /// 200 OK with list of governments,  
+        /// 404 Not Found if no items found,  
+        /// 400 BadRequest if parameter 'all' is invalid.
+        /// </returns>
         [HttpGet("{all:alpha}")]
         public async Task<IActionResult> GetWithPaginationAndSearch(string? searchTxt, string all = "all", int page = 1, int pageSize = 10)
         {
@@ -83,7 +94,14 @@ namespace Shipping.Controllers
             }
         }
 
-
+        /// <summary>
+        /// Retrieves a specific government by its ID.
+        /// </summary>
+        /// <param name="id">The government ID.</param>
+        /// <returns>
+        /// 200 OK with government data,  
+        /// 404 Not Found if not found.
+        /// </returns>
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -92,7 +110,15 @@ namespace Shipping.Controllers
             return Ok(government);
         }
 
-
+        /// <summary>
+        /// Adds a new government.
+        /// </summary>
+        /// <param name="governmentDto">The government data to be added.</param>
+        /// <returns>
+        /// 200 OK if added successfully,  
+        /// 400 BadRequest if data is invalid or already exists,  
+        /// 500 Internal Server Error if something went wrong.
+        /// </returns>
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] GovernmentCreateDTO governmentDto)
         {
@@ -120,7 +146,16 @@ namespace Shipping.Controllers
             }
         }
 
-
+        /// <summary>
+        /// Updates an existing government by ID.
+        /// </summary>
+        /// <param name="id">The ID of the government to update.</param>
+        /// <param name="governmentDto">The updated government data.</param>
+        /// <returns>
+        /// 200 OK if updated successfully,  
+        /// 400 BadRequest if data is invalid,  
+        /// 500 Internal Server Error on failure.
+        /// </returns>
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] GovernmentDTO governmentDto)
         {
@@ -141,7 +176,14 @@ namespace Shipping.Controllers
             }
         }
 
-
+        /// <summary>
+        /// Deletes a government by ID.
+        /// </summary>
+        /// <param name="id">The ID of the government to delete.</param>
+        /// <returns>
+        /// 200 OK if deleted successfully,  
+        /// 500 Internal Server Error on failure.
+        /// </returns>
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {

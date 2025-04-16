@@ -14,7 +14,16 @@ namespace Shipping.Controllers
     [ApiController]
     public class AccountController(JwtOptions jwtOptions,UserManager<ApplicationUser> userManager) : ControllerBase
     {
-        
+        /// <summary>
+        /// Authenticates a user using their email and password, and returns a JWT access token if valid.
+        /// </summary>
+        /// <param name="loginDto">The login data transfer object containing Email and Password.</param>
+        /// <returns>
+        /// Returns 200 OK with a JWT token if authentication is successful.
+        /// Returns 400 Bad Request if the model state is invalid.
+        /// Returns 401 Unauthorized if the user does not exist, is marked as deleted, or the password is incorrect.
+        /// </returns>
+
         [HttpPost]
         public async Task<IActionResult> Login(LoginDto loginDto)
         {
