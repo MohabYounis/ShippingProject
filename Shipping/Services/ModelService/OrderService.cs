@@ -197,8 +197,8 @@ namespace Shipping.Services.ModelService
             // -----------------------------------------------------------------
             // سعر الشحن لمدينة ولقرية ان طلب
             var specialRate = await specialShippingRateService.GetSpecialRateByMerchant(createDTO.Merchant_Id, createDTO.City_Id);
-            var setting = await settingService.GetAllExistAsync();
-            var settingFirst = setting.FirstOrDefault(n=>n.Id==1);
+            //var setting = await settingService.GetAllExistAsync();
+            //var settingFirst = setting.FirstOrDefault(n => n.Id == 1);
 
             if (specialRate != null)
             {
@@ -213,9 +213,7 @@ namespace Shipping.Services.ModelService
             if (createDTO.DeliverToVillage)
             {
 
-                    TotalShippingCost += settingFirst.ShippingToVillageCost;
-               
-                
+                    TotalShippingCost += /*settingFirst.ShippingToVillageCost*/ 10;
             }
             // -----------------------------------------------------------------
 
