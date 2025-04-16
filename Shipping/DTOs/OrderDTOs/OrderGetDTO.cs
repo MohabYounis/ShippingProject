@@ -5,6 +5,7 @@ namespace Shipping.DTOs.OrderDTOs
     public class OrderGetDTO
     {
         public int Id { get; set; }
+        public int Branch_Id { get; set; }
         public string SerialNumber { get; set; }
         public string CreatedDate { get; set; }
         public string ClientData { get; set; }
