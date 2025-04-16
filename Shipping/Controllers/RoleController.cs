@@ -24,7 +24,13 @@ namespace Shipping.Controllers
             this.userManger = roleManger;
         }
 
-
+        /// <summary>
+        /// Retrieves all roles from the system.
+        /// </summary>
+        /// <returns>
+        /// 200 OK with a list of roles,  
+        /// 404 Not Found if no roles are found.
+        /// </returns>
         // GET: api/Role
         [HttpGet]
         public async Task<IActionResult> GetRoles()
@@ -60,6 +66,14 @@ namespace Shipping.Controllers
             return Ok(roleDTO);
         }
 
+        /// <summary>
+        /// Retrieves a specific role by its ID.
+        /// </summary>
+        /// <param name="id">The ID of the role to retrieve.</param>
+        /// <returns>
+        /// 200 OK with the role details,  
+        /// 404 Not Found if the role with the specified ID does not exist.
+        /// </returns>
         // GET: api/Role/{id}
         [HttpGet("{id}")]
         public async Task<IActionResult> GetRoleById(string id)
@@ -88,6 +102,14 @@ namespace Shipping.Controllers
             return Ok(roleDTO);
         }
 
+        /// <summary>
+        /// Adds a new role to the system.
+        /// </summary>
+        /// <param name="role">The role data to be added.</param>
+        /// <returns>
+        /// 201 Created if the role is added successfully,  
+        /// 400 BadRequest if the role already exists or model validation fails.
+        /// </returns>
         // POST: api/Role
         [HttpPost]
         public async Task<IActionResult> AddRole([FromBody] CreateRoleDTO role)
@@ -124,7 +146,17 @@ namespace Shipping.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        
+
+        /// <summary>
+        /// Updates an existing role by its ID.
+        /// </summary>
+        /// <param name="id">The ID of the role to update.</param>
+        /// <param name="role">The updated role data.</param>
+        /// <returns>
+        /// 204 NoContent if the update is successful,  
+        /// 404 Not Found if the role with the specified ID does not exist,  
+        /// 400 BadRequest if model validation fails.
+        /// </returns>
         // PUT: api/Role/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateRole(string id, [FromBody] UpdateRoleDTO role)
@@ -155,6 +187,15 @@ namespace Shipping.Controllers
             }
         }
 
+        /// <summary>
+        /// Deletes an existing role by its ID.
+        /// </summary>
+        /// <param name="id">The ID of the role to delete.</param>
+        /// <returns>
+        /// 204 NoContent if the role is deleted successfully,  
+        /// 404 Not Found if the role with the specified ID does not exist,  
+        /// 400 BadRequest if the role has already been deleted.
+        /// </returns>
         // DELETE: api/Role/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteRole(string id)
@@ -177,6 +218,15 @@ namespace Shipping.Controllers
             }
         }
 
+        /// <summary>
+        /// Assigns a role to a user.
+        /// </summary>
+        /// <param name="UserId">The ID of the user.</param>
+        /// <param name="RoleName">The name of the role to assign to the user.</param>
+        /// <returns>
+        /// 200 OK if the role is assigned successfully,  
+        /// 400 BadRequest if the user or role does not exist or if an error occurs.
+        /// </returns>
         // POST: api/Role/AssignRole
         [HttpPost("AssignRole")]
         public async Task<IActionResult> AssignRole(string UserId , string RoleName)

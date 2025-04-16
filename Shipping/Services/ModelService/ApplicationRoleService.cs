@@ -16,7 +16,7 @@ namespace Shipping.Services.ModelService
     public class ApplicationRoleService : ApplicationRoleRepository, IApplicationRoleService
     {
         //
-         IRepositoryGeneric<ApplicationRole> roleRepo;
+        IRepositoryGeneric<ApplicationRole> roleRepo;
         //
         IApplicationRoleRepository userRoleRepo;
 
@@ -25,16 +25,23 @@ namespace Shipping.Services.ModelService
         private const string RolesCacheKey = "RolesCacheKey";
         //
         private readonly UserManager<ApplicationUser> userManager;
-        public ApplicationRoleService(ShippingContext context,  UserManager<ApplicationUser> userManager, IRepositoryGeneric<ApplicationRole> roleRepo, IApplicationRoleRepository userRoleRepo, IMemoryCache memoryCache) :base(context , userManager)
+        public ApplicationRoleService(ShippingContext context, UserManager<ApplicationUser> userManager, IRepositoryGeneric<ApplicationRole> roleRepo, IApplicationRoleRepository userRoleRepo, IMemoryCache memoryCache) : base(context, userManager)
         {
-            this.roleRepo = roleRepo;  
+            this.roleRepo = roleRepo;
             this.memoryCache = memoryCache;
             this.userRoleRepo = userRoleRepo;
             this.userManager = userManager;
         }
-       public async Task<IEnumerable<ApplicationRoleDTO>> GetAllAsync()
+
+        public void ResetCache()
         {
-            var query = await roleRepo.GetAllAsync(); 
+            memoryCache.Remove(RolesCacheKey);
+        }
+
+        #region Get All Roles
+        public async Task<IEnumerable<ApplicationRoleDTO>> GetAllAsync()
+        {
+            var query = await roleRepo.GetAllAsync();
 
             var result = await query
                 .Where(r => !EF.Property<bool>(r, "IsDeleted")) //existing
@@ -43,14 +50,15 @@ namespace Shipping.Services.ModelService
                     Id = r.Id,
                     Name = r.Name,
                 })
-            
-                
+
+
                 .ToListAsync();
 
             return result;
         }
+        #endregion
 
-
+        #region Get All By Check Cache
         public async Task<Dictionary<string, string>> GetRoleDictionaryAsync()
         {
             if (memoryCache.TryGetValue(RolesCacheKey, out Dictionary<string, string> cachedRoles))
@@ -59,8 +67,8 @@ namespace Shipping.Services.ModelService
             }
 
             //get roles 
-            var roles = await this.GetAllAsync(); 
-           // cashing roles in dictionary
+            var roles = await this.GetAllAsync();
+            // cashing roles in dictionary
             cachedRoles = roles.ToDictionary(r => r.Id, r => r.Name);
 
 
@@ -73,12 +81,11 @@ namespace Shipping.Services.ModelService
             return cachedRoles;
         }
 
-        public void ResetCache()
-        {
-            memoryCache.Remove(RolesCacheKey);
-        }
-
+        #endregion
+       
         //
+
+        #region Git Distinct Roles
         public async Task<ApplicationRoleDTO> GetRoleByUserIdAsync(string userId)
         {
 
@@ -119,6 +126,7 @@ namespace Shipping.Services.ModelService
                 Name = roleEntry.Value
             };
         }
+        #endregion
     }
 
 

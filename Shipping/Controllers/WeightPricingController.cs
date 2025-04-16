@@ -22,6 +22,14 @@
                 _weigtService = weigtService;
                 this.mapper = mapper;
             }
+        /// <summary>
+        /// Creates a new weight pricing record.
+        /// </summary>
+        /// <param name="weighReq">The weight pricing data transfer object containing DefaultWeight and AdditionalKgPrice.</param>
+        /// <returns>
+        /// Returns 200 OK with the created record if successful, 
+        /// 400 Bad Request with validation errors or a message if the pricing already exists or if a request failure occurs.
+        /// </returns>
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] WeightPricingDTO weighReq)
         {
@@ -46,6 +54,14 @@
             }
         }
 
+        /// <summary>
+        /// Updates an existing weight pricing record.
+        /// </summary>
+        /// <param name="weighReq">The weight pricing data transfer object containing updated values.</param>
+        /// <returns>
+        /// Returns 200 OK with the updated record if successful, 
+        /// 400 Bad Request with validation errors or a message if no matching record exists or if a request failure occurs.
+        /// </returns>
         [HttpPut]
         public async Task<IActionResult> Update([FromBody] WeightPricingDTO weighReq)
         {

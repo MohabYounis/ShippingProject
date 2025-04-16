@@ -104,7 +104,7 @@ namespace Shipping.Services.ModelService
         public async Task<IEnumerable<Order>> GetAllByDeliveryByStatus(int id, string orderStatus)
         {
             var orders = await GetAllAsync();
-            var ordersByDeliver = orders.Where(o => o.Delivery_Id== id).ToList();
+            var ordersByDeliver = orders.Where(o => o.Delivery_Id == id).ToList();
             var ordersByStatus = new List<Order>();
 
             if (Enum.TryParse<OrderStatus>(orderStatus, true, out var orderStatusVariable))
@@ -262,6 +262,7 @@ namespace Shipping.Services.ModelService
             if (order.Delivery_Id != null)  throw new Exception("Order is already assigned to a delivery has id: {order.Delivery_Id}.");
 
             order.Delivery_Id = deliveryId;
+            order.OrderStatus = OrderStatus.DeliveredToAgent;
 
             if (delivery.DiscountType == DiscountType.Fixed)
             {
