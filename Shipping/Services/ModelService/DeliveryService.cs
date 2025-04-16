@@ -127,7 +127,7 @@ namespace Shipping.Services.ModelService
             .Include(d => d.Branch)
             .Include(d => d.DeliveryGovernments)
              .ThenInclude(dg => dg.Government)
-            .Where(d => d.Branch_Id == id).ToListAsync();
+            .Where(d => d.Branch_Id == id && d.IsDeleted == false).ToListAsync();
         }
 
         public async Task<bool> UpdateDeliveryAsync(int deliveryId, DeliveryEditDTO deliveryDTO)
