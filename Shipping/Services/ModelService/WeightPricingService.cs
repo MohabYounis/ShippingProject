@@ -21,7 +21,7 @@ public class WeightPricingService : ServiceGeneric<WeightPricing>, IWeightPricin
     }
 
 
-    //as
+    
     public async Task<WeightPricingDTO> AddWeightAsync(WeightPricingDTO weightPricing)
     {
         if (weightPricing == null) throw new ArgumentNullException(nameof(weightPricing));
