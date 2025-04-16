@@ -20,6 +20,8 @@ public class WeightPricingService : ServiceGeneric<WeightPricing>, IWeightPricin
         this.mapper = mapper;
     }
 
+
+    //as
     public async Task<WeightPricingDTO> AddWeightAsync(WeightPricingDTO weightPricing)
     {
         if (weightPricing == null) throw new ArgumentNullException(nameof(weightPricing));
