@@ -104,7 +104,7 @@ namespace Shipping.Services.ModelService
         public async Task<IEnumerable<Order>> GetAllByDeliveryByStatus(int id, string orderStatus)
         {
             var orders = await GetAllAsync();
-            var ordersByDeliver = orders.Where(o => o.Delivery.Id == id).ToList();
+            var ordersByDeliver = orders.Where(o => o.Delivery_Id== id).ToList();
             var ordersByStatus = new List<Order>();
 
             if (Enum.TryParse<OrderStatus>(orderStatus, true, out var orderStatusVariable))
