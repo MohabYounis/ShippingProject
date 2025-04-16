@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Shipping.Models;
 using Shipping.Repository;
 using Shipping.Services;
 using Shipping.UnitOfWorks;
@@ -65,6 +66,11 @@ namespace SHIPPING.Services
         public async Task<Tentity> GetByNameAsync(string name)
         {
             return await unitOfWork.GetRepository<Tentity>().GetByNameAsync(name);
+        }
+
+        public async Task<Tentity> GetByUserIdAsync(string userId)
+        {
+            return await unitOfWork.GetRepository<Tentity>().GetByUserIdAsync(userId);
         }
     }
 }

@@ -122,7 +122,7 @@ namespace Shipping.Controllers
                 await permissionService.UpdateAsync(permission);
                 await permissionService.SaveChangesAsync();
 
-                return Ok("updated successfully");
+                return Ok();
             }
             catch (Exception ex)
             {
@@ -140,7 +140,7 @@ namespace Shipping.Controllers
             
                 await permissionService.DeleteAsync(id);
                 await permissionService.SaveChangesAsync();
-                return Ok("Deleted successfully");
+                return Ok();
             }
             catch (Exception e)
             {

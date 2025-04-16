@@ -13,6 +13,7 @@ namespace Shipping.Repository
         Task DeleteByID(int id);
         Task Update(Tentity entity);
         void Delete(Tentity entity);
+        Task<Tentity> GetByUserIdAsync(string userId);
     }
    
 }

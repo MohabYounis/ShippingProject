@@ -27,14 +27,11 @@ namespace Shipping.Controllers
 
         // GET: api/Role
         [HttpGet]
-        public async Task<IActionResult> GetRoles([FromQuery] bool includeDelted=true)
+        public async Task<IActionResult> GetRoles()
         {
             IEnumerable<ApplicationRole>? roles;
-            if (includeDelted)
-            {
-                roles = await _roleService.GetAllAsync();
-            }
-            else roles = await _roleService.GetAllAsyncExist();
+           
+             roles = await _roleService.GetAllAsyncExist();
             //check null
             if (roles == null)
             {
@@ -148,7 +145,7 @@ namespace Shipping.Controllers
                 existingRole.Name = role.Name;
 
                 _roleService.Update(existingRole);
-                _roleService.SaveDB();
+                await _roleService.SaveDB();
 
                 return NoContent();
             }
@@ -170,7 +167,7 @@ namespace Shipping.Controllers
 
                 if (existingRole.IsDeleted) return BadRequest("already delted");
                  _roleService.Delete(existingRole);
-                _roleService.SaveDB();
+                await _roleService.SaveDB();
 
                 return NoContent();
             }
@@ -216,62 +213,62 @@ namespace Shipping.Controllers
         }
 
 
-        [HttpGet("search")]
-        public async Task<IActionResult> GetRoles( [FromQuery] string? searchTxt, [FromQuery] bool includeDeleted = true,
-                                                   [FromQuery] int page = 1,[FromQuery] int pageSize = 10)
-        {
-            try
-            {
-                var rolesQueryable = await _roleService.GetQueryableRolesAsync(includeDeleted);
+     //   [HttpGet("search")]
+     //   public async Task<IActionResult> GetRoles( [FromQuery] string? searchTxt, [FromQuery] bool includeDeleted = true,
+     //                                              [FromQuery] int page = 1,[FromQuery] int pageSize = 10)
+     //   {
+     //       try
+     //       {
+     //           var rolesQueryable = await _roleService.GetQueryableRolesAsync(includeDeleted);
 
-                if (!string.IsNullOrEmpty(searchTxt))
-                {
-                    rolesQueryable = rolesQueryable.Where(role =>
-     role.Name != null && EF.Functions.Like(role.Name, $"%{searchTxt}%"));
-                }
+     //           if (!string.IsNullOrEmpty(searchTxt))
+     //           {
+     //               rolesQueryable = rolesQueryable.Where(role =>
+     //role.Name != null && EF.Functions.Like(role.Name, $"%{searchTxt}%"));
+     //           }
 
-                var totalRoles = rolesQueryable.Count();
+     //           var totalRoles = rolesQueryable.Count();
 
-                var pagedRoles = rolesQueryable
-                    .Skip((page - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToList();
+     //           var pagedRoles = rolesQueryable
+     //               .Skip((page - 1) * pageSize)
+     //               .Take(pageSize)
+     //               .ToList();
 
-                if (!pagedRoles.Any())
-                    return NotFound("No roles found.");
+     //           if (!pagedRoles.Any())
+     //               return NotFound("No roles found.");
 
-                var roleDTOs = pagedRoles.Select(role => new AppRoleDTO
-                {
-                    Id = role.Id,
-                    Name = role.Name,
-                    IsDeleted = role.IsDeleted,
-                    RolePermissions = role.RolePermissions?.Select(rp => new RolePermissionDTO
-                    {
-                        Permission_Id = rp.Permission_Id,
-                        Role_Id = rp.Role_Id,
-                        CanView = rp.CanView,
-                        CanEdit = rp.CanEdit,
-                        CanDelete = rp.CanDelete,
-                        CanAdd = rp.CanAdd,
-                        IsDeleted = rp.IsDeleted
-                    }).ToList()
-                }).ToList();
+     //           var roleDTOs = pagedRoles.Select(role => new AppRoleDTO
+     //           {
+     //               Id = role.Id,
+     //               Name = role.Name,
+     //               IsDeleted = role.IsDeleted,
+     //               RolePermissions = role.RolePermissions?.Select(rp => new RolePermissionDTO
+     //               {
+     //                   Permission_Id = rp.Permission_Id,
+     //                   Role_Id = rp.Role_Id,
+     //                   CanView = rp.CanView,
+     //                   CanEdit = rp.CanEdit,
+     //                   CanDelete = rp.CanDelete,
+     //                   CanAdd = rp.CanAdd,
+     //                   IsDeleted = rp.IsDeleted
+     //               }).ToList()
+     //           }).ToList();
 
-                var result = new
-                {
-                    TotalRoles = totalRoles,
-                    Page = page,
-                    PageSize = pageSize,
-                    Roles = roleDTOs
-                };
+     //           var result = new
+     //           {
+     //               TotalRoles = totalRoles,
+     //               Page = page,
+     //               PageSize = pageSize,
+     //               Roles = roleDTOs
+     //           };
 
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
-        }
+     //           return Ok(result);
+     //       }
+     //       catch (Exception ex)
+     //       {
+     //           return StatusCode(500, $"Internal server error: {ex.Message}");
+     //       }
+     //   }
 
     }
 }

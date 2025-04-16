@@ -85,5 +85,10 @@ namespace Shipping.Repository
             if (nameProperty == null) return null;
             return await Context.Set<Tentity>().FirstOrDefaultAsync(t => EF.Property<string>(t, "Name") == name);
         }
+
+        public async Task<Tentity> GetByUserIdAsync(string userId)
+        {
+            return await Context.Set<Tentity>().FirstOrDefaultAsync(t => EF.Property<string>(t, "AppUser_Id") == userId);
+        }
     }
 }
