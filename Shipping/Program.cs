@@ -77,8 +77,6 @@ namespace Shipping
             builder.Services.AddScoped<IApplicationRoleRepository, ApplicationRoleRepository>();
 
 
-
-
             // Register Generic Repository
             builder.Services.AddScoped(typeof(IRepositoryGeneric<>), typeof(RepositoryGeneric<>));
 
