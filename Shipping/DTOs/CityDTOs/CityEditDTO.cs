@@ -13,9 +13,6 @@ namespace Shipping.DTOs.CityDTOs
         public string Name { get; set; }
         public bool IsDeleted { get; set; }
 
-        [Range(0, double.MaxValue, ErrorMessage = "PickupShipping must be a positive number.")]
-        public decimal? PickupShipping { get; set; }
-
         [Range(0, double.MaxValue, ErrorMessage = "StandardShipping must be a positive number.")]
         public decimal? StandardShipping { get; set; }
     }

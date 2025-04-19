@@ -17,9 +17,11 @@ namespace Shipping.Services.ModelService
         IServiceGeneric<Merchant> merchantService;
         IServiceGeneric<Setting> settingService;
         IDeliveryService deliveryService;
+        ICityService cityService;
         public OrderService(IUnitOfWork unitOfWork, ISpecialShippingRateService specialShippingRateService, 
             IServiceGeneric<WeightPricing> weightService, IServiceGeneric<ShippingType> shippingTypeService,
-             IServiceGeneric<Merchant> merchantService, IServiceGeneric<Setting> settingService, IDeliveryService deliveryService) : base(unitOfWork)
+             IServiceGeneric<Merchant> merchantService, IServiceGeneric<Setting> settingService, IDeliveryService deliveryService,
+            ICityService cityService) : base(unitOfWork)
         {
             this.specialShippingRateService = specialShippingRateService;
             this.weightService = weightService;
@@ -27,6 +29,7 @@ namespace Shipping.Services.ModelService
             this.merchantService = merchantService;
             this.settingService = settingService;
             this.deliveryService = deliveryService;
+            this.cityService = cityService;
         }
 
 
@@ -197,8 +200,8 @@ namespace Shipping.Services.ModelService
             // -----------------------------------------------------------------
             // سعر الشحن لمدينة ولقرية ان طلب
             var specialRate = await specialShippingRateService.GetSpecialRateByMerchant(createDTO.Merchant_Id, createDTO.City_Id);
-            //var setting = await settingService.GetAllExistAsync();
-            //var settingFirst = setting.FirstOrDefault(n => n.Id == 1);
+            var setting = await settingService.GetByIdAsync(1);
+            var city = await cityService.GetByIdAsync(createDTO.City_Id);
 
             if (specialRate != null)
             {
@@ -206,26 +209,22 @@ namespace Shipping.Services.ModelService
             }
             else
             {
-                TotalShippingCost += (decimal?)specialRate?.City?.StandardShipping ?? 0;
-
+                TotalShippingCost += city.StandardShipping;
             }
 
             if (createDTO.DeliverToVillage)
             {
-
-                    TotalShippingCost += /*settingFirst.ShippingToVillageCost*/ 10;
+                TotalShippingCost += setting.ShippingToVillageCost;
             }
             // -----------------------------------------------------------------
 
             // -----------------------------------------------------------------
             // سعر الوزن الاضافي
-            var weightObj = await weightService.GetAllExistAsync();
-            var defaultWeight = weightObj.FirstOrDefault().DefaultWeight;
-            var additonalPricingPerKG = weightObj.FirstOrDefault().AdditionalKgPrice;
+            var weightPricing = await weightService.GetByIdAsync(1);
 
-            if (createDTO.OrderTotalWeight > defaultWeight)
+            if (createDTO.OrderTotalWeight > weightPricing.DefaultWeight)
             {
-                TotalShippingCost += (decimal)(createDTO.OrderTotalWeight - defaultWeight) * additonalPricingPerKG;
+                TotalShippingCost += (decimal)(createDTO.OrderTotalWeight - weightPricing.DefaultWeight) * weightPricing.AdditionalKgPrice;
             }
             // -----------------------------------------------------------------
 
