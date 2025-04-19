@@ -11,15 +11,15 @@ namespace Shipping.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-       
+
         private readonly UserManager<ApplicationUser> usermanager;
         private readonly IServiceGeneric<Delivery> deliveryService;
         private readonly IServiceGeneric<Merchant> merchantService;
         private readonly IServiceGeneric<Employee> employeeService;
 
-        public UserController(UserManager<ApplicationUser>usermanager ,IServiceGeneric<Delivery> deliveryService,IServiceGeneric<Merchant> merchantService,IServiceGeneric<Employee>employeeService)
+        public UserController(UserManager<ApplicationUser> usermanager, IServiceGeneric<Delivery> deliveryService, IServiceGeneric<Merchant> merchantService, IServiceGeneric<Employee> employeeService)
         {
-           
+
             this.usermanager = usermanager;
             this.deliveryService = deliveryService;
             this.merchantService = merchantService;
@@ -75,6 +75,7 @@ namespace Shipping.Controllers
                 return StatusCode(500, new { success = false, message = "An error occurred while processing your request", error = ex.Message });
             }
         }
+
 
 
     }
