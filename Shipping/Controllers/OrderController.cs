@@ -358,7 +358,7 @@ namespace Shipping.Controllers
 
                 if (user == null || order == null) return NotFound(GeneralResponse.Failure("User or order is Not Found"));
 
-                var userRole = await userManager.IsInRoleAsync(user, "Deliver");
+                var userRole = await userManager.IsInRoleAsync(user, "delivery");
                 if (userRole)
                 {
                     order.Delivery_Id = null; // لغيت اسنادة لدلفري

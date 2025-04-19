@@ -17,8 +17,6 @@ namespace Shipping.DTOs.MerchantDTOs
         [DataType(DataType.Password)]
         public string CurrentPassword { get; set; }
 
-        [StringLength(100, MinimumLength = 6, ErrorMessage = "New password must be at least 6 characters.")]
-        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$",ErrorMessage = "New password must contain at least one uppercase letter, one lowercase letter, and one number.")]
         [DataType(DataType.Password)]
         public string NewPassword { get; set; }
 

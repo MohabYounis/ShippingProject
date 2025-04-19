@@ -19,6 +19,8 @@ namespace Shipping.MapperConfig
                 dest.OrderCost = src.OrderCost;
                 dest.ShippingCost = src.ShippingCost;
                 dest.CreatedDate = src.CreatedDate.ToString("dd MMM yyyy hh.mmtt");
+                dest.DeliveryRight = src.DeliveryRight;
+                dest.CompanyRight = src.CompanyRight;
             }).ReverseMap();
         }
     }
