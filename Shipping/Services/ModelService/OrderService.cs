@@ -18,7 +18,7 @@ namespace Shipping.Services.ModelService
         IServiceGeneric<Setting> settingService;
         IDeliveryService deliveryService;
         ICityService cityService;
-        public OrderService(IUnitOfWork unitOfWork, ISpecialShippingRateService specialShippingRateService, 
+        public OrderService(IUnitOfWork unitOfWork, ISpecialShippingRateService specialShippingRateService,
             IServiceGeneric<WeightPricing> weightService, IServiceGeneric<ShippingType> shippingTypeService,
              IServiceGeneric<Merchant> merchantService, IServiceGeneric<Setting> settingService, IDeliveryService deliveryService,
             ICityService cityService) : base(unitOfWork)
@@ -131,7 +131,7 @@ namespace Shipping.Services.ModelService
             var ordersByDeliver = orders.Where(o => o.Delivery_Id == id).ToList();
             var ordersByStatus = new List<Order>();
 
-            if(Enum.TryParse<OrderStatus>(orderStatus, true, out var orderStatusVariable))
+            if (Enum.TryParse<OrderStatus>(orderStatus, true, out var orderStatusVariable))
             {
                 ordersByStatus = ordersByDeliver.Where(o => o.OrderStatus == orderStatusVariable).ToList();
                 return ordersByStatus;
@@ -192,6 +192,50 @@ namespace Shipping.Services.ModelService
 
 
         //----------------------------------------------------------------------------------------------------
+
+
+        public async Task<int> CalculateOrdersCountByStatus(string role, int? id, string orderStatus)
+        {
+            var orders = await GetAllExistAsync();
+            var ordersCount = 0;
+            if (role == "merchant")
+            {
+                var ordersByMerchant = orders.Where(o => o.Merchant_Id == id).ToList();
+
+                if (Enum.TryParse<OrderStatus>(orderStatus, true, out var orderStatusVariable))
+                    ordersCount = ordersByMerchant.Where(o => o.OrderStatus == orderStatusVariable).Count();
+                else if (orderStatus == "All")
+                    ordersCount = ordersByMerchant.Count();
+                else
+                    throw new Exception("parameter is not found");
+                
+            }
+            else if (role == "delivery")
+            {
+                var ordersByDelivery = orders.Where(o => o.Delivery_Id == id).ToList();
+
+                if (Enum.TryParse<OrderStatus>(orderStatus, true, out var orderStatusVariable))
+                    ordersCount = ordersByDelivery.Where(o => o.OrderStatus == orderStatusVariable).Count();
+                else if (orderStatus == "All")
+                    ordersCount = ordersByDelivery.Count();
+                else
+                    throw new Exception("parameter is not found");
+            }
+            else
+            {
+                if (Enum.TryParse<OrderStatus>(orderStatus, true, out var orderStatusVariable))
+                    ordersCount = orders.Where(o => o.OrderStatus == orderStatusVariable).Count();
+                else if (orderStatus == "All")
+                    ordersCount = orders.Count();
+                else
+                    throw new Exception("parameter is not found");
+            }
+
+            return ordersCount;
+        }
+
+        //----------------------------------------------------------------------------------------------------
+
 
         public async Task<decimal> CalculateShippingCost(OrderCreateEditDTO createDTO)
         {
