@@ -279,6 +279,23 @@ namespace Shipping.Controllers
             }
         }
 
+        //------------------------------------------------------------------------------------------------------------------------------------//------------------------------------------------------------------------------------------------------------------------------------
+
+        [HttpGet("{orderStatus:alpha}")]
+        [EndpointSummary("Get orders count by status for dashboard presentation")]
+        public async Task<ActionResult> GetOrdersCountByStatusForEmployeeOrMerchant(string role, int? id, string orderStatus = "New")
+        {
+            try
+            {
+                var ordersCount = await orderService.CalculateOrdersCountByStatus(role, id, orderStatus);
+                return Ok(GeneralResponse.Success(ordersCount));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, GeneralResponse.Failure(ex.Message));
+            }
+        }
+
         //------------------------------------------------------------------------------------------------------------------------------------
 
         [HttpPost]
