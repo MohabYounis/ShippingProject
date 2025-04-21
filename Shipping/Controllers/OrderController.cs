@@ -279,7 +279,7 @@ namespace Shipping.Controllers
             }
         }
 
-        //------------------------------------------------------------------------------------------------------------------------------------//------------------------------------------------------------------------------------------------------------------------------------
+        //------------------------------------------------------------------------------------------------------------------------------------
 
         [HttpGet("{orderStatus:alpha}")]
         [EndpointSummary("Get orders count by status for dashboard presentation")]
@@ -289,6 +289,42 @@ namespace Shipping.Controllers
             {
                 var ordersCount = await orderService.CalculateOrdersCountByStatus(role, id, orderStatus);
                 return Ok(GeneralResponse.Success(ordersCount));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, GeneralResponse.Failure(ex.Message));
+            }
+        }
+
+        //------------------------------------------------------------------------------------------------------------------------------------
+
+        [HttpGet("{id:int}")]
+        [EndpointSummary("Get order by id")]
+        public async Task<ActionResult> GetOrderById(int id)
+        {
+            try
+            {
+                var orderById = await orderService.GetByIdAsync(id);
+                var orderDTO = mapper.Map<OrderCreateEditDTO>(orderById);
+                return Ok(GeneralResponse.Success(orderDTO));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, GeneralResponse.Failure(ex.Message));
+            }
+        }
+        
+        //------------------------------------------------------------------------------------------------------------------------------------
+
+        [HttpGet("details/{id:int}")]
+        [EndpointSummary("Get order details")]
+        public async Task<ActionResult> GetOrderDetailsById(int id)
+        {
+            try
+            {
+                var orderById = await orderService.GetByIdAsync(id);
+                var orderDTO = mapper.Map<OrderGetDetailsDTO>(orderById);
+                return Ok(GeneralResponse.Success(orderDTO));
             }
             catch (Exception ex)
             {
@@ -312,7 +348,7 @@ namespace Shipping.Controllers
             try
             {
                 var order = mapper.Map<Order>(orderFromReq);
-                //if (order.Products.Count() == 0) return NotFound(GeneralResponse.Failure("Products Not Found."));
+                if (order.Products.Count() == 0) return NotFound(GeneralResponse.Failure("Products Not Found."));
 
                 decimal totalShippingCost = await orderService.CalculateShippingCost(orderFromReq);
                 order.ShippingCost = totalShippingCost;
@@ -343,9 +379,15 @@ namespace Shipping.Controllers
             }
             try
             {
+                
+
                 var existingOrder = await orderService.GetByIdAsync(id);
                 if (existingOrder == null)
                     return NotFound(GeneralResponse.Failure("Not Found."));
+
+                // Updating shipping cost 
+                decimal totalShippingCost = await orderService.CalculateShippingCost(orderEditDTO);
+                existingOrder.ShippingCost = totalShippingCost;
 
                 // AutoMapper: Update existing entity with values from DTO
                 mapper.Map(orderEditDTO, existingOrder);
