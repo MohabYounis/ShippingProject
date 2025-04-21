@@ -19,12 +19,20 @@ namespace Shipping.MapperConfig
                 dest.OrderStatus = src.OrderStatus.ToString();
             }).ReverseMap();
 
+            CreateMap<Order, OrderGetDetailsDTO>()
+            .ForMember(dest => dest.Merchant, opt => opt.MapFrom(src => src.Merchant != null ? src.Merchant.ApplicationUser.UserName : ""))
+            .ForMember(dest => dest.Branch, opt => opt.MapFrom(src => src.Branch != null ? src.Branch.Name : ""))
+            .ForMember(dest => dest.ShippingType, opt => opt.MapFrom(src => src.ShippingType != null ? src.ShippingType.Type : ""))
+            .ForMember(dest => dest.Delivery, opt => opt.MapFrom(src => src.Delivery != null ? src.Delivery.ApplicationUser.UserName : "Pending delivery assignment"))
+            .ForMember(dest => dest.Government, opt => opt.MapFrom(src => src.Government != null ? src.Government.Name : ""))
+            .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City != null ? src.City.Name : ""))
+            .ForMember(dest => dest.OrderType, opt => opt.MapFrom(src => src.OrderType.ToString()))
+            .ForMember(dest => dest.DeliverToVillage, opt => opt.MapFrom(src => src.DeliverToVillage ? "Yes" : "No"))
+            .ForMember(dest => dest.OrderStatus, opt => opt.MapFrom(src => src.OrderStatus.ToString()))
+            .ForMember(dest => dest.PaymentType, opt => opt.MapFrom(src => src.PaymentType.ToString()))
+            .ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => src.CreatedDate.ToString("yyyy-MM-dd HH:mm")));
+        
 
-            //CreateMap<OrderCreateEditDTO, Order>().AfterMap((src, dest) =>
-            //{
-            //    dest.OrderType = (OrderType) Enum.Parse(typeof(OrderType), (src.OrderType));
-            //    dest.PaymentType = (PaymentTypee) Enum.Parse(typeof(PaymentTypee), (src.PaymentType));
-            //}).ReverseMap();
 
             CreateMap<CreateEditProductForOrder, Product>().ReverseMap();
 
@@ -51,6 +59,8 @@ namespace Shipping.MapperConfig
                     }
                 })
                 .ReverseMap();
+
+
 
         }
     }

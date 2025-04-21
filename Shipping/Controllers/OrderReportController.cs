@@ -37,7 +37,10 @@ namespace Shipping.Controllers
             {
                 var orders = await orderService.GetAllExistOrdersByStatus(orderStatus);
 
-                if (orders == null || !orders.Any()) return NotFound(GeneralResponse.Failure("Not Found."));
+                if (orders == null || !orders.Any())
+                {
+                    return NotFound(GeneralResponse.Failure("Not Found."));
+                }
                 else
                 {
                     if (!string.IsNullOrEmpty(searchTxt))
@@ -65,9 +68,6 @@ namespace Shipping.Controllers
 
                     if (endDate.HasValue)
                         orders = orders.Where(o => o.CreatedDate <= endDate.Value);
-
-                    if (!string.IsNullOrEmpty(orderStatus))
-                        orders = orders.Where(o => o.OrderStatus.ToString().Equals(orderStatus, StringComparison.OrdinalIgnoreCase));
 
                     var totalOrders = orders.Count();
 
