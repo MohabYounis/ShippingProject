@@ -12,11 +12,7 @@ namespace Shipping.Models
         public virtual Merchant? Merchant { get; set; }
         public virtual Employee? Employee { get; set; }
         public virtual Delivery? Delivery { get; set; }
-
-        //
         public virtual ICollection<IdentityUserRole<string>> UserRoles { get; set; }
 
     }
-
-
 }

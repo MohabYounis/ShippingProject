@@ -5,8 +5,8 @@ namespace Shipping.Services
 {
     public interface IGovernmentService
     {
-        Task<IEnumerable<GovernmentDTO>> GetAllGovernmentsAsync();
-        Task<IEnumerable<GovernmentDTO>> GetAllExistGovernmentsAsync();
+        Task<IEnumerable<GovernmentGetDTO>> GetAllGovernmentsAsync();
+        Task<IEnumerable<GovernmentGetDTO>> GetAllExistGovernmentsAsync();
         Task<GovernmentDTO> GetGovernmentByIdAsync(int id);
         Task AddGovernmentAsync(GovernmentCreateDTO governmentCreateDto);
         Task UpdateGovernmentAsync(int id, GovernmentDTO governmentDto);
