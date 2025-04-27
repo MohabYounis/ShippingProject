@@ -15,32 +15,32 @@ namespace Shipping.Services
         }
 
 
-        public async Task<IEnumerable<GovernmentDTO>> GetAllExistGovernmentsAsync()
+        public async Task<IEnumerable<GovernmentGetDTO>> GetAllExistGovernmentsAsync()
         {
             return await _context.Governments
                 .Include(g => g.Branch)
                 .Where(g => g.IsDeleted == false)
-                .Select(g => new GovernmentDTO
+                .Select(g => new GovernmentGetDTO
                 {
                     Id = g.Id,
                     Name = g.Name,
                     IsDeleted = g.IsDeleted,
-                    Branch_Id = g.Branch_Id
+                    BranchName = g.Branch.Name
                 })
                 .ToListAsync();
         }
 
         
-        public async Task<IEnumerable<GovernmentDTO>> GetAllGovernmentsAsync()
+        public async Task<IEnumerable<GovernmentGetDTO>> GetAllGovernmentsAsync()
         {
             return await _context.Governments
                 .Include(g => g.Branch)
-                .Select(g => new GovernmentDTO
+                .Select(g => new GovernmentGetDTO
                 {
                     Id = g.Id,
                     Name = g.Name,
                     IsDeleted = g.IsDeleted,
-                    Branch_Id = g.Branch_Id
+                    BranchName = g.Branch.Name
                 })
                 .ToListAsync();
         }

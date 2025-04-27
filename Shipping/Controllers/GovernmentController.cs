@@ -1,12 +1,7 @@
-﻿
-using AutoMapper;
-using Azure;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Shipping.DTOs.GovernmentDTOs;
-using Shipping.DTOs.MerchantDTOs;
 using Shipping.Models;
 using Shipping.Services;
-using Shipping.Services.ModelService;
 
 namespace Shipping.Controllers
 {
@@ -40,7 +35,7 @@ namespace Shipping.Controllers
         {
             try
             {
-                IEnumerable<GovernmentDTO> governments;
+                IEnumerable<GovernmentGetDTO> governments;
                 if (all == "all") governments = await _governmentService.GetAllGovernmentsAsync();
                 else if (all == "exist") governments = await _governmentService.GetAllExistGovernmentsAsync();
                 else
@@ -59,7 +54,8 @@ namespace Shipping.Controllers
                         // Searching
                         governments = governments
                             .Where(item =>
-                                (item.Name?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false)
+                                (item.Name?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                                (item.BranchName?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false)
                         )
                         .ToList();
 

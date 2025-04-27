@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Shipping.DTOs.MerchantDTOs;
 using Shipping.DTOs.NewFolder1;
+using Shipping.DTOs.SpecialShippingRatesDTOs;
 using Shipping.Models;
 
 namespace Shipping.MapperConfig
@@ -48,6 +49,23 @@ namespace Shipping.MapperConfig
                 dest.PhoneNumber = src.Phone;
                 dest.Address = src.Address;
             }).ReverseMap();
+
+            CreateMap<SpecialShippingRate, SpecialCreateDTO>()
+            .ForMember(dest => dest.City_Id, opt => opt.MapFrom(src => src.City_Id))
+            .ForMember(dest => dest.SpecialPrice, opt => opt.MapFrom(src => src.SpecialPrice));
+
+            CreateMap<Merchant, MerchantGetByIdDTO>()
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.ApplicationUser.UserName)) // أو .Name لو عندك
+            .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.ApplicationUser.Email))
+            .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.ApplicationUser.PhoneNumber))
+            .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.ApplicationUser.Address))
+            .ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src =>
+                src.ApplicationUser.CreatedDate.HasValue
+                    ? src.ApplicationUser.CreatedDate.Value.ToString("yyyy-MM-dd")
+                    : string.Empty))
+            .ForMember(dest => dest.SpecialShippingRates, opt => opt.MapFrom(src => src.SpecialShippingRates))
+            .ForMember(dest => dest.Branches_Id, opt => opt.MapFrom(src =>
+                src.BranchMerchants.Select(bm => bm.Branch_Id).ToList()));
         }
     }
 }

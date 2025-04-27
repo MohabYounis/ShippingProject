@@ -95,7 +95,7 @@ namespace Shipping.Controllers
             try
             {
                 var merchant = await service.GetByIdAsync(id);
-                MerchantGetDTO merchantDTO = mapper.Map<MerchantGetDTO>(merchant);
+                var merchantDTO = mapper.Map<MerchantCreateDTO>(merchant);
                 return Ok(GeneralResponse.Success(merchantDTO));
             }
             catch (Exception ex)
