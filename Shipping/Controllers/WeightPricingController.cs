@@ -22,6 +22,7 @@
                 _weigtService = weigtService;
                 this.mapper = mapper;
             }
+
             
             [HttpGet("{id:int}")]
             public async Task<IActionResult> GetById(int id)
@@ -64,10 +65,10 @@
                     return BadRequest(ex.Message);
                 }
             }
-
-        
+            
+            
             [HttpPut]
-            public async Task<IActionResult> Update([FromBody] WeightPricingDTO weighReq)
+            public async Task<IActionResult> Update([FromBody] WeightPricingDTO weighReq)   
             {
                 if (!ModelState.IsValid)
                 {
