@@ -1,37 +1,29 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Shipping.DTOs;
 using Shipping.DTOs.Employee;
+using Shipping.DTOs.MerchantDTOs;
 using Shipping.DTOs.pagination;
 using Shipping.Models;
 using Shipping.Services;
 using Shipping.Services.IModelService;
+using Shipping.Services.ModelService;
 using System.Net;
 
 namespace Shipping.Controllers
 {
-    /// <summary>
-    /// API for managing Employees.
-    /// </summary>
     [Route("api/[controller]")]
     [ApiController]
     public class EmployeeController : ControllerBase
     {
-        IServiceGeneric<Branch> branchService;
-
-        UserManager<ApplicationUser> userManager;
         IEmployeeService empService;
-        //
-        IApplicationRoleService roleService;
-
-
-        //
-        public EmployeeController( IServiceGeneric<Employee> employeeService, IEmployeeService empService, UserManager<ApplicationUser> userManager, IServiceGeneric<Branch> branchService, IApplicationRoleService roleService)
+        IMapper mapper;
+        public EmployeeController(IEmployeeService empService, IMapper mapper)
         {
-            this.userManager = userManager;
-            this.branchService = branchService;
             this.empService = empService;
-            this.roleService = roleService;
+            this.mapper = mapper;
         }
 
 
@@ -52,24 +44,60 @@ namespace Shipping.Controllers
         /// </returns>
         /// <response code="200">Employees retrieved successfully.</response>
         /// <response code="404">there is no employees .</response>
-        [HttpGet]
-        public async Task<IActionResult> GetAllEmployees([FromQuery] bool includeDeleted = true, int pageIndex = 1, int pageSize = 10)
+        [HttpGet("{all:alpha}")]
+        public async Task<ActionResult> GetWithPaginationAndSearch(string? searchTxt, string all = "all", int page = 1, int pageSize = 10)
         {
-            GenericPagination<EmployeeDTO>? employeeDtos = null;
-
-            if (!includeDeleted) { employeeDtos = await empService.GetAllExistAsync(pageIndex,pageSize); }
-
-
-            else employeeDtos = await empService.GetAllAsync(pageIndex, pageSize);
-
-            if (employeeDtos.Items == null || !employeeDtos.Items.Any())
+            try
             {
-                return NotFound("there is no employees ");
-            }
-            
+                IEnumerable<Employee> employees;
+                if (all == "all") employees = await empService.GetAllAsync();
+                else if (all == "exist") employees = await empService.GetAllExistAsync();
+                else return BadRequest(GeneralResponse.Failure("Parameter Not Exist."));
 
-            return Ok(employeeDtos);
+                if (employees == null || !employees.Any()) return NotFound(GeneralResponse.Failure("Not Found."));
+                else
+                {
+                    if (!string.IsNullOrEmpty(searchTxt))
+                    {
+                        // Searching by name or phone
+                        employees = employees
+                            .Where(item =>
+                                (item.ApplicationUser.UserName?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                                (item.ApplicationUser.PhoneNumber?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false)
+                            )
+                            .ToList();
+
+                        if (!employees.Any()) return NotFound(GeneralResponse.Failure("Not Found."));
+                    }
+
+                    var totalEmployees = employees.Count();
+
+                    // Pagination
+                    var paginatedMerchants = employees
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                        .ToList();
+
+                    List<MerchantGetDTO> merchantDTO = mapper.Map<List<MerchantGetDTO>>(paginatedMerchants);
+
+
+                    var result = new
+                    {
+                        TotalMerchants = totalEmployees,       // العدد الإجمالي للعناصر
+                        Page = page,                          // الصفحة الحالية
+                        PageSize = pageSize,                  // عدد العناصر في الصفحة
+                        Merchants = merchantDTO               // العناصر الحالية
+                    };
+
+                    return Ok(GeneralResponse.Success(result));
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, GeneralResponse.Failure(ex.Message));
+            }
         }
+
 
         /// <summary>
         /// Retrieves a specific employee by their ID.
@@ -108,7 +136,6 @@ namespace Shipping.Controllers
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<IActionResult> AddEmployee([FromBody] CreateEmployeeDTO employeeDto)
         {
-            // 
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -126,8 +153,6 @@ namespace Shipping.Controllers
             }
             catch (Exception ex)
             {
-               
-
                 //  detailed error 
                 var errorResponse = new
                 {
@@ -139,8 +164,6 @@ namespace Shipping.Controllers
                 return StatusCode(500, errorResponse);
             }
         }
-
-
 
         /// <summary>
         /// Updates an existing employee's information.
@@ -189,8 +212,6 @@ namespace Shipping.Controllers
         /// <response code="204">Company deleted successfully.</response>
         /// <response code="500">Company not found.</response>
         /// <response code="400">Invalid ID</response>
-
-        //[HttpDelete("{id}")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEmployee(int id)
         {
@@ -235,6 +256,7 @@ namespace Shipping.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
         /// <summary>
         /// Searches for employees by name.
         /// </summary>
@@ -260,8 +282,5 @@ namespace Shipping.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-
-
-
     }
 }

@@ -1,13 +1,11 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Shipping.DTOs;
 using Shipping.DTOs.Role;
 using Shipping.DTOs.RolePermission;
 using Shipping.Models;
 using Shipping.Services.IModelService;
-using System.Diagnostics.Eventing.Reader;
 
 namespace Shipping.Controllers
 {
@@ -15,13 +13,15 @@ namespace Shipping.Controllers
     [ApiController]
     public class RoleController : ControllerBase
     {
-        private readonly IApplicationRoleService _roleService;
+        private readonly IApplicationRoleService roleService;
         UserManager<ApplicationUser> userManger;
+        RoleManager<ApplicationRole> roleManager;
 
-        public RoleController(IApplicationRoleService roleService, UserManager<ApplicationUser> roleManger)
+        public RoleController(IApplicationRoleService roleService, UserManager<ApplicationUser> userManger, RoleManager<ApplicationRole> roleManager)
         {
-            _roleService = roleService ?? throw new ArgumentNullException(nameof(roleService));
-            this.userManger = roleManger;
+            this.roleService = roleService;
+            this.userManger = userManger;
+            this.roleManager = roleManager;
         }
 
         /// <summary>
@@ -31,40 +31,77 @@ namespace Shipping.Controllers
         /// 200 OK with a list of roles,  
         /// 404 Not Found if no roles are found.
         /// </returns>
-        // GET: api/Role
-        [HttpGet]
-        public async Task<IActionResult> GetRoles()
+        // GET: api/Role/all
+        [HttpGet("{all:alpha}")]
+        public async Task<ActionResult> GetWithPaginationAndSearch(string? searchTxt, string all = "all", int page = 1, int pageSize = 10)
         {
-            IEnumerable<ApplicationRole>? roles;
-           
-             roles = await _roleService.GetAllAsyncExist();
-            //check null
-            if (roles == null)
+            try
             {
-                return NotFound("No roles found.");
+                IEnumerable<ApplicationRole>? roles;
+                if (all == "all") roles = await roleService.GetAllAsync();
+                else if (all == "exist") roles = await roleService.GetAllAsyncExist();
+                else return BadRequest(GeneralResponse.Failure("Parameter Not Exist."));
+
+                if (roles == null || !roles.Any()) return NotFound(GeneralResponse.Failure("Not Found."));
+                else
+                {
+                    if (!string.IsNullOrEmpty(searchTxt))
+                    {
+                        // Searching by name or phone
+                        roles = roles
+                            .Where(item =>
+                                (item.Name?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false)
+                            )
+                            .ToList();
+
+                        if (!roles.Any()) return NotFound(GeneralResponse.Failure("Not Found."));
+                    }
+
+                    var totalRoles = roles.Count();
+
+                    // Pagination
+                    var paginatedRoles = roles
+                        .Skip((page - 1) * pageSize)
+                        .Take(pageSize)
+                        .ToList();
+
+                    var rolesDTO = paginatedRoles.Select(role => new AppRoleDTO
+                    {
+                        Id = role.Id,
+                        Name = role.Name,
+                        IsDeleted = role.IsDeleted,
+                        CreatedDate = (role.CreatedDate).ToString(),
+                        RolePermissions = role.RolePermissions
+                        .Select(rp => new RolePermissionDTO
+                        {
+                            Permission_Id = rp.Permission_Id,
+                            Role_Id = rp.Role_Id,
+                            CanView = rp.CanView,
+                            CanEdit = rp.CanEdit,
+                            CanDelete = rp.CanDelete,
+                            CanAdd = rp.CanAdd,
+                            IsDeleted = rp.IsDeleted
+                        }).ToList()
+                    }).ToList();
+
+
+                    var result = new
+                    {
+                        TotalRoles = totalRoles,                // العدد الإجمالي للعناصر
+                        Page = page,                            // الصفحة الحالية
+                        PageSize = pageSize,                    // عدد العناصر في الصفحة
+                        Roles = rolesDTO                        // العناصر الحالية
+                    };
+
+                    return Ok(GeneralResponse.Success(result));
+                }
             }
-            //mapping
-            var roleDTO = roles.Select(role => new AppRoleDTO
+            catch (Exception ex)
             {
-                Id = role.Id,
-                Name = role.Name,
-                IsDeleted = role.IsDeleted,
-                RolePermissions = role.RolePermissions
-            .Select(rp => new RolePermissionDTO
-            {
-                Permission_Id = rp.Permission_Id,
-                Role_Id = rp.Role_Id,
-                CanView = rp.CanView,
-                CanEdit = rp.CanEdit,
-                CanDelete = rp.CanDelete,
-                CanAdd = rp.CanAdd,
-                IsDeleted = rp.IsDeleted
-
-            }).ToList()
-            }).ToList();
-
-            return Ok(roleDTO);
+                return StatusCode(500, GeneralResponse.Failure(ex.Message));
+            }
         }
+
 
         /// <summary>
         /// Retrieves a specific role by its ID.
@@ -79,15 +116,17 @@ namespace Shipping.Controllers
         public async Task<IActionResult> GetRoleById(string id)
         {
            
-                var role = await _roleService.GetByIdAsync(id);
+            var role = await roleService.GetByIdAsync(id);
             
-           if (role == null)
-                return NotFound($"Role with ID {id} not found.");
+            if (role == null)
+                return NotFound(new { Success = false, Message = $"Role with ID {id} not found." });
+
             var roleDTO = new AppRoleDTO
             {
                 Id = role.Id,
                 Name = role.Name,
                 IsDeleted = role.IsDeleted,
+                CreatedDate = (role.CreatedDate).ToString(),
                 RolePermissions = role.RolePermissions.Select(rp=>new RolePermissionDTO
                 {
                     Permission_Id = rp.Permission_Id,
@@ -101,6 +140,7 @@ namespace Shipping.Controllers
 
             return Ok(roleDTO);
         }
+
 
         /// <summary>
         /// Adds a new role to the system.
@@ -117,35 +157,29 @@ namespace Shipping.Controllers
             try
             {
                 if (!ModelState.IsValid)
-                {
                     return BadRequest(ModelState);
-                }
-                //check if exist
-                var existingRole = await _roleService.GetByIdAsync(role.Id);
+                
+                var existingRole = await roleService.GetByNameAsync(role.Name);
                 if (existingRole != null)
-                {
-                    return BadRequest("Role with this ID already exists.");
-                }
+                    return BadRequest(new { Success = false, Message = "Role is already exist." });
+                
 
-                // Mapping DTO → Entity
                 var roleDB = new ApplicationRole
                 {
-                    Id = role.Id,
                     Name = role.Name,
-                    IsDeleted = role.IsDeleted,
-                    NormalizedName = role.NormalizedName
                 };
 
-                await _roleService.AddAsync(roleDB);
-                await _roleService.SaveDB();
+                await roleManager.CreateAsync(roleDB);
+                await roleService.SaveDB();
 
-                return CreatedAtAction(nameof(GetRoleById), new { id = role.Id }, roleDB);
+                return Ok(new { Success =  true, Message = "Created Successfully!."});
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(500, ex.Message);
             }
         }
+
 
         /// <summary>
         /// Updates an existing role by its ID.
@@ -167,25 +201,28 @@ namespace Shipping.Controllers
             }
             try
             {
-                var existingRole = await _roleService.GetByIdAsync(id);
+                var existingRole = await roleService.GetByIdAsync(id);
                 if (existingRole == null)
-                {
-                    return NotFound($"Role with ID {id} not found.");
-                }
+                    return NotFound(new { Success = false, Message = $"Role with Id {id} not found." });
 
-                // mapping 
+                var existingRoleName = await roleService.GetByNameAsync(role.Name);
+                if (existingRole != null && existingRole.Id != id)
+                        return BadRequest(new { Success = false, Message = "Role is already exist." });
+
                 existingRole.Name = role.Name;
+                existingRole.IsDeleted = role.IsDeleted;
 
-                _roleService.Update(existingRole);
-                await _roleService.SaveDB();
+                roleService.Update(existingRole);
+                await roleService.SaveDB();
 
-                return NoContent();
+                return Ok(new { Success = true, Message = "Updated Successfully!." });
             }
-            catch (KeyNotFoundException)
+            catch (Exception ex)
             {
-                return NotFound($"error occured while updating");
+                return StatusCode(500, ex.Message);
             }
         }
+
 
         /// <summary>
         /// Deletes an existing role by its ID.
@@ -202,21 +239,22 @@ namespace Shipping.Controllers
         {
             try
             {
-                var existingRole = await _roleService.GetByIdAsync( id); 
+                var existingRole = await roleService.GetByIdAsync( id); 
 
                 if (existingRole == null) return NotFound("no roles found"); 
 
                 if (existingRole.IsDeleted) return BadRequest("already delted");
-                 _roleService.Delete(existingRole);
-                await _roleService.SaveDB();
+                roleService.Delete(existingRole);
+                await roleService.SaveDB();
 
-                return NoContent();
+                return Ok(new { message = "Deleted successfully!" });
             }
             catch (KeyNotFoundException)
             {
                 return NotFound($"Role with ID  not found.");
             }
         }
+
 
         /// <summary>
         /// Assigns a role to a user.
@@ -241,7 +279,7 @@ namespace Shipping.Controllers
                 }
 
                 //check role
-                var existingRole = await _roleService.GetByNameAsync(RoleName);
+                var existingRole = await roleService.GetByNameAsync(RoleName);
                 if (existingRole == null)
                 {
                     return BadRequest("Role with this ID does not exist.");
@@ -261,64 +299,5 @@ namespace Shipping.Controllers
                 return BadRequest(ex.Message + "gfdsssss");
             }
         }
-
-
-     //   [HttpGet("search")]
-     //   public async Task<IActionResult> GetRoles( [FromQuery] string? searchTxt, [FromQuery] bool includeDeleted = true,
-     //                                              [FromQuery] int page = 1,[FromQuery] int pageSize = 10)
-     //   {
-     //       try
-     //       {
-     //           var rolesQueryable = await _roleService.GetQueryableRolesAsync(includeDeleted);
-
-     //           if (!string.IsNullOrEmpty(searchTxt))
-     //           {
-     //               rolesQueryable = rolesQueryable.Where(role =>
-     //role.Name != null && EF.Functions.Like(role.Name, $"%{searchTxt}%"));
-     //           }
-
-     //           var totalRoles = rolesQueryable.Count();
-
-     //           var pagedRoles = rolesQueryable
-     //               .Skip((page - 1) * pageSize)
-     //               .Take(pageSize)
-     //               .ToList();
-
-     //           if (!pagedRoles.Any())
-     //               return NotFound("No roles found.");
-
-     //           var roleDTOs = pagedRoles.Select(role => new AppRoleDTO
-     //           {
-     //               Id = role.Id,
-     //               Name = role.Name,
-     //               IsDeleted = role.IsDeleted,
-     //               RolePermissions = role.RolePermissions?.Select(rp => new RolePermissionDTO
-     //               {
-     //                   Permission_Id = rp.Permission_Id,
-     //                   Role_Id = rp.Role_Id,
-     //                   CanView = rp.CanView,
-     //                   CanEdit = rp.CanEdit,
-     //                   CanDelete = rp.CanDelete,
-     //                   CanAdd = rp.CanAdd,
-     //                   IsDeleted = rp.IsDeleted
-     //               }).ToList()
-     //           }).ToList();
-
-     //           var result = new
-     //           {
-     //               TotalRoles = totalRoles,
-     //               Page = page,
-     //               PageSize = pageSize,
-     //               Roles = roleDTOs
-     //           };
-
-     //           return Ok(result);
-     //       }
-     //       catch (Exception ex)
-     //       {
-     //           return StatusCode(500, $"Internal server error: {ex.Message}");
-     //       }
-     //   }
-
     }
 }

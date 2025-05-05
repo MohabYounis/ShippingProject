@@ -1,13 +1,14 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Shipping.DTOs;
-using Shipping.DTOs.MerchantDTOs;
 using Shipping.DTOs.OrderDTOs;
 using Shipping.Models;
 using Shipping.Services;
 using Shipping.Services.IModelService;
 using Shipping.Services.ModelService;
+using Shipping.SignalRHubs;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Shipping.Controllers
@@ -18,15 +19,16 @@ namespace Shipping.Controllers
     {
         IMapper mapper;
         IOrderService orderService;
-        IDeliveryService deliveryService;
         UserManager<ApplicationUser> userManager;
+        IHubContext<OrderHub> hubContext;
 
-        public OrderController(IMapper mapper, IOrderService orderService, UserManager<ApplicationUser> userManager, IDeliveryService deliveryService)
+        public OrderController(IMapper mapper, IOrderService orderService, UserManager<ApplicationUser> userManager, 
+            IHubContext<OrderHub> hubContext)
         {
             this.mapper = mapper;
             this.orderService = orderService;
             this.userManager = userManager;
-            this.deliveryService = deliveryService;
+            this.hubContext = hubContext;
         }
 
         //------------------------------------------------------------------------------------------------------------------------------------
@@ -356,6 +358,10 @@ namespace Shipping.Controllers
                 await orderService.AddAsync(order);
                 await orderService.SaveChangesAsync();
 
+                // SignalR
+                var orderGetDTO = mapper.Map<OrderGetDTO>(order);
+                await hubContext.Clients.All.SendAsync("CreateOrder", orderGetDTO);
+
                 return Ok(GeneralResponse.Success("Order created successfully."));
             }
             catch (Exception ex)
@@ -395,6 +401,10 @@ namespace Shipping.Controllers
                 await orderService.UpdateAsync(existingOrder);
                 await orderService.SaveChangesAsync();
 
+                // SignalR
+                var orderGetDTO = mapper.Map<OrderGetDTO>(existingOrder);
+                await hubContext.Clients.All.SendAsync("OrderEdit", orderGetDTO);
+
                 return Ok(GeneralResponse.Success("Order updated successfully."));
 
             }
@@ -418,6 +428,7 @@ namespace Shipping.Controllers
                 if (user == null || order == null) return NotFound(GeneralResponse.Failure("User or order is Not Found"));
 
                 var userRole = await userManager.IsInRoleAsync(user, "delivery");
+                OrderGetDTO orderGetDTO;
                 if (userRole)
                 {
                     order.Delivery_Id = null; // لغيت اسنادة لدلفري
@@ -429,12 +440,20 @@ namespace Shipping.Controllers
                     await orderService.UpdateAsync(order);
                     await orderService.SaveChangesAsync();
 
+                    // SignalR
+                    orderGetDTO = mapper.Map<OrderGetDTO>(order);
+                    await hubContext.Clients.All.SendAsync("CancelAssignOrder", orderGetDTO);
+
                     string message = $"Delivery [{(user.UserName.ToUpper())}] has canceled the assignment of the order with serial number [{order.SerialNumber}]";
                     return Ok(GeneralResponse.Success(message));
                 }
 
                 await orderService.DeleteAsync(orderId);
                 await orderService.SaveChangesAsync();
+
+                // SignalR
+                orderGetDTO = mapper.Map<OrderGetDTO>(order);
+                await hubContext.Clients.All.SendAsync("DeleteOrder", orderGetDTO);
 
                 return Ok(GeneralResponse.Success("Order deleted successfully by employee."));
             }
@@ -466,9 +485,11 @@ namespace Shipping.Controllers
                 await orderService.UpdateAsync(order);
                 await orderService.SaveChangesAsync();
 
+                // SignalR
+                var orderGetDTO = mapper.Map<OrderGetDTO>(order);
+                await hubContext.Clients.All.SendAsync("ChangeStatus", orderGetDTO);
+
                 return Ok(GeneralResponse.Success($"Status updated from {lastStatus.ToString()} to {newStatus.ToUpper()} successfully."));
-
-
             }
             catch (Exception ex)
             {
@@ -488,6 +509,10 @@ namespace Shipping.Controllers
 
                 await orderService.UpdateAsync(order);
                 await orderService.SaveChangesAsync();
+
+                // SignalR
+                var orderGetDTO = mapper.Map<OrderGetDTO>(order);
+                await hubContext.Clients.All.SendAsync("AssignOrder", orderGetDTO);
 
                 return Ok(GeneralResponse.Success($"Order assigned to delivery has id: {orderId}."));
             }

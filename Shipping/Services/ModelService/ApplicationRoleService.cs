@@ -15,16 +15,14 @@ namespace Shipping.Services.ModelService
 {
     public class ApplicationRoleService : ApplicationRoleRepository, IApplicationRoleService
     {
-        //
         IRepositoryGeneric<ApplicationRole> roleRepo;
-        //
         IApplicationRoleRepository userRoleRepo;
-
-        // cache
+        
         private readonly IMemoryCache memoryCache;
         private const string RolesCacheKey = "RolesCacheKey";
-        //
         private readonly UserManager<ApplicationUser> userManager;
+
+
         public ApplicationRoleService(ShippingContext context, UserManager<ApplicationUser> userManager, IRepositoryGeneric<ApplicationRole> roleRepo, IApplicationRoleRepository userRoleRepo, IMemoryCache memoryCache) : base(context, userManager)
         {
             this.roleRepo = roleRepo;
@@ -33,30 +31,12 @@ namespace Shipping.Services.ModelService
             this.userManager = userManager;
         }
 
+
         public void ResetCache()
         {
             memoryCache.Remove(RolesCacheKey);
         }
 
-        #region Get All Roles
-        public async Task<IEnumerable<ApplicationRoleDTO>> GetAllAsync()
-        {
-            var query = await roleRepo.GetAllAsync();
-
-            var result = await query
-                .Where(r => !EF.Property<bool>(r, "IsDeleted")) //existing
-                .Select(r => new ApplicationRoleDTO
-                {
-                    Id = r.Id,
-                    Name = r.Name,
-                })
-
-
-                .ToListAsync();
-
-            return result;
-        }
-        #endregion
 
         #region Get All By Check Cache
         public async Task<Dictionary<string, string>> GetRoleDictionaryAsync()
@@ -82,8 +62,6 @@ namespace Shipping.Services.ModelService
         }
 
         #endregion
-       
-        //
 
         #region Git Distinct Roles
         public async Task<ApplicationRoleDTO> GetRoleByUserIdAsync(string userId)
@@ -128,7 +106,5 @@ namespace Shipping.Services.ModelService
         }
         #endregion
     }
-
-
 }
 

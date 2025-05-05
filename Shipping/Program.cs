@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Shipping.ImodelRepository;
 using Shipping.modelRepository;
 using System.Reflection;
+using Shipping.SignalRHubs;
 
 namespace Shipping
 {
@@ -51,8 +52,6 @@ namespace Shipping
           
             builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 
-           
-
             // Register AutoMapper
             builder.Services.AddAutoMapper(typeof(Program));
 
@@ -60,22 +59,16 @@ namespace Shipping
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<ISpecialShippingRateRepository, SpecialShippingRateRepository>();
 
-
-
             //register of RolePermissionRepository
             builder.Services.AddScoped<IRolePermissinRepository, RolePermissinRepository>();
 
             //register of RolePermissionService
-
             builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
 
             //role
             builder.Services.AddScoped<IApplicationRoleService, ApplicationRoleService>();
 
-
-            //
             builder.Services.AddScoped<IApplicationRoleRepository, ApplicationRoleRepository>();
-
 
             // Register Generic Repository
             builder.Services.AddScoped(typeof(IRepositoryGeneric<>), typeof(RepositoryGeneric<>));
@@ -92,7 +85,7 @@ namespace Shipping
             builder.Services.AddScoped<IGovernmentService, GovernmentService>();
 
             //Register Merchant Service
-            builder.Services.AddScoped<IMerchantService, MerchantService>(); //Register Merchant Service
+            builder.Services.AddScoped<IMerchantService, MerchantService>();
             builder.Services.AddScoped<ISpecialShippingRateService, SpecialShippingRateService>();
             //Register City Service
             builder.Services.AddScoped<ICityService, CityService>();
@@ -135,16 +128,18 @@ namespace Shipping
             {
                 options.AddPolicy("AllowAll", builder =>
                 {
-                    builder.AllowAnyOrigin()
+                            builder.WithOrigins("http://localhost:4200")
                            .AllowAnyMethod()
-                           .AllowAnyHeader();
+                           .AllowAnyHeader()
+                           .AllowCredentials();
                 });
             });
 
             //add memory cashe
             builder.Services.AddMemoryCache();
 
-            //
+            builder.Services.AddSignalR();
+
             // Add logging
             builder.Services.AddLogging(logging =>
             {
@@ -153,11 +148,6 @@ namespace Shipping
                 logging.AddDebug();
             });
 
-
-
-
-
-            //
             builder.Services.AddSwaggerGen(options =>
             {
                 var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
@@ -179,8 +169,9 @@ namespace Shipping
 
             app.UseRouting();
 
+            // Enable CORS
+            app.MapHub<OrderHub>("/orderHub");
 
-            
             // Enable CORS
             app.UseCors("AllowAll");
 
