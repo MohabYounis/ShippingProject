@@ -1,18 +1,11 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Shipping.DTOs;
 using Shipping.DTOs.DeliveryDTOs;
 using Shipping.DTOs.GovernmentDTOs;
-using Shipping.DTOs.MerchantDTOs;
 using Shipping.Models;
-using Shipping.Repository;
 using Shipping.Services;
 using Shipping.Services.IModelService;
-using Shipping.Services.ModelService;
-using System.Transactions;
 
 namespace Shipping.Controllers
 {
@@ -275,14 +268,10 @@ namespace Shipping.Controllers
             if (delivery == null) return NotFound(new {success=false,message= "Not Found." });
             if (delivery.IsDeleted) return BadRequest(new { success = false, message = "Delivery is already deleted." });
 
-
             await deliveryService.DeleteAsync(id);
             await deliveryService.SaveChangesAsync();
 
             return Ok(new { success = true, message = "Delivery deleted successfully." });
         }
-   
-    
-    
     }
 }

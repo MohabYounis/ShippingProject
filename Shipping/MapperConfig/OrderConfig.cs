@@ -32,8 +32,6 @@ namespace Shipping.MapperConfig
             .ForMember(dest => dest.PaymentType, opt => opt.MapFrom(src => src.PaymentType.ToString()))
             .ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => src.CreatedDate.ToString("yyyy-MM-dd HH:mm")));
         
-
-
             CreateMap<CreateEditProductForOrder, Product>().ReverseMap();
 
             CreateMap<OrderCreateEditDTO, Order>()

@@ -1,6 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Shipping.DTOs;
@@ -10,8 +8,6 @@ using Shipping.DTOs.SpecialShippingRatesDTOs;
 using Shipping.Models;
 using Shipping.Services;
 using Shipping.Services.IModelService;
-using Shipping.UnitOfWorks;
-using SHIPPING.Services;
 
 namespace Shipping.Controllers
 {

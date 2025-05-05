@@ -26,7 +26,7 @@ namespace Shipping.Controllers
         /// <param name="page">Page number (default is 1).</param>
         /// <param name="pageSize">Number of items per page (default is 10).</param>
         /// <returns>
-        /// 200 OK with list of governments,  
+        /// 200 OK with list of governments,
         /// 404 Not Found if no items found,  
         /// 400 BadRequest if parameter 'all' is invalid.
         /// </returns>

@@ -6,10 +6,7 @@ using Shipping.Models;
 namespace Shipping.Services.IModelService
 {
     public interface IEmployeeService : IServiceGeneric<Employee>
-    {
-
-        Task<GenericPagination<EmployeeDTO>> GetAllAsync(int pageIndex = 1, int pageSize = 10);       
-        Task<GenericPagination<EmployeeDTO>> GetAllExistAsync(int pageIndex = 1, int pageSize = 10);       
+    {      
         Task<IDbContextTransaction> BeginTransactionAsync();
         Task<IEnumerable<EmployeeDTO>> GetEmployeesByRole(string roleName);
 
@@ -22,7 +19,5 @@ namespace Shipping.Services.IModelService
         Task<EmployeeDTO> GetByIdAsync(int id);
 
         Task<IEnumerable<EmployeeDTO>> GetEmployeesBySearch(string term, bool includeDelted = true);
-
-
     }
 }

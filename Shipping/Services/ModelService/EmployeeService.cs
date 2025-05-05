@@ -26,98 +26,26 @@ namespace Shipping.Services.ModelService
             this.branchService = branchService;
         }
 
-        public async Task<GenericPagination<EmployeeDTO>> GetAllAsync(int pageIndex = 1, int pageSize = 10)
+        public override async Task<IEnumerable<Employee>> GetAllAsync()
         {
-            //get from db
-            var query = await unitOfWork.GetRepository<Employee>().GetAllAsync();
-            var employees = await query
+            var query = unitOfWork.GetRepository<Employee>().GetAllAsync();
+            var employees = await query;
+            return employees
                 .Include(e => e.ApplicationUser)
                 .Include(e => e.Branch)
-                .Skip((pageIndex - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            //roleDictionary
-            var roleDictionary = await roleCacheService.GetRoleDictionaryAsync();
-
-            var employeeDtos = new List<EmployeeDTO>();
-            // mapping using foreach
-            foreach (var e in employees)
-            {
-                //get record from cache
-                var roleDto = await roleCacheService.GetRoleByUserIdAsync(e.AppUser_Id);
-                
-                employeeDtos.Add(new EmployeeDTO
-                {
-                    Id = e.Id,
-                    IsDeleted = e.IsDeleted,
-
-                    userId = e.AppUser_Id,
-                    Name = e.ApplicationUser.UserName,
-                    Phone = e.ApplicationUser?.PhoneNumber,
-                    Address = e.ApplicationUser?.Address,
-                    Email = e.ApplicationUser?.Email,
-                    //
-                    RoleId = roleDto?.Id,
-                    Role = roleDictionary.TryGetValue(roleDto?.Id ?? "", out var roleName) ? roleName : "no role",
-                  
-                    branchId = e.Branch_Id,
-                    BranchName = e.Branch.Name
-                });
-            }
-            //
-            return new GenericPagination<EmployeeDTO>
-            {
-                pageIndex = pageIndex,
-                pageSize = pageSize,
-                totalCount = query.Count(),
-                Items = employeeDtos
-            };
+                .ToList();
         }
 
-        public async Task<GenericPagination<EmployeeDTO>> GetAllExistAsync(int pageIndex = 1, int pageSize = 10)
+        public override async Task<IEnumerable<Employee>> GetAllExistAsync()
         {
-            var query = await unitOfWork.GetRepository<Employee>().GetAllExistAsync();
-            var employees = await query
+            var query = unitOfWork.GetRepository<Employee>().GetAllExistAsync();
+            var employees = await query;
+            return employees
                 .Include(e => e.ApplicationUser)
                 .Include(e => e.Branch)
-                .Skip((pageIndex - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            var roleDictionary = await roleCacheService.GetRoleDictionaryAsync();
-
-            var employeeDtos = new List<EmployeeDTO>();
-            foreach (var e in employees)
-            {
-                var roleDto = await roleCacheService.GetRoleByUserIdAsync(e.AppUser_Id);
-                employeeDtos.Add(new EmployeeDTO
-                {
-                    Id = e.Id,
-                    IsDeleted = e.IsDeleted,
-                    userId = e.AppUser_Id,
-                    Name = e.ApplicationUser.UserName,
-                    Phone = e.ApplicationUser?.PhoneNumber,
-                    Address = e.ApplicationUser?.Address,
-                    Email = e.ApplicationUser?.Email,
-                    RoleId = roleDto?.Id,
-                    Role = roleDictionary.TryGetValue(roleDto?.Id ?? "", out var roleName) ? roleName : "no role",
-                    branchId = e.Branch_Id,
-                    BranchName = e.Branch.Name
-                });
-            }
-
-            return new GenericPagination<EmployeeDTO>
-            {
-                pageIndex = pageIndex,
-                pageSize = pageSize,
-                totalCount = query.Count(),
-                Items = employeeDtos
-            };
+                .ToList();
         }
 
-
-        //
         public async Task<EmployeeDTO> GetByIdAsync(int id)
         {
 

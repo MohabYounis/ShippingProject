@@ -9,7 +9,6 @@ namespace Shipping.Repository.modelRepository
 {
     public class ApplicationRoleRepository : IApplicationRoleRepository
     {
-
         public ShippingContext Context { get; }
 
         readonly UserManager<ApplicationUser> userManager;
@@ -50,8 +49,6 @@ namespace Shipping.Repository.modelRepository
                      .Where(e => !EF.Property<bool>(e, "IsDeleted"))
                      .ToListAsync();
         }
-
-        //
 
         public async Task<IEnumerable<ApplicationRole>> GetAllAsync()
         {
@@ -95,9 +92,6 @@ namespace Shipping.Repository.modelRepository
         }
 
 
-
-
-        // get role using user id 
         public async Task<ApplicationRole> GetRoleByUserIdAsync(string userId)
         {
             //get user 
@@ -126,10 +120,5 @@ namespace Shipping.Repository.modelRepository
 
             return role;
         }
-
-        //public Task<IQueryable<ApplicationRole>> GetQueryableRolesAsync(bool includeDeleted)
-        //{
-        //    return new Task<IQueryable<ApplicationRole>>;
-        //}
     }
 }
