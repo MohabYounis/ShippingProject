@@ -1,7 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json.Serialization;
 
 namespace Shipping.Models
 {
@@ -20,7 +18,6 @@ namespace Shipping.Models
         public decimal RejectedOrderPercentage  { get; set; }
         public virtual ApplicationUser? ApplicationUser { get; set; }
         public virtual List<SpecialShippingRate>? SpecialShippingRates { get; set; } = new List<SpecialShippingRate>();
-
         public virtual List<Order>? Orders { get; } = new List<Order>();
         public virtual List<BranchMerchant>? BranchMerchants { get; set; } = new List<BranchMerchant>();
     }

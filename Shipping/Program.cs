@@ -50,51 +50,24 @@ namespace Shipping
             builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
                 .AddEntityFrameworkStores<ShippingContext>();
           
-            builder.Services.AddScoped<IEmployeeService, EmployeeService>();
-
-            // Register AutoMapper
             builder.Services.AddAutoMapper(typeof(Program));
-
-            //Register of Unit Of work
-            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-            builder.Services.AddScoped<ISpecialShippingRateRepository, SpecialShippingRateRepository>();
-
-            //register of RolePermissionRepository
-            builder.Services.AddScoped<IRolePermissinRepository, RolePermissinRepository>();
-
-            //register of RolePermissionService
-            builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
-
-            //role
-            builder.Services.AddScoped<IApplicationRoleService, ApplicationRoleService>();
-
-            builder.Services.AddScoped<IApplicationRoleRepository, ApplicationRoleRepository>();
-
-            // Register Generic Repository
             builder.Services.AddScoped(typeof(IRepositoryGeneric<>), typeof(RepositoryGeneric<>));
-
-            // Register Generic Service
             builder.Services.AddScoped(typeof(IServiceGeneric<>), typeof(ServiceGeneric<>));
-
-            // Register Delivery Service
-            builder.Services.AddScoped<IDeliveryService, DeliveryService>();
-
-            // Register RejectReason Service
-            builder.Services.AddScoped<IRejectReasonService, RejectReasonService>();
-            // Register Government Service
-            builder.Services.AddScoped<IGovernmentService, GovernmentService>();
-
-            //Register Merchant Service
-            builder.Services.AddScoped<IMerchantService, MerchantService>();
-            builder.Services.AddScoped<ISpecialShippingRateService, SpecialShippingRateService>();
-            //Register City Service
-            builder.Services.AddScoped<ICityService, CityService>();
-            //Register Order Service
-            builder.Services.AddScoped<IOrderService, OrderService>();
-
-            builder.Services.AddScoped<IApplicationRoleService, ApplicationRoleService>();
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-            builder.Services.AddScoped(typeof(IRepositoryGeneric<>), typeof(RepositoryGeneric<>));
+            builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+            builder.Services.AddScoped<IMerchantService, MerchantService>();
+            builder.Services.AddScoped<IDeliveryService, DeliveryService>();
+            builder.Services.AddScoped<ISpecialShippingRateRepository, SpecialShippingRateRepository>();
+            builder.Services.AddScoped<IRolePermissinRepository, RolePermissinRepository>();
+            builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
+            builder.Services.AddScoped<IApplicationRoleService, ApplicationRoleService>();
+            builder.Services.AddScoped<IApplicationRoleRepository, ApplicationRoleRepository>();
+            builder.Services.AddScoped<IRejectReasonService, RejectReasonService>();
+            builder.Services.AddScoped<IGovernmentService, GovernmentService>();
+            builder.Services.AddScoped<ISpecialShippingRateService, SpecialShippingRateService>();
+            builder.Services.AddScoped<ICityService, CityService>();
+            builder.Services.AddScoped<IOrderService, OrderService>();
+            builder.Services.AddScoped<IApplicationRoleService, ApplicationRoleService>();
             builder.Services.AddScoped<IWeightPricingService, WeightPricingService>();
 
             //jwt

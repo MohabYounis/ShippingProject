@@ -24,7 +24,7 @@ namespace Shipping.MapperConfig
             {
                 if (dest.Merchant == null) dest.Merchant = new Merchant();
 
-                dest.Merchant.AppUser_Id = dest.Id;
+                //dest.Merchant.AppUser_Id = dest.Id;
                 dest.Merchant.StoreName = src.StoreName;
                 dest.Merchant.Government = src.Government;
                 dest.Merchant.City = src.City;

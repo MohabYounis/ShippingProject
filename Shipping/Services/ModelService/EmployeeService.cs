@@ -1,403 +1,219 @@
 ﻿using SHIPPING.Services;
 using Shipping.Models;
 using Shipping.Services.IModelService;
-using Shipping.Repository;
 using Shipping.UnitOfWorks;
 using Microsoft.EntityFrameworkCore;
-using static Dapper.SqlMapper;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.AspNetCore.Identity;
-using Shipping.DTOs.pagination;
 using Shipping.DTOs.Employee;
+using AutoMapper;
+using Shipping.DTOs;
+using static Dapper.SqlMapper;
 
 namespace Shipping.Services.ModelService
 {
     public class EmployeeService : ServiceGeneric<Employee>, IEmployeeService
     {
         UserManager<ApplicationUser> userManager;
-        // cashed roles 
-        readonly IApplicationRoleService roleCacheService;
-        //
-        IServiceGeneric<Branch> branchService;
-        public EmployeeService(IUnitOfWork unitOfWork, IServiceGeneric<Branch> branchService, UserManager<ApplicationUser> userManager, IApplicationRoleService roleCacheService) : base(unitOfWork)
+        RoleManager<ApplicationRole> roleManager;
+        IServiceGeneric<Employee> serviceGeneric;
+        IUnitOfWork unitOfWork;
+        IMapper mapper;
+        public EmployeeService(IUnitOfWork unitOfWork, IServiceGeneric<Employee> serviceGeneric, UserManager<ApplicationUser> userManager,
+        RoleManager<ApplicationRole> roleManager, IMapper mapper) : base(unitOfWork)
         {
             this.userManager= userManager;
-            this.roleCacheService = roleCacheService;
-            this.branchService = branchService;
+            this.serviceGeneric = serviceGeneric;
+            this.unitOfWork = unitOfWork;
+            this.roleManager = roleManager;
+            this.mapper = mapper;
         }
 
-        public override async Task<IEnumerable<Employee>> GetAllAsync()
+        public new async Task<IEnumerable<EmployeeGetDTO>> GetAllAsync()
         {
-            var query = unitOfWork.GetRepository<Employee>().GetAllAsync();
-            var employees = await query;
-            return employees
+            var query = await unitOfWork.GetRepository<Employee>().GetAllAsync();
+            var employees = query
                 .Include(e => e.ApplicationUser)
                 .Include(e => e.Branch)
                 .ToList();
-        }
 
-        public override async Task<IEnumerable<Employee>> GetAllExistAsync()
-        {
-            var query = unitOfWork.GetRepository<Employee>().GetAllExistAsync();
-            var employees = await query;
-            return employees
-                .Include(e => e.ApplicationUser)
-                .Include(e => e.Branch)
-                .ToList();
-        }
+            var employeesDTO = mapper.Map<List<EmployeeGetDTO>>(employees);
 
-        public async Task<EmployeeDTO> GetByIdAsync(int id)
-        {
-
-            var employeeQuery = await unitOfWork.GetRepository<Employee>().GetAllAsync();
-
-            var employee = await employeeQuery
-                .Include(e => e.ApplicationUser)
-                .Include(e => e.Branch)
-                .Where(e => e.Id == id)
-                .FirstOrDefaultAsync();
-
-            if (employee == null)
+            foreach(var employee in employeesDTO)
             {
-                return null;
-            }
+                var user = await userManager.FindByEmailAsync(employee.Email);
+                var roleNames = await userManager.GetRolesAsync(user);
 
-            //  roleDictionary
-            var roleDictionary = await roleCacheService.GetRoleDictionaryAsync();
+                var rolesDict = new Dictionary<string, string>();
 
-            // record
-            var roleDto = await roleCacheService.GetRoleByUserIdAsync(employee.AppUser_Id);
-
-            //  mapping
-            var employeeDto = new EmployeeDTO
-            {
-                Id = employee.Id,
-                IsDeleted = employee.IsDeleted,
-                userId = employee.AppUser_Id,
-                Name = employee.ApplicationUser.UserName,
-                Phone = employee.ApplicationUser?.PhoneNumber,
-                Address = employee.ApplicationUser?.Address,
-                Email = employee.ApplicationUser?.Email,
-                RoleId = roleDto?.Id,
-                Role = roleDictionary.TryGetValue(roleDto?.Id ?? "", out var role) ? role : "no role",
-                branchId = employee.Branch_Id,
-                BranchName = employee.Branch.Name
-            };
-
-            return employeeDto;
-        }
-
-        //
-        public async Task<EmployeeDTO> UpdateAsync(int id, UpdateEmployeeDTO employeeDto)
-        {
-            //get from db
-            var employeeQuery = await unitOfWork.GetRepository<Employee>().GetAllAsync();
-            var employee = await employeeQuery
-                .Include(e => e.ApplicationUser)
-                .Include(e => e.Branch)
-                .Where(e => e.Id == id)
-                .FirstOrDefaultAsync();
-
-            if (employee == null)
-            {
-                return null;
-            }
-            //
-            var branch = await branchService.GetByIdAsync(employeeDto.branchId);
-            if (branch == null)
-            {
-                throw new Exception("Branch not found");
-            }
-            //
-            var appUser = employee.ApplicationUser;
-            appUser.UserName = employeeDto.Name;
-            appUser.Email = employeeDto.Email;
-            appUser.PhoneNumber = employeeDto.Phone;
-            appUser.Address = employeeDto.Address;
-
-            var result = await userManager.UpdateAsync(appUser);
-            if (!result.Succeeded)
-            {
-                throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
-            }
-
-            employee.Branch_Id = branch.Id;
-
-            await unitOfWork.SaveChangesAsync();
-
-            //
-            var roleDto = await roleCacheService.GetRoleByUserIdAsync(employee.AppUser_Id);
-
-
-            //mapping for output
-            var updatedEmployeeDto = new EmployeeDTO
-            {
-                Name = employeeDto.Name,
-                Email = employeeDto.Email,
-                Phone = employeeDto.Phone,
-                Address = employeeDto.Address,
-                branchId = employeeDto.branchId,
-
-                Id = employee.Id,
-                IsDeleted = employee.IsDeleted,
-                userId = employee.AppUser_Id,
-                RoleId = roleDto?.Id,
-                Role = roleDto?.Name ?? "no role",
-                BranchName = branch.Name
-            };
-
-            return updatedEmployeeDto;
-        }
-        public async Task<EmployeeDTO> AddAsync(CreateEmployeeDTO employeeDto)
-        {
-            //check role starts with employee
-            if (!employeeDto.Role.ToLower().StartsWith("employee"))
-            {
-                throw new Exception("Role must start with 'Employee'");
-            }
-
-            var role = await roleCacheService.GetByNameAsync(employeeDto.Role.Trim());
-            if (role == null)
-            {
-                throw new Exception($"Role {employeeDto.Role} not found");
-            }
-
-            var branch = await branchService.GetByIdAsync(employeeDto.branchId);
-            if (branch == null)
-            {
-                throw new Exception("Branch not found");
-            }
-
-            var appUser = new ApplicationUser
-            {
-                UserName = employeeDto.Name,
-                Email = employeeDto.Email,
-                PhoneNumber = employeeDto.Phone,
-                Address = employeeDto.Address
-            };
-
-            var result = await userManager.CreateAsync(appUser, employeeDto.Password);
-            if (!result.Succeeded)
-            {
-                throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
-            }
-
-            await userManager.AddToRoleAsync(appUser, role.Name);
-
-            var employee = new Employee
-            {
-                Branch_Id = branch.Id,
-                AppUser_Id = appUser.Id,
-                ApplicationUser = appUser
-            };
-
-            await unitOfWork.GetRepository<Employee>().AddAsync(employee);
-            await unitOfWork.SaveChangesAsync();
-
-            var createdEmployeeDto = new EmployeeDTO
-            {
-                Id = employee.Id,
-                IsDeleted = employee.IsDeleted,
-                userId = employee.AppUser_Id,
-                Name = employee.ApplicationUser.UserName,
-                Phone = employee.ApplicationUser?.PhoneNumber,
-                Address = employee.ApplicationUser?.Address,
-                Email = employee.ApplicationUser?.Email,
-                RoleId = role.Id,
-                Role = role.Name,
-                branchId = employee.Branch_Id,
-                BranchName = branch.Name
-            };
-
-            return createdEmployeeDto;
-        }
-        public async Task<string> DeleteAsync(int id)
-        {
-            try
-            {
-                var employeeQuery = await unitOfWork.GetRepository<Employee>().GetAllAsync();
-                var employee = await employeeQuery
-                    .Include(e => e.ApplicationUser)
-                    .Include(e => e.Branch)
-                    .Where(e => e.Id == id)
-                    .FirstOrDefaultAsync();
-
-                if (employee == null)
+                foreach (var roleName in roleNames)
                 {
-                    return $"Employee with ID {id} not found";
+                    var role = await roleManager.FindByNameAsync(roleName);
+                    if (role != null)
+                    {
+                        rolesDict[role.Id] = role.Name;
+                    }
                 }
 
-                if (employee.IsDeleted)
-                {
-                    return $"Employee with ID {id} is already deleted";
-                }
-
-                var roleDto = await roleCacheService.GetRoleByUserIdAsync(employee.AppUser_Id);
-
-                var employeeName = employee.ApplicationUser?.UserName ?? "Unknown";
-                var roleName = roleDto?.Name ?? "no role";
-                var branchName = employee.Branch?.Name ?? "Unknown";
-
-                if (employee.ApplicationUser != null)
-                {
-                    employee.ApplicationUser.IsDeleted = true;
-                    await userManager.UpdateAsync(employee.ApplicationUser);
-                }
-
-
-                unitOfWork.GetRepository<Employee>().Delete(employee);
-
-                await unitOfWork.SaveChangesAsync();
-
-                return $"Employee '{employeeName}' (ID: {id}, Role: {roleName}, Branch: {branchName}) deleted successfully";
+                employee.Roles = rolesDict;
             }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to delete employee with ID {id}: {ex.Message}");
-            }
+
+            return employeesDTO;
         }
+        
 
-        //search
-        public async Task<IEnumerable<EmployeeDTO>> GetEmployeesBySearch(string term, bool includeDeleted = true)
+        public new async Task<IEnumerable<EmployeeGetDTO>> GetAllExistAsync()
         {
-
-            IQueryable<Employee> query;
-            if (!includeDeleted)
-            {
-                query = await unitOfWork.GetRepository<Employee>().GetAllExistAsync();
-            }
-            else
-            {
-                query = await unitOfWork.GetRepository<Employee>().GetAllAsync();
-            }
-
-            var employees = await query
-                .Include(e => e.ApplicationUser)
-                .Include(e => e.Branch)
-                .Where(e => EF.Functions.Like(e.ApplicationUser.UserName, $"%{term}%"))
-                .ToListAsync();
-            //no emps
-            if (!employees.Any())
-            {
-                return new List<EmployeeDTO>();
-            }
-            //
-            var roleDictionary = await roleCacheService.GetRoleDictionaryAsync();
-            //
-            var employeeDtos = new List<EmployeeDTO>();
-            foreach (var e in employees)
-            {
-                var roleDto = await roleCacheService.GetRoleByUserIdAsync(e.AppUser_Id);
-
-                employeeDtos.Add(new EmployeeDTO
-                {
-                    Id = e.Id,
-                    IsDeleted = e.IsDeleted,
-                    userId = e.AppUser_Id,
-                    Name = e.ApplicationUser.UserName,
-                    Phone = e.ApplicationUser?.PhoneNumber,
-                    Address = e.ApplicationUser?.Address,
-                    Email = e.ApplicationUser?.Email,
-
-                    RoleId = roleDto?.Id,
-                    Role = roleDictionary.TryGetValue(roleDto?.Id ?? "", out var role) ? role : "no role",
-
-                    branchId = e.Branch_Id,
-                    BranchName = e.Branch.Name
-                });
-            }
-
-            return employeeDtos;
-        }
-
-        //search
-        public  async Task<IEnumerable<Employee>> GetEmployeeBySearch(string term, bool includeDelted = true)
-        {
-            IQueryable<Employee> query = null;
-            if (!includeDelted)
-            {
-                query = await unitOfWork.GetRepository<Employee>().GetAllExistAsync();
-            }
-
-             query = await unitOfWork.GetRepository<Employee>().GetAllAsync();
-
-            return await query
-                .Include(e => e.ApplicationUser)
-                .Include(e => e.Branch)
-                .Where(e => e.ApplicationUser.UserName.Contains(term))
-                .ToListAsync();
-        }
-
-
-
-        // get employees by role 
-        public async Task<IEnumerable<EmployeeDTO>> GetEmployeesByRole(string roleName)
-        {
-
-            //get useids by roles
-            var userIds = (await userManager.GetUsersInRoleAsync(roleName))
-                            .Select(u => u.Id)
-                            .ToList();
-
-            //filter emps by userids
             var query = await unitOfWork.GetRepository<Employee>().GetAllExistAsync();
-            var employees = await query
+            var employees =  query
                 .Include(e => e.ApplicationUser)
                 .Include(e => e.Branch)
-                .Where(e => userIds.Contains(e.ApplicationUser.Id))
-                .ToListAsync();
-          
-            //no emps
-            if (!employees.Any())
+                .ToList();
+
+            var employeesDTO = mapper.Map<List<EmployeeGetDTO>>(employees);
+
+            foreach (var employee in employeesDTO)
             {
-                return new List<EmployeeDTO>();
-            }
+                var user = await userManager.FindByEmailAsync(employee.Email);
+                var roleNames = await userManager.GetRolesAsync(user);
 
-            //  roleDictionary
-            var roleDictionary = await roleCacheService.GetRoleDictionaryAsync();
+                var rolesDict = new Dictionary<string, string>();
 
-            //  mapping
-            var employeeDtos = new List<EmployeeDTO>();
-            foreach (var e in employees)
-            {
-                //
-                var roleDto = await roleCacheService.GetRoleByUserIdAsync(e.AppUser_Id);
-
-                employeeDtos.Add(new EmployeeDTO
+                foreach (var roleName in roleNames)
                 {
-                    Id = e.Id,
-                    IsDeleted = e.IsDeleted,
-                    userId = e.AppUser_Id,
-                    Name = e.ApplicationUser.UserName,
-                    Phone = e.ApplicationUser?.PhoneNumber,
-                    Address = e.ApplicationUser?.Address,
-                    Email = e.ApplicationUser?.Email,
+                    var role = await roleManager.FindByNameAsync(roleName);
+                    if (role != null)
+                    {
+                        rolesDict[role.Id] = role.Name;
+                    }
+                }
 
-                    RoleId = roleDto?.Id,
-                    Role = roleDictionary.TryGetValue(roleDto?.Id ?? "", out var role) ? roleName : "no role",
-                   
-                    branchId = e.Branch_Id,
-                    BranchName = e.Branch.Name
-                });
+                employee.Roles = rolesDict;
             }
 
-            return employeeDtos;
+            return employeesDTO;
         }
 
 
+        public async Task<EmployeeGetDTO> GetByIdAsync(int id)
+        {
+
+            var query = await unitOfWork.GetRepository<Employee>().GetAllExistAsync();
+            var employee = await query
+                .Include(e => e.ApplicationUser)
+                .Include(e => e.Branch)
+                .FirstOrDefaultAsync(e => e.Id == id);
+
+            if (employee == null) throw new Exception("Not Found!.");
+
+            var employeeDTO = mapper.Map<EmployeeGetDTO>(employee);
+            
+            var user = await userManager.FindByEmailAsync(employeeDTO.Email);
+            var roleNames = await userManager.GetRolesAsync(user);
+
+            var rolesDict = new Dictionary<string, string>();
+            foreach (var roleName in roleNames)
+            {
+                var role = await roleManager.FindByNameAsync(roleName);
+                if (role != null)
+                {
+                    rolesDict[role.Id] = role.Name;
+                }
+            }
+
+            employeeDTO.Roles = rolesDict;
+
+            return employeeDTO;
+        }
 
 
+        public async Task AddAsync(CreateEmployeeDTO employeeFromReq)
+        {
+            var newUser = mapper.Map<ApplicationUser>(employeeFromReq);
+            var result = await userManager.CreateAsync(newUser, employeeFromReq.Password);
 
-        //transaction
+            if (!result.Succeeded) throw new Exception("Failed to create Employee!");
+
+            foreach (var roleId in employeeFromReq.Roles_Id)
+            {
+                var role = await roleManager.FindByIdAsync(roleId);
+                if (role == null)
+                {
+                    throw new Exception($"Role with ID '{roleId}' does not exist.");
+                }
+                else
+                {
+                    await userManager.AddToRoleAsync(newUser, role.Name);
+                }
+            }
+        }
+
+
+        public async Task UpdateAsync(int id, UpdateEmployeeDTO employeeFromReq)
+        {
+            var employee = await unitOfWork.GetRepository<Employee>().GetByIdAsync(id);
+            if (employee == null) throw new Exception("Not Found!");
+
+            employee.ApplicationUser ??= new ApplicationUser();
+            employee.ApplicationUser.UserName = employeeFromReq.Name;
+            employee.ApplicationUser.Email = employeeFromReq.Email;
+            employee.ApplicationUser.PhoneNumber = employeeFromReq.Phone;
+            employee.ApplicationUser.Address = employeeFromReq.Address;
+            employee.Branch_Id = employeeFromReq.Branch_Id;
+            employee.IsDeleted = employeeFromReq.IsDeleted;
+
+            foreach (var roleId in employeeFromReq.Roles_Id)
+            {
+                var role = await roleManager.FindByIdAsync(roleId);
+                var isRoleExist = await roleManager.RoleExistsAsync(role.Name);
+                if (!isRoleExist)
+                {
+                    throw new Exception($"Role with ID '{roleId}' does not exist.");
+                }
+                else
+                {
+                    var employeeExistRoles = await userManager.GetRolesAsync(employee.ApplicationUser);
+                    if (!employeeExistRoles.Contains(role.Name))
+                        await userManager.AddToRoleAsync(employee.ApplicationUser, role.Name);
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(employeeFromReq.CurrentPassword) &&
+                !string.IsNullOrWhiteSpace(employeeFromReq.NewPassword))
+            {
+                var user = await userManager.FindByIdAsync(employee.ApplicationUser.Id.ToString());
+
+                if (user != null)
+                {
+                    var isCurrentPasswordValid = await userManager.CheckPasswordAsync(user, employeeFromReq.CurrentPassword);
+                    if (!isCurrentPasswordValid) throw new Exception("Current password is incorrect.");
+
+                    var passwordResult = await userManager.ChangePasswordAsync(user, employeeFromReq.CurrentPassword, employeeFromReq.NewPassword);
+                    if (!passwordResult.Succeeded)
+                    {
+                        string errors = string.Join("; ", passwordResult.Errors.Select(e => e.Description));
+                        throw new Exception(errors);
+                    }
+                }
+            }
+
+            await serviceGeneric.UpdateAsync(employee);
+            await unitOfWork.SaveChangesAsync();
+        }
+
+
+        public async Task DeleteAsync(int id)
+        {
+            await serviceGeneric.DeleteAsync(id);
+            await unitOfWork.SaveChangesAsync();
+        }
+
 
         public async Task<IDbContextTransaction> BeginTransactionAsync()
         {
-
-              return    await  unitOfWork.Context.Database.BeginTransactionAsync();
-
-
+            return    await  unitOfWork.Context.Database.BeginTransactionAsync();
         }
-        //
+        
 
 
 
