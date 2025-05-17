@@ -26,5 +26,22 @@ namespace Shipping.Models
 
         public ShippingContext() : base() { }
         public ShippingContext (DbContextOptions<ShippingContext> options) : base(options) { }
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+
+            builder.Entity<ApplicationUserRole>(entity =>
+            {
+                entity.HasOne(ur => ur.Role)
+                    .WithMany(r => r.UserRoles)
+                    .HasForeignKey(ur => ur.RoleId)
+                    .IsRequired();
+
+                entity.HasOne(ur => ur.User)
+                    .WithMany(u => u.UserRoles)
+                    .HasForeignKey(ur => ur.UserId)
+                    .IsRequired();
+            });
+        }
     }
 }

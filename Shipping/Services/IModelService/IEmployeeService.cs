@@ -6,18 +6,14 @@ using Shipping.Models;
 namespace Shipping.Services.IModelService
 {
     public interface IEmployeeService : IServiceGeneric<Employee>
-    {      
+    {
         Task<IDbContextTransaction> BeginTransactionAsync();
-        Task<IEnumerable<EmployeeDTO>> GetEmployeesByRole(string roleName);
+        Task UpdateAsync(int id, UpdateEmployeeDTO employeeDto);
+        Task AddAsync(CreateEmployeeDTO employeeDto);
+        Task DeleteAsync(int id);
+        Task<EmployeeGetDTO> GetByIdAsync(int id);
 
-        Task<EmployeeDTO> UpdateAsync(int id, UpdateEmployeeDTO employeeDto);
-
-        Task<EmployeeDTO> AddAsync(CreateEmployeeDTO employeeDto);
-
-        Task<string> DeleteAsync(int id);
-        
-        Task<EmployeeDTO> GetByIdAsync(int id);
-
-        Task<IEnumerable<EmployeeDTO>> GetEmployeesBySearch(string term, bool includeDelted = true);
+        Task<IEnumerable<EmployeeGetDTO>> GetAllAsync();
+        Task<IEnumerable<EmployeeGetDTO>> GetAllExistAsync();
     }
 }

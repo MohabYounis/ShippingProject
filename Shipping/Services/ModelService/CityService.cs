@@ -10,13 +10,13 @@ namespace Shipping.Services.ModelService
     {
         public CityService(IUnitOfWork unitOfWork) : base(unitOfWork)
         {
+
         }
 
 
         public override async Task<IEnumerable<City>> GetAllAsync()
         {
-            var query = unitOfWork.GetRepository<City>().GetAllAsync();
-            var employees = await query;
+            var employees = await unitOfWork.GetRepository<City>().GetAllAsync();
             return employees
                 .Include(e => e.SpecialShippingRates)
                 .Include(e => e.Orders)
@@ -26,8 +26,7 @@ namespace Shipping.Services.ModelService
 
         public override async Task<IEnumerable<City>> GetAllExistAsync()
         {
-            var query = unitOfWork.GetRepository<City>().GetAllExistAsync();
-            var employees = await query;
+            var employees = await unitOfWork.GetRepository<City>().GetAllExistAsync();
             return employees
                 .Include(e => e.SpecialShippingRates)
                 .Include(e => e.Orders)
