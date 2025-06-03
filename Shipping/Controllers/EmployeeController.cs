@@ -42,7 +42,9 @@ namespace Shipping.Controllers
                         employees = employees
                             .Where(item =>
                                 (item.Name?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                                (item.Phone?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false)
+                                (item.Phone?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                                (item.BranchName?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                                (item.Email?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false)
                             )
                             .ToList();
 
