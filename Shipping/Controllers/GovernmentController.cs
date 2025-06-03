@@ -30,7 +30,7 @@ namespace Shipping.Controllers
         /// 404 Not Found if no items found,  
         /// 400 BadRequest if parameter 'all' is invalid.
         /// </returns>
-        [HttpGet]
+        [HttpGet("{all:alpha}")]
         public async Task<IActionResult> GetWithPaginationAndSearch(string? searchTxt, string all = "all", int page = 1, int pageSize = 10)
         {
             try

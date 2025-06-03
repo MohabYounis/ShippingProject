@@ -98,7 +98,7 @@ namespace Shipping.Services.ModelService
         public async Task<EmployeeGetDTO> GetByIdAsync(int id)
         {
 
-            var query = await unitOfWork.GetRepository<Employee>().GetAllExistAsync();
+            var query = await unitOfWork.GetRepository<Employee>().GetAllAsync();
             var employee = await query
                 .Include(e => e.ApplicationUser)
                 .Include(e => e.Branch)
@@ -152,51 +152,66 @@ namespace Shipping.Services.ModelService
         public async Task UpdateAsync(int id, UpdateEmployeeDTO employeeFromReq)
         {
             var employee = await unitOfWork.GetRepository<Employee>().GetByIdAsync(id);
-            if (employee == null) throw new Exception("Not Found!");
+            if (employee == null) throw new Exception("Employee not found.");
 
-            employee.ApplicationUser ??= new ApplicationUser();
-            employee.ApplicationUser.UserName = employeeFromReq.Name;
-            employee.ApplicationUser.Email = employeeFromReq.Email;
-            employee.ApplicationUser.PhoneNumber = employeeFromReq.Phone;
-            employee.ApplicationUser.Address = employeeFromReq.Address;
+            var user = await userManager.FindByIdAsync(employee.AppUser_Id.ToString());
+            if (user == null) throw new Exception("User not found.");
+
+            // ✅ 1. Check for unique email
+            var existingUserWithEmail = await userManager.FindByEmailAsync(employeeFromReq.Email);
+            if (existingUserWithEmail != null && existingUserWithEmail.Id != user.Id)
+                throw new Exception("Email already exists.");
+
+            // ✅ 2. Check for unique username
+            var existingUserWithName = await userManager.FindByNameAsync(employeeFromReq.Name);
+            if (existingUserWithName != null && existingUserWithName.Id != user.Id)
+                throw new Exception("Username already exists.");
+
+            // ✅ 3. Update basic fields
+            user.UserName = employeeFromReq.Name;
+            user.Email = employeeFromReq.Email;
+            user.PhoneNumber = employeeFromReq.Phone;
+            user.Address = employeeFromReq.Address;
+
             employee.Branch_Id = employeeFromReq.Branch_Id;
             employee.IsDeleted = employeeFromReq.IsDeleted;
+
+            // ✅ 4. Update roles (remove missing, add new)
+            var currentRoles = await userManager.GetRolesAsync(user);
+            var requestedRoles = new List<string>();
 
             foreach (var roleId in employeeFromReq.Roles_Id)
             {
                 var role = await roleManager.FindByIdAsync(roleId);
-                var isRoleExist = await roleManager.RoleExistsAsync(role.Name);
-                if (!isRoleExist)
-                {
+                if (role == null)
                     throw new Exception($"Role with ID '{roleId}' does not exist.");
-                }
-                else
-                {
-                    var employeeExistRoles = await userManager.GetRolesAsync(employee.ApplicationUser);
-                    if (!employeeExistRoles.Contains(role.Name))
-                        await userManager.AddToRoleAsync(employee.ApplicationUser, role.Name);
-                }
+
+                requestedRoles.Add(role.Name);
             }
 
+            var rolesToAdd = requestedRoles.Except(currentRoles);
+            var rolesToRemove = currentRoles.Except(requestedRoles);
+
+            if (rolesToAdd.Any())
+                await userManager.AddToRolesAsync(user, rolesToAdd);
+
+            if (rolesToRemove.Any())
+                await userManager.RemoveFromRolesAsync(user, rolesToRemove);
+
+            // ✅ 5. Change password if requested
             if (!string.IsNullOrWhiteSpace(employeeFromReq.CurrentPassword) &&
                 !string.IsNullOrWhiteSpace(employeeFromReq.NewPassword))
             {
-                var user = await userManager.FindByIdAsync(employee.ApplicationUser.Id.ToString());
+                var isCurrentPasswordValid = await userManager.CheckPasswordAsync(user, employeeFromReq.CurrentPassword);
+                if (!isCurrentPasswordValid) throw new Exception("Current password is incorrect.");
 
-                if (user != null)
-                {
-                    var isCurrentPasswordValid = await userManager.CheckPasswordAsync(user, employeeFromReq.CurrentPassword);
-                    if (!isCurrentPasswordValid) throw new Exception("Current password is incorrect.");
-
-                    var passwordResult = await userManager.ChangePasswordAsync(user, employeeFromReq.CurrentPassword, employeeFromReq.NewPassword);
-                    if (!passwordResult.Succeeded)
-                    {
-                        string errors = string.Join("; ", passwordResult.Errors.Select(e => e.Description));
-                        throw new Exception(errors);
-                    }
-                }
+                var passwordResult = await userManager.ChangePasswordAsync(user, employeeFromReq.CurrentPassword, employeeFromReq.NewPassword);
+                if (!passwordResult.Succeeded)
+                    throw new Exception(string.Join("; ", passwordResult.Errors.Select(e => e.Description)));
             }
 
+            // ✅ 6. Save all changes
+            await userManager.UpdateAsync(user);
             await serviceGeneric.UpdateAsync(employee);
             await unitOfWork.SaveChangesAsync();
         }
