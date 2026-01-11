@@ -22,52 +22,72 @@
                 _weigtService = weigtService;
                 this.mapper = mapper;
             }
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] WeightPricingDTO weighReq)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-            try
-            {
-                // Attempt to add the weight pricing
-                var result = await _weigtService.AddWeightAsync(weighReq);
-                return Ok(result);
-            }
-            catch (InvalidOperationException ex)
-            {
-                // If it already exists, return a specific message
-                return BadRequest(ex.Message);
-            }
-            catch (RequestFailedException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
 
-        [HttpPut]
-        public async Task<IActionResult> Update([FromBody] WeightPricingDTO weighReq)
-        {
-            if (!ModelState.IsValid)
+            
+            [HttpGet("{id:int}")]
+            public async Task<IActionResult> GetById(int id)
             {
-                return BadRequest(ModelState);
+                try
+                {
+                    var weightPricingObj = await _weigtService.GetByIdAsync(id);
+                    if(weightPricingObj == null) return NotFound();
+
+                    var weightPricingDTO = mapper.Map<WeightPricingDTO>(weightPricingObj);
+                    return Ok(weightPricingDTO);
+                }
+                catch (Exception ex) 
+                {
+                    return StatusCode(500, ex.Message);
+                }
             }
-            try
+            
+            
+            [HttpPost]
+            public async Task<IActionResult> Create([FromBody] WeightPricingDTO weighReq)
             {
-                var weigh = mapper.Map<WeightPricing>(weighReq);
-                var myWeighAfterUpdate = await _weigtService.UpdateWeightAsync(weigh);
-                return Ok(mapper.Map(myWeighAfterUpdate, weighReq));
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+                try
+                {
+                    // Attempt to add the weight pricing
+                    var result = await _weigtService.AddWeightAsync(weighReq);
+                    return Ok(result);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    // If it already exists, return a specific message
+                    return BadRequest(ex.Message);
+                }
+                catch (RequestFailedException ex)
+                {
+                    return BadRequest(ex.Message);
+                }
             }
-            catch (InvalidOperationException ex)
+            
+            
+            [HttpPut]
+            public async Task<IActionResult> Update([FromBody] WeightPricingDTO weighReq)   
             {
-                // Handle case where update is attempted but no record exists
-                return BadRequest(ex.Message);
-            }
-            catch (RequestFailedException ex)
-            {
-                return BadRequest(ex.Message);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+                try
+                {
+                    var weigh = mapper.Map<WeightPricing>(weighReq);
+                    var myWeighAfterUpdate = await _weigtService.UpdateWeightAsync(weigh);
+                    return Ok(mapper.Map(myWeighAfterUpdate, weighReq));
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return BadRequest(ex.Message);
+                }
+                catch (RequestFailedException ex)
+                {
+                    return BadRequest(ex.Message);
+                }
             }
         }
-    }
     }

@@ -36,12 +36,5 @@ namespace Shipping.Services.ModelService
                 .Include(e => e.BranchMerchants).ThenInclude(n => n.Branch)
                 .ToList();
         }
-
-        public async Task<Merchant> GetAllExistByPhoneNumberAsync(string phone)
-        {
-            var query = await unitOfWork.GetRepository<Merchant>().GetAllExistAsync();
-            var employees = query.FirstOrDefault(m => m.ApplicationUser.PhoneNumber == phone);
-            return employees;
-        }
     }
 }

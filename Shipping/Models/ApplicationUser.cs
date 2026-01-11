@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using System.Text.Json.Serialization;
 
 namespace Shipping.Models
 {
@@ -9,7 +10,8 @@ namespace Shipping.Models
         public DateTime? CreatedDate { get; set; } = DateTime.Now;
         public bool IsDeleted { get; set; } = false;
         public virtual Merchant? Merchant { get; set; }
-        public virtual Employee? Employee { get; set; } 
+        public virtual Employee? Employee { get; set; }
         public virtual Delivery? Delivery { get; set; }
+        public virtual IEnumerable<ApplicationUserRole> UserRoles { get; set; } = new List<ApplicationUserRole>();
     }
 }
