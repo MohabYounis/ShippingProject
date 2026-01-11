@@ -7,6 +7,7 @@ using Microsoft.OpenApi.Models;
 using Shipping.Configration;
 using Shipping.Controllers;
 using Shipping.DTOs;
+using Shipping.Fillter;
 using Shipping.ImodelRepository;
 using Shipping.modelRepository;
 using Shipping.Models;
@@ -20,6 +21,7 @@ using Shipping.SignalRHubs;
 using Shipping.UnitOfWorks;
 using SHIPPING.Services;
 using System.Text;
+using System.Threading.RateLimiting;
 
 namespace Shipping
 {
@@ -30,7 +32,8 @@ namespace Shipping
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-            builder.Services.AddControllers().ConfigureApiBehaviorOptions(options => options.SuppressModelStateInvalidFilter = true);
+            builder.Services.AddControllers(options =>options.Filters.Add<LogActionFilter>())
+            .ConfigureApiBehaviorOptions(options=> options.SuppressModelStateInvalidFilter = true);
 
             // Add OpenAPI (Swagger) support
             builder.Services.AddOpenApi();
@@ -177,9 +180,37 @@ namespace Shipping
                 });
 
 
+            builder.Services.AddRateLimiter(options =>
+            {
+                // ده اسم Policy هنستخدمه بعدين
+                options.AddPolicy("fixed-by-ip", httpContext =>
+                {
+                    var ip = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+                    // بنقول: اعمل limiter لكل IP لوحده
+                    return RateLimitPartition.GetFixedWindowLimiter(
+                        partitionKey: ip,
+                        factory: _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = 10,              // كام request مسموح في الويندو
+                            Window = TimeSpan.FromMinutes(1), // مدة الويندو
+                            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                            QueueLimit = 0                  // 0 يعني مفيش Queue: اللي ييجي زيادة يترفض فورًا
+                        });
+                });
+
+                // لو اتمنع request يرجّع 429
+                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+            });
+
             //Email smtp
             builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
             builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+
+            builder.Logging.ClearProviders();
+            builder.Logging.AddConsole();
+            builder.Logging.AddDebug();
+
 
             // For Profile Image
             builder.Services.Configure<FormOptions>(options =>
@@ -196,13 +227,14 @@ namespace Shipping
                            .AllowAnyHeader();
                 });
             });
+           
 
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
-                app.UseHttpsRedirection();
+                //app.UseHttpsRedirection();
                 app.UseSwagger(); 
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Shipping API V1"));
                
@@ -211,18 +243,18 @@ namespace Shipping
             // تكوين نقطة نهاية لـ SignalR
             app.MapHub<CityHub>("/cityHub");
 
-            //app.UseHttpsRedirection();
+            app.UseHttpsRedirection();
 
             app.UseStaticFiles();
-
-            app.UseCors("CorsPolicy");
-
             app.UseRouting();
+            app.UseCors("CorsPolicy");
             app.UseAuthentication();
 
-            app.UseAuthorization();
 
-            app.MapControllers();
+            app.UseAuthorization();
+            app.UseRateLimiter();
+
+            app.MapControllers().RequireRateLimiting("fixed-by-ip");
 
             app.Run();
         }
