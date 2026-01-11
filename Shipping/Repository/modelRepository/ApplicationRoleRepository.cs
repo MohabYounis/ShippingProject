@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Shipping.Models;
 using Shipping.Repository.ImodelRepository;
 using Shipping.UnitOfWorks;
@@ -8,25 +9,26 @@ namespace Shipping.Repository.modelRepository
 {
     public class ApplicationRoleRepository : IApplicationRoleRepository
     {
-
         public ShippingContext Context { get; }
-        public ApplicationRoleRepository(ShippingContext context)
-        {
-            this.Context = context ?? throw new ArgumentNullException(nameof(context));
-        }
 
+        readonly UserManager<ApplicationUser> userManager;
+        public ApplicationRoleRepository(ShippingContext context, UserManager<ApplicationUser> userManager)
+        {
+            this.Context = context;
+            this.userManager = userManager;
+        }
         public async Task AddAsync(ApplicationRole entity)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
 
             await Context.AddAsync(entity);
         }
-
         public void Delete(ApplicationRole entity)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
-            EF.Property<bool>(entity, "IsDeleted");
+
             entity.GetType().GetProperty("IsDeleted")?.SetValue(entity, true);
+
             Context.Update(entity);
         }
 
@@ -34,10 +36,12 @@ namespace Shipping.Repository.modelRepository
         {
             ApplicationRole tentityObj = await GetByIdAsync(id);
             if (tentityObj == null) throw new KeyNotFoundException($"Entity with ID {id} not found.");
-            EF.Property<bool>(tentityObj, "IsDeleted");
+
             tentityObj.GetType().GetProperty("IsDeleted")?.SetValue(tentityObj, true);
+
             Context.Update(tentityObj);
         }
+
 
         public async Task<IEnumerable<ApplicationRole>> GetAllAsyncExist()
         {
@@ -45,8 +49,6 @@ namespace Shipping.Repository.modelRepository
                      .Where(e => !EF.Property<bool>(e, "IsDeleted"))
                      .ToListAsync();
         }
-
-        //
 
         public async Task<IEnumerable<ApplicationRole>> GetAllAsync()
         {
@@ -79,35 +81,44 @@ namespace Shipping.Repository.modelRepository
 
         public async Task SaveDB()
         {
-            await Context.SaveChangesAsync();
+            try
+            {
+                await Context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving changes: {ex.Message}");
+            }
         }
 
-        public Task<IQueryable<ApplicationRole>> GetQueryableRolesAsync(bool includeDeleted)
-        {
-            IQueryable<ApplicationRole> query = Context.Set<ApplicationRole>();
 
-            if (!includeDeleted)
+        public async Task<ApplicationRole> GetRoleByUserIdAsync(string userId)
+        {
+            //get user 
+            var user = await userManager.FindByIdAsync(userId);
+            if (user == null)
             {
-                query = query.Where(role => !EF.Property<bool>(role, "IsDeleted"));
+                return null;
             }
 
-            return Task.FromResult(query);
+            //get roles
+            var roles = await userManager.GetRolesAsync(user);
+            if (roles == null || !roles.Any())
+            {
+                return null;
+            }
+
+            var roleName = roles.FirstOrDefault();
+            var role = await Context.Roles
+                .Where(r => r.Name == roleName && !EF.Property<bool>(r, "IsDeleted"))
+                .FirstOrDefaultAsync();
+
+            if (role == null)
+            {
+                return null;
+            }
+
+            return role;
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,4 +1,5 @@
-﻿using Shipping.Models;
+﻿using Shipping.DTOs.ProductDtos;
+using Shipping.Models;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -55,13 +56,13 @@ namespace Shipping.DTOs.OrderDTOs
         public float OrderTotalWeight { get; set; }
 
         [StringLength(250)]
-        public string? MerchantNotes { get; set; }
+        public string? MerchantNotes { get; set; } = "";
 
         [StringLength(250)]
-        public string? EmployeeNotes { get; set; }
+        public string? EmployeeNotes { get; set; } = "";
 
         [StringLength(250)]
-        public string? DeliveryNotes { get; set; }
-        public List<Product>? Products { get; set; }
+        public string? DeliveryNotes { get; set; } = "";
+        public List<CreateEditProductForOrder>? Products { get; set; }
     }
 }

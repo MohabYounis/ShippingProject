@@ -11,7 +11,6 @@ namespace Shipping.DTOs.CityDTOs
         [Display(Name = "Governrator")]
         public string GovernmentName { get; set; }
         public bool IsDeleted { get; set; }
-        public decimal? PickupShipping { get; set; }
         public decimal? StandardShipping { get; set; }
     }
 }

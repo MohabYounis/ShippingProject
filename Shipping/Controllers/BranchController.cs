@@ -27,6 +27,20 @@ namespace Shipping.Controllers
         }
 
 
+        /// <summary>
+        /// Retrieves a paginated and optionally filtered list of branches.
+        /// </summary>
+        /// <param name="searchTxt">Optional text to search branches by name.</param>
+        /// <param name="all">
+        /// A filter to specify the type of branches to retrieve: 
+        /// "all" for all branches, "exist" for non-deleted branches.
+        /// </param>
+        /// <param name="page">The page number for pagination (default is 1).</param>
+        /// <param name="pageSize">Number of items per page (default is 10).</param>
+        /// <returns>
+        /// Returns 200 OK with a list of branches, 404 Not Found if no matches are found, 
+        /// or 400 Bad Request if the 'all' parameter is invalid.
+        /// </returns>
         [HttpGet("{all:alpha}")]
         public async Task<ActionResult> GetWithPaginationAndSearch(string? searchTxt, string all = "all", int page = 1, int pageSize = 10)
         {
@@ -86,8 +100,14 @@ namespace Shipping.Controllers
                 return StatusCode(500, GeneralResponse.Failure(ex.Message));
             }
         }
-        
 
+        /// <summary>
+        /// Retrieves the details of a specific branch by its ID.
+        /// </summary>
+        /// <param name="id">The ID of the branch.</param>
+        /// <returns>
+        /// Returns 200 OK with the branch details, or 404 Not Found if the branch doesn't exist.
+        /// </returns>
         [HttpGet("{id:int}")]
         public async Task<ActionResult> GetById(int id)
         {
@@ -116,7 +136,15 @@ namespace Shipping.Controllers
             }
         }
 
-
+        /// <summary>
+        /// Creates a new branch after validating mobile number and checking for duplicates.
+        /// </summary>
+        /// <param name="branchDto">The data for the new branch.</param>
+        /// <returns>
+        /// Returns 200 OK if created successfully, 
+        /// 400 BadRequest if validation fails or branch already exists,
+        /// or 500 Internal Server Error if an unexpected error occurs.
+        /// </returns>
         [HttpPost]
         public async Task<ActionResult> Create([FromBody] BranchCreateDTO branchDto)
         {
@@ -192,7 +220,16 @@ namespace Shipping.Controllers
             }
         }
 
-
+        /// <summary>
+        /// Updates an existing branch by its ID.
+        /// </summary>
+        /// <param name="id">The ID of the branch to update.</param>
+        /// <param name="updatedBranchDto">The updated branch data.</param>
+        /// <returns>
+        /// Returns 200 OK if updated successfully, 
+        /// 404 NotFound if the branch doesn't exist, 
+        /// or 400 BadRequest if validation fails.
+        /// </returns>
         [HttpPut("{id:int}")]
         public async Task<ActionResult> Update(int id, [FromBody] BranchEditDTO updatedBranchDto)
         {
@@ -223,7 +260,14 @@ namespace Shipping.Controllers
             }
         }
 
-
+        /// <summary>
+        /// Deletes a branch by its ID.
+        /// </summary>
+        /// <param name="id">The ID of the branch to delete.</param>
+        /// <returns>
+        /// Returns 200 OK if deleted successfully, 
+        /// or 500 Internal Server Error if deletion fails.
+        /// </returns>
         [HttpDelete("{id:int}")]
         public async Task<ActionResult> Delete(int id)
         {
