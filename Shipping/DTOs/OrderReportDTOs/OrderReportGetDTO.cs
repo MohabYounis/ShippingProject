@@ -13,8 +13,7 @@ namespace Shipping.DTOs.OrderReportDTOs
         public string City { get; set; }
         public decimal OrderCost { get; set; }
         public decimal ShippingCost { get; set; }
-        public decimal? DeliveryRight { get; set; }
-        public decimal? CompanyRight { get; set; }
+        public decimal? CompanyRights { get; set; }
         public string CreatedDate { get; set; }
     }
 }

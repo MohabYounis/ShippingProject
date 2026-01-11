@@ -1,11 +1,18 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Shipping.DTOs;
 using Shipping.DTOs.DeliveryDTOs;
 using Shipping.DTOs.GovernmentDTOs;
+using Shipping.DTOs.MerchantDTOs;
 using Shipping.Models;
+using Shipping.Repository;
 using Shipping.Services;
 using Shipping.Services.IModelService;
+using Shipping.Services.ModelService;
+using System.Transactions;
 
 namespace Shipping.Controllers
 {
@@ -26,14 +33,6 @@ namespace Shipping.Controllers
             this.governmentService = governmentService;
         }
 
-        /// <summary>
-        /// Retrieves a delivery by its ID.
-        /// </summary>
-        /// <param name="id">The delivery ID.</param>
-        /// <returns>
-        /// 200 OK with the delivery details,  
-        /// 404 Not Found if no delivery found.
-        /// </returns>
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -58,18 +57,6 @@ namespace Shipping.Controllers
             return Ok(Dto);
         }
 
-        /// <summary>
-        /// Retrieves deliveries with optional search and pagination.
-        /// </summary>
-        /// <param name="searchTxt">Optional search by name or phone number.</param>
-        /// <param name="all">'all' to get all deliveries, 'exist' to get non-deleted deliveries only.</param>
-        /// <param name="page">Page number (default: 1).</param>
-        /// <param name="pageSize">Page size (default: 10).</param>
-        /// <returns>
-        /// 200 OK with paginated list of deliveries,  
-        /// 404 Not Found if none found,  
-        /// 400 BadRequest if 'all' parameter is invalid.
-        /// </returns>
         [HttpGet("{all:alpha}")]
         public async Task<ActionResult> GetWithPaginationAndSearch(string? searchTxt, string all = "all", int page = 1, int pageSize = 10)
         {
@@ -104,7 +91,7 @@ namespace Shipping.Controllers
                     .Take(pageSize)
                     .ToList();
 
-                    var deliveryExist = delivery.ToList();
+                    var deliveryExist = delivery.Where(i => !i.IsDeleted).ToList();
 
                     List<ShowDeliveryDto> deliveryDTO = deliveryExist.Select(delivery => new ShowDeliveryDto
                     {
@@ -131,14 +118,6 @@ namespace Shipping.Controllers
             }
         }
 
-        /// <summary>
-        /// Retrieves deliveries that belong to a specific branch.
-        /// </summary>
-        /// <param name="branchId">The branch ID.</param>
-        /// <returns>
-        /// 200 OK with list of deliveries,  
-        /// 404 Not Found if branch or deliveries are missing.
-        /// </returns>
         [HttpGet("Branch/{branchId:int}")]
         public async Task<IActionResult> GetByBranchId(int branchId)
         {
@@ -166,15 +145,6 @@ namespace Shipping.Controllers
 
             return Ok(deliveryDtos);
         }
-
-        /// <summary>
-        /// Retrieves governments assigned to deliveries in a specific branch.
-        /// </summary>
-        /// <param name="branchId">The branch ID.</param>
-        /// <returns>
-        /// 200 OK with list of governments,  
-        /// 404 Not Found if branch or governments are missing.
-        /// </returns>
         [HttpGet("GovernmentByBranch/{branchId:int}")]
         public async Task<IActionResult> GetGovernmentByBranch(int branchId)
         {
@@ -195,15 +165,9 @@ namespace Shipping.Controllers
             return Ok(governmentDtos);
         }
 
-        /// <summary>
-        /// Adds a new delivery.
-        /// </summary>
-        /// <param name="deliveryDTO">The delivery creation DTO.</param>
-        /// <returns>
-        /// 200 OK if added successfully,  
-        /// 400 BadRequest if validation fails,  
-        /// 500 Internal Server Error if exception occurs.
-        /// </returns>
+
+
+
         [HttpPost]
         public async Task<IActionResult> AddDelivery(DeliveryCreateDTO deliveryDTO)
         {
@@ -226,16 +190,7 @@ namespace Shipping.Controllers
             }
         }
 
-        /// <summary>
-        /// Updates a delivery by ID.
-        /// </summary>
-        /// <param name="id">The delivery ID.</param>
-        /// <param name="deliveryDTO">The delivery update DTO.</param>
-        /// <returns>
-        /// 200 OK if updated successfully,  
-        /// 400 BadRequest if validation fails,  
-        /// 404 Not Found if delivery not found.
-        /// </returns>
+
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdateDelivery(int id, DeliveryEditDTO deliveryDTO)
         {
@@ -252,21 +207,14 @@ namespace Shipping.Controllers
             return Ok(new {success=true,message= "Delivery updated successfully." });
         }
 
-        /// <summary>
-        /// Deletes a delivery by ID (soft delete).
-        /// </summary>
-        /// <param name="id">The delivery ID.</param>
-        /// <returns>
-        /// 200 OK if deleted successfully,  
-        /// 404 Not Found if delivery not found,  
-        /// 400 BadRequest if already deleted.
-        /// </returns>
+
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
             var delivery = await deliveryService.GetDeliveryByIdAsync(id);
             if (delivery == null) return NotFound(new {success=false,message= "Not Found." });
             if (delivery.IsDeleted) return BadRequest(new { success = false, message = "Delivery is already deleted." });
+
 
             await deliveryService.DeleteAsync(id);
             await deliveryService.SaveChangesAsync();

@@ -28,8 +28,10 @@ namespace Shipping.Repository
 
         public Task<IQueryable<Tentity>> GetAllExistAsync()
         {
+            
             return Task.FromResult(Context.Set<Tentity>().AsQueryable()
                 .Where(e=>!EF.Property<bool>(e, "IsDeleted")));
+         
         }
 
         public Task<IQueryable<Tentity>> GetAllAsync()
@@ -39,9 +41,12 @@ namespace Shipping.Repository
 
         public async Task AddAsync(Tentity entity)
         {
-            await Context.AddAsync(entity);
-        }
 
+
+            await Context.AddAsync(entity);
+
+        }
+        // will be delted
         public async Task UpdateById(int id)
         {
             Tentity tentityObj = await GetByIdAsync(id);
@@ -79,11 +84,6 @@ namespace Shipping.Repository
             var nameProperty = entityType.GetProperty("Name");
             if (nameProperty == null) return null;
             return await Context.Set<Tentity>().FirstOrDefaultAsync(t => EF.Property<string>(t, "Name") == name);
-        }
-
-        public async Task<Tentity> GetByUserIdAsync(string userId)
-        {
-            return await Context.Set<Tentity>().FirstOrDefaultAsync(t => EF.Property<string>(t, "AppUser_Id") == userId);
         }
     }
 }

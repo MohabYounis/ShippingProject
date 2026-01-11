@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Shipping.DTOs;
@@ -8,6 +10,8 @@ using Shipping.DTOs.SpecialShippingRatesDTOs;
 using Shipping.Models;
 using Shipping.Services;
 using Shipping.Services.IModelService;
+using Shipping.UnitOfWorks;
+using SHIPPING.Services;
 
 namespace Shipping.Controllers
 {
@@ -91,7 +95,7 @@ namespace Shipping.Controllers
             try
             {
                 var merchant = await service.GetByIdAsync(id);
-                var merchantDTO = mapper.Map<MerchantCreateDTO>(merchant);
+                MerchantGetDTO merchantDTO = mapper.Map<MerchantGetDTO>(merchant);
                 return Ok(GeneralResponse.Success(merchantDTO));
             }
             catch (Exception ex)

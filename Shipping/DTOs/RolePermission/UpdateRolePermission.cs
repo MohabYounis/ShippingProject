@@ -5,8 +5,6 @@ namespace Shipping.DTOs.RolePermission
     public class UpdateRolePermission
     {
 
-        public int Permission_Id { get; set; }
-
         public string Role_Id { get; set; }
         public bool CanView { get; set; } = false;
         public bool CanEdit { get; set; } = false;

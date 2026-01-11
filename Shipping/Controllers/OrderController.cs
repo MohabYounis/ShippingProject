@@ -1,14 +1,13 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using Shipping.DTOs;
+using Shipping.DTOs.MerchantDTOs;
 using Shipping.DTOs.OrderDTOs;
 using Shipping.Models;
 using Shipping.Services;
 using Shipping.Services.IModelService;
 using Shipping.Services.ModelService;
-using Shipping.SignalRHubs;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Shipping.Controllers
@@ -19,16 +18,15 @@ namespace Shipping.Controllers
     {
         IMapper mapper;
         IOrderService orderService;
+        IDeliveryService deliveryService;
         UserManager<ApplicationUser> userManager;
-        IHubContext<OrderHub> hubContext;
 
-        public OrderController(IMapper mapper, IOrderService orderService, UserManager<ApplicationUser> userManager, 
-            IHubContext<OrderHub> hubContext)
+        public OrderController(IMapper mapper, IOrderService orderService, UserManager<ApplicationUser> userManager, IDeliveryService deliveryService)
         {
             this.mapper = mapper;
             this.orderService = orderService;
             this.userManager = userManager;
-            this.hubContext = hubContext;
+            this.deliveryService = deliveryService;
         }
 
         //------------------------------------------------------------------------------------------------------------------------------------
@@ -62,7 +60,8 @@ namespace Shipping.Controllers
                             .Where(item =>
                                 (item.ClientName?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false) ||
                                 (item.ClientPhone1?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                                (item.ClientPhone2?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false)
+                                (item.ClientPhone2?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                                (item.ClientEmail?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false)
                             )
                             .ToList();
 
@@ -120,6 +119,7 @@ namespace Shipping.Controllers
                 return StatusCode(500, GeneralResponse.Failure(ex.Message));
             }
         }
+
         //------------------------------------------------------------------------------------------------------------------------------------
 
         [HttpGet("Delivery/{id:int}/{orderStatus:alpha}/{all:alpha}")]
@@ -283,59 +283,6 @@ namespace Shipping.Controllers
 
         //------------------------------------------------------------------------------------------------------------------------------------
 
-        [HttpGet("{orderStatus:alpha}")]
-        [EndpointSummary("Get orders count by status for dashboard presentation")]
-        public async Task<ActionResult> GetOrdersCountByStatusForEmployeeOrMerchant(string role, int? id, string orderStatus = "New")
-        {
-            try
-            {
-                var ordersCount = await orderService.CalculateOrdersCountByStatus(role, id, orderStatus);
-                return Ok(GeneralResponse.Success(ordersCount));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, GeneralResponse.Failure(ex.Message));
-            }
-        }
-
-        //------------------------------------------------------------------------------------------------------------------------------------
-
-        [HttpGet("{id:int}")]
-        [EndpointSummary("Get order by id")]
-        public async Task<ActionResult> GetOrderById(int id)
-        {
-            try
-            {
-                var orderById = await orderService.GetByIdAsync(id);
-                var orderDTO = mapper.Map<OrderCreateEditDTO>(orderById);
-                return Ok(GeneralResponse.Success(orderDTO));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, GeneralResponse.Failure(ex.Message));
-            }
-        }
-        
-        //------------------------------------------------------------------------------------------------------------------------------------
-
-        [HttpGet("details/{id:int}")]
-        [EndpointSummary("Get order details")]
-        public async Task<ActionResult> GetOrderDetailsById(int id)
-        {
-            try
-            {
-                var orderById = await orderService.GetByIdAsync(id);
-                var orderDTO = mapper.Map<OrderGetDetailsDTO>(orderById);
-                return Ok(GeneralResponse.Success(orderDTO));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, GeneralResponse.Failure(ex.Message));
-            }
-        }
-
-        //------------------------------------------------------------------------------------------------------------------------------------
-
         [HttpPost]
         [EndpointSummary("Create order and calculate its shipping cost")]
         public async Task<ActionResult> CreateOrder(OrderCreateEditDTO orderFromReq)
@@ -358,11 +305,7 @@ namespace Shipping.Controllers
                 await orderService.AddAsync(order);
                 await orderService.SaveChangesAsync();
 
-                // SignalR
-                var orderGetDTO = mapper.Map<OrderGetDTO>(order);
-                await hubContext.Clients.All.SendAsync("CreateOrder", orderGetDTO);
-
-                return Ok(GeneralResponse.Success("Order created successfully."));
+                return Ok(GeneralResponse.Success(order, "Order created successfully."));
             }
             catch (Exception ex)
             {
@@ -385,28 +328,33 @@ namespace Shipping.Controllers
             }
             try
             {
-                
-
                 var existingOrder = await orderService.GetByIdAsync(id);
-                if (existingOrder == null)
-                    return NotFound(GeneralResponse.Failure("Not Found."));
+                if (existingOrder == null) return NotFound(GeneralResponse.Failure("Not Found."));
 
-                // Updating shipping cost 
-                decimal totalShippingCost = await orderService.CalculateShippingCost(orderEditDTO);
-                existingOrder.ShippingCost = totalShippingCost;
-
-                // AutoMapper: Update existing entity with values from DTO
-                mapper.Map(orderEditDTO, existingOrder);
+                existingOrder.Merchant_Id = orderEditDTO.Merchant_Id;
+                existingOrder.Branch_Id = orderEditDTO.Branch_Id;
+                existingOrder.Government_Id = orderEditDTO.Government_Id;
+                existingOrder.ShippingType_Id = orderEditDTO.ShippingType_Id;
+                existingOrder.City_Id = orderEditDTO.City_Id;
+                existingOrder.OrderType = Enum.Parse<OrderType>(orderEditDTO.OrderType);
+                existingOrder.ClientName = orderEditDTO.ClientName;
+                existingOrder.ClientPhone1 = orderEditDTO.ClientPhone1;
+                existingOrder.ClientPhone2 = orderEditDTO.ClientPhone2;
+                existingOrder.ClientEmail = orderEditDTO.ClientEmail;
+                existingOrder.ClientAddress = orderEditDTO.ClientAddress;
+                existingOrder.DeliverToVillage = orderEditDTO.DeliverToVillage;
+                existingOrder.PaymentType = Enum.Parse<PaymentTypee>(orderEditDTO.PaymentType);
+                existingOrder.OrderCost = orderEditDTO.OrderCost;
+                existingOrder.OrderTotalWeight = orderEditDTO.OrderTotalWeight;
+                existingOrder.MerchantNotes = orderEditDTO.MerchantNotes;
+                existingOrder.EmployeeNotes = orderEditDTO.EmployeeNotes;
+                existingOrder.DeliveryNotes = orderEditDTO.DeliveryNotes;
+                existingOrder.Products = orderEditDTO.Products;
 
                 await orderService.UpdateAsync(existingOrder);
                 await orderService.SaveChangesAsync();
 
-                // SignalR
-                var orderGetDTO = mapper.Map<OrderGetDTO>(existingOrder);
-                await hubContext.Clients.All.SendAsync("OrderEdit", orderGetDTO);
-
-                return Ok(GeneralResponse.Success("Order updated successfully."));
-
+                return Ok(GeneralResponse.Success(existingOrder, "Order updated successfully."));
             }
             catch (Exception ex)
             {
@@ -427,8 +375,7 @@ namespace Shipping.Controllers
 
                 if (user == null || order == null) return NotFound(GeneralResponse.Failure("User or order is Not Found"));
 
-                var userRole = await userManager.IsInRoleAsync(user, "delivery");
-                OrderGetDTO orderGetDTO;
+                var userRole = await userManager.IsInRoleAsync(user, "Deliver");
                 if (userRole)
                 {
                     order.Delivery_Id = null; // لغيت اسنادة لدلفري
@@ -440,22 +387,14 @@ namespace Shipping.Controllers
                     await orderService.UpdateAsync(order);
                     await orderService.SaveChangesAsync();
 
-                    // SignalR
-                    orderGetDTO = mapper.Map<OrderGetDTO>(order);
-                    await hubContext.Clients.All.SendAsync("CancelAssignOrder", orderGetDTO);
-
                     string message = $"Delivery [{(user.UserName.ToUpper())}] has canceled the assignment of the order with serial number [{order.SerialNumber}]";
-                    return Ok(GeneralResponse.Success(message));
+                    return Ok(GeneralResponse.Success(order, message));
                 }
 
                 await orderService.DeleteAsync(orderId);
                 await orderService.SaveChangesAsync();
 
-                // SignalR
-                orderGetDTO = mapper.Map<OrderGetDTO>(order);
-                await hubContext.Clients.All.SendAsync("DeleteOrder", orderGetDTO);
-
-                return Ok(GeneralResponse.Success("Order deleted successfully by employee."));
+                return Ok(GeneralResponse.Success(order, "Order deleted successfully by employee."));
             }
             catch (Exception ex)
             {
@@ -465,7 +404,7 @@ namespace Shipping.Controllers
 
         //------------------------------------------------------------------------------------------------------------------------------------
 
-        [HttpPut("{orderId:int}/{userId:Guid}/{newStatus:alpha}")]
+        [HttpPut("{orderId:int}/{userId:alpha}/{newStatus:alpha}")]
         [EndpointSummary("Change order status.")]
         public async Task<ActionResult> ChangeStatusById(int orderId, string userId, string newStatus, string note = "")
         {
@@ -485,11 +424,8 @@ namespace Shipping.Controllers
                 await orderService.UpdateAsync(order);
                 await orderService.SaveChangesAsync();
 
-                // SignalR
-                var orderGetDTO = mapper.Map<OrderGetDTO>(order);
-                await hubContext.Clients.All.SendAsync("ChangeStatus", orderGetDTO);
+                return Ok(GeneralResponse.Success(order, $"Status updated from {lastStatus.ToString()} to {newStatus.ToUpper()} successfully."));
 
-                return Ok(GeneralResponse.Success($"Status updated from {lastStatus.ToString()} to {newStatus.ToUpper()} successfully."));
             }
             catch (Exception ex)
             {
@@ -510,11 +446,8 @@ namespace Shipping.Controllers
                 await orderService.UpdateAsync(order);
                 await orderService.SaveChangesAsync();
 
-                // SignalR
-                var orderGetDTO = mapper.Map<OrderGetDTO>(order);
-                await hubContext.Clients.All.SendAsync("AssignOrder", orderGetDTO);
+                return Ok(GeneralResponse.Success(order, $"Order assigned to delivery has id: {orderId}."));
 
-                return Ok(GeneralResponse.Success($"Order assigned to delivery has id: {orderId}."));
             }
             catch (Exception ex)
             {

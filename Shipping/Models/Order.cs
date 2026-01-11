@@ -1,6 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.Diagnostics.Metrics;
-using System.Text.Json.Serialization;
 
 namespace Shipping.Models
 {
@@ -76,11 +74,9 @@ namespace Shipping.Models
         public virtual List<RejectedOrder>? RejectedOrders { get; set; } = new();
         public virtual Branch? Branch { get; set; }
 
-        [NotMapped]
-        public static int Counter { get; set; } = 40_000_000;
         public Order()
         {
-            SerialNumber = (Counter++).ToString();
+            SerialNumber = (Id + 40_000_000).ToString();
         }
     }
 }

@@ -17,14 +17,6 @@ namespace Shipping.Controllers
             this.serviceGeneric = serviceGeneric;
         }
 
-        /// <summary>
-        /// Retrieves all products.
-        /// </summary>
-        /// <returns>
-        /// 200 OK with list of products,  
-        /// 404 Not Found if no products are found,  
-        /// 400 BadRequest if an exception occurs.
-        /// </returns>
         [HttpGet]
         public async Task<IActionResult> GetAll() 
         {
@@ -58,15 +50,6 @@ namespace Shipping.Controllers
            
         }
 
-        /// <summary>
-        /// Retrieves a specific product by its ID.
-        /// </summary>
-        /// <param name="id">The ID of the product.</param>
-        /// <returns>
-        /// 200 OK with product data,  
-        /// 404 Not Found if product does not exist,  
-        /// 400 BadRequest if an error occurs.
-        /// </returns>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -89,18 +72,10 @@ namespace Shipping.Controllers
             catch (Exception ex) { return BadRequest(ex.Message); }
         }
 
-        /// <summary>
-        /// Creates a new product.
-        /// </summary>
-        /// <param name="productDto">The product data to be created.</param>
-        /// <returns>
-        /// 200 OK if the product was created successfully,  
-        /// 400 BadRequest if the data is invalid or an exception occurs.
-        /// </returns>
         [HttpPost]
         public async Task<IActionResult> CreateProduct(CreatProductDto productDto)
         {
-            if (!ModelState.IsValid) 
+            if (ModelState.IsValid) 
             {
                 return BadRequest(ModelState);
             }
@@ -124,16 +99,6 @@ namespace Shipping.Controllers
             }
         }
 
-        /// <summary>
-        /// Updates an existing product by ID.
-        /// </summary>
-        /// <param name="id">The ID of the product to update.</param>
-        /// <param name="productDto">The new product data.</param>
-        /// <returns>
-        /// 200 OK if updated successfully,  
-        /// 404 Not Found if the product does not exist,  
-        /// 400 BadRequest if an error occurs.
-        /// </returns>
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateProduct(int id ,CreatProductDto productDto)
         {

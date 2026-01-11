@@ -21,13 +21,7 @@ using Shipping.SignalRHubs;
 using Shipping.UnitOfWorks;
 using SHIPPING.Services;
 using System.Text;
-using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Shipping.ImodelRepository;
-using Shipping.modelRepository;
-using System.Reflection;
-using Shipping.SignalRHubs;
-
+using System.Threading.RateLimiting;
 
 namespace Shipping
 {
@@ -43,8 +37,13 @@ namespace Shipping
 
             // Add OpenAPI (Swagger) support
             builder.Services.AddOpenApi();
+
             //Add Swagger
             builder.Services.AddEndpointsApiExplorer();
+
+            // إضافة SignalR للخدمات
+            builder.Services.AddSignalR();
+
             builder.Services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo
@@ -87,35 +86,64 @@ namespace Shipping
             {
                 options.UseLazyLoadingProxies().UseSqlServer(builder.Configuration.GetConnectionString("CS"));
             });
-          
+
+            // Register AutoMapper
+            builder.Services.AddAutoMapper(typeof(Program));
+
+            //Register of Unit Of work
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            builder.Services.AddScoped(typeof(IRepositoryGeneric<>), typeof(RepositoryGeneric<>));
+
             // Register Identity
             builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
                 .AddEntityFrameworkStores<ShippingContext>().AddDefaultTokenProviders(); ;
           
-            builder.Services.AddAutoMapper(typeof(Program));
-            builder.Services.AddScoped(typeof(IRepositoryGeneric<>), typeof(RepositoryGeneric<>));
-            builder.Services.AddScoped(typeof(IServiceGeneric<>), typeof(ServiceGeneric<>));
-            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<IEmployeeService, EmployeeService>();
-            builder.Services.AddScoped<IMerchantService, MerchantService>();
-            builder.Services.AddScoped<IDeliveryService, DeliveryService>();
+
+            //register of SpecialShippingRateRepository
             builder.Services.AddScoped<ISpecialShippingRateRepository, SpecialShippingRateRepository>();
+
+            //register of RolePermissionRepository
             builder.Services.AddScoped<IRolePermissinRepository, RolePermissinRepository>();
+
+            //register of RolePermissionService
             builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
+
+            //role
             builder.Services.AddScoped<IApplicationRoleService, ApplicationRoleService>();
-            builder.Services.AddScoped<IApplicationRoleRepository, ApplicationRoleRepository>();
+
+            // Register Generic Repository
+            builder.Services.AddScoped(typeof(IRepositoryGeneric<>), typeof(RepositoryGeneric<>));
+
+            // Register Generic Service
+            builder.Services.AddScoped(typeof(IServiceGeneric<>), typeof(ServiceGeneric<>));
+
+            // Register Delivery Service
+            builder.Services.AddScoped<IDeliveryService, DeliveryService>();
+
+            // Register RejectReason Service
             builder.Services.AddScoped<IRejectReasonService, RejectReasonService>();
+
+            // Register Government Service
             builder.Services.AddScoped<IGovernmentService, GovernmentService>();
+
+            //Register Merchant Service
+            builder.Services.AddScoped<IMerchantService, MerchantService>();
+
             builder.Services.AddScoped<ISpecialShippingRateService, SpecialShippingRateService>();
 
             //Generate ResetToken Service
             builder.Services.AddScoped<IResetTokenService, ResetTokenService>();
 
             //Register City Service
-
             builder.Services.AddScoped<ICityService, CityService>();
+
+            //Register Order Service
             builder.Services.AddScoped<IOrderService, OrderService>();
+
             builder.Services.AddScoped<IApplicationRoleService, ApplicationRoleService>();
+
             builder.Services.AddScoped<IWeightPricingService, WeightPricingService>();
 
             //jwt
@@ -179,6 +207,10 @@ namespace Shipping
             builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
             builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 
+            builder.Logging.ClearProviders();
+            builder.Logging.AddConsole();
+            builder.Logging.AddDebug();
+
 
             // For Profile Image
             builder.Services.Configure<FormOptions>(options =>
@@ -186,41 +218,18 @@ namespace Shipping
                 options.MultipartBodyLengthLimit = 104857600; // السماح برفع ملفات حتى 100 ميجابايت
             });
 
-
-            // Add CORS policy
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy("AllowAll", builder =>
+                options.AddPolicy("CorsPolicy", builder =>
                 {
-                            builder.WithOrigins("http://localhost:4200")
+                    builder.AllowAnyOrigin()
                            .AllowAnyMethod()
-                           .AllowAnyHeader()
-                           .AllowCredentials();
+                           .AllowAnyHeader();
                 });
             });
-
-            //add memory cashe
-            builder.Services.AddMemoryCache();
-
-            builder.Services.AddSignalR();
-
-            // Add logging
-            builder.Services.AddLogging(logging =>
-            {
-                logging.ClearProviders();
-                logging.AddConsole();
-                logging.AddDebug();
-            });
-
-            builder.Services.AddSwaggerGen(options =>
-            {
-                var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
-            });
-
+           
 
             var app = builder.Build();
-
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -231,17 +240,16 @@ namespace Shipping
                
             }
 
+            // تكوين نقطة نهاية لـ SignalR
+            app.MapHub<CityHub>("/cityHub");
+
+            app.UseHttpsRedirection();
+
             app.UseStaticFiles();
-
             app.UseRouting();
-            app.UseAuthentication();
+            app.UseCors("CorsPolicy");
             app.UseAuthentication();
 
-            // Enable CORS
-            app.MapHub<OrderHub>("/orderHub");
-
-            // Enable CORS
-            app.UseCors("AllowAll");
 
             app.UseAuthorization();
             app.UseRateLimiter();

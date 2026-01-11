@@ -1,6 +1,4 @@
-﻿using Shipping.Models;
-
-namespace Shipping.Services
+﻿namespace Shipping.Services
 {
 
     public interface IServiceGeneric<Tentity> where Tentity : class
@@ -13,7 +11,6 @@ namespace Shipping.Services
         Task UpdateAsync(Tentity entity);
         Task DeleteAsync(int id);
         Task SaveChangesAsync();
-        Task<Tentity> GetByUserIdAsync(string userId);
     }
 
 }

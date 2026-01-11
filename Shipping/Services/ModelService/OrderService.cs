@@ -17,11 +17,9 @@ namespace Shipping.Services.ModelService
         IServiceGeneric<Merchant> merchantService;
         IServiceGeneric<Setting> settingService;
         IDeliveryService deliveryService;
-        ICityService cityService;
-        public OrderService(IUnitOfWork unitOfWork, ISpecialShippingRateService specialShippingRateService,
+        public OrderService(IUnitOfWork unitOfWork, ISpecialShippingRateService specialShippingRateService, 
             IServiceGeneric<WeightPricing> weightService, IServiceGeneric<ShippingType> shippingTypeService,
-             IServiceGeneric<Merchant> merchantService, IServiceGeneric<Setting> settingService, IDeliveryService deliveryService,
-            ICityService cityService) : base(unitOfWork)
+             IServiceGeneric<Merchant> merchantService, IServiceGeneric<Setting> settingService, IDeliveryService deliveryService) : base(unitOfWork)
         {
             this.specialShippingRateService = specialShippingRateService;
             this.weightService = weightService;
@@ -29,7 +27,6 @@ namespace Shipping.Services.ModelService
             this.merchantService = merchantService;
             this.settingService = settingService;
             this.deliveryService = deliveryService;
-            this.cityService = cityService;
         }
 
 
@@ -39,7 +36,7 @@ namespace Shipping.Services.ModelService
             var employees = await query;
             return employees
                 .Include(e => e.Merchant)
-                .Include(e => e.ShippingType)
+                .Include(e => e.ShippingCost)
                 .Include(e => e.Delivery)
                 .Include(e => e.Government)
                 .Include(e => e.City)
@@ -52,7 +49,7 @@ namespace Shipping.Services.ModelService
             var employees = await query;
             return employees
                .Include(e => e.Merchant)
-               .Include(e => e.ShippingType)
+               .Include(e => e.ShippingCost)
                .Include(e => e.Delivery)
                .Include(e => e.Government)
                .Include(e => e.City)
@@ -107,7 +104,7 @@ namespace Shipping.Services.ModelService
         public async Task<IEnumerable<Order>> GetAllByDeliveryByStatus(int id, string orderStatus)
         {
             var orders = await GetAllAsync();
-            var ordersByDeliver = orders.Where(o => o.Delivery_Id == id).ToList();
+            var ordersByDeliver = orders.Where(o => o.Delivery.Id == id).ToList();
             var ordersByStatus = new List<Order>();
 
             if (Enum.TryParse<OrderStatus>(orderStatus, true, out var orderStatusVariable))
@@ -128,10 +125,10 @@ namespace Shipping.Services.ModelService
         public async Task<IEnumerable<Order>> GetAllExistByDeliveryByStatus(int id, string orderStatus)
         {
             var orders = await GetAllExistAsync();
-            var ordersByDeliver = orders.Where(o => o.Delivery_Id == id).ToList();
+            var ordersByDeliver = orders.Where(o => o.Delivery.Id == id).ToList();
             var ordersByStatus = new List<Order>();
 
-            if (Enum.TryParse<OrderStatus>(orderStatus, true, out var orderStatusVariable))
+            if(Enum.TryParse<OrderStatus>(orderStatus, true, out var orderStatusVariable))
             {
                 ordersByStatus = ordersByDeliver.Where(o => o.OrderStatus == orderStatusVariable).ToList();
                 return ordersByStatus;
@@ -193,50 +190,6 @@ namespace Shipping.Services.ModelService
 
         //----------------------------------------------------------------------------------------------------
 
-
-        public async Task<int> CalculateOrdersCountByStatus(string role, int? id, string orderStatus)
-        {
-            var orders = await GetAllExistAsync();
-            var ordersCount = 0;
-            if (role == "merchant")
-            {
-                var ordersByMerchant = orders.Where(o => o.Merchant_Id == id).ToList();
-
-                if (Enum.TryParse<OrderStatus>(orderStatus, true, out var orderStatusVariable))
-                    ordersCount = ordersByMerchant.Where(o => o.OrderStatus == orderStatusVariable).Count();
-                else if (orderStatus == "All")
-                    ordersCount = ordersByMerchant.Count();
-                else
-                    throw new Exception("parameter is not found");
-                
-            }
-            else if (role == "delivery")
-            {
-                var ordersByDelivery = orders.Where(o => o.Delivery_Id == id).ToList();
-
-                if (Enum.TryParse<OrderStatus>(orderStatus, true, out var orderStatusVariable))
-                    ordersCount = ordersByDelivery.Where(o => o.OrderStatus == orderStatusVariable).Count();
-                else if (orderStatus == "All")
-                    ordersCount = ordersByDelivery.Count();
-                else
-                    throw new Exception("parameter is not found");
-            }
-            else
-            {
-                if (Enum.TryParse<OrderStatus>(orderStatus, true, out var orderStatusVariable))
-                    ordersCount = orders.Where(o => o.OrderStatus == orderStatusVariable).Count();
-                else if (orderStatus == "All")
-                    ordersCount = orders.Count();
-                else
-                    throw new Exception("parameter is not found");
-            }
-
-            return ordersCount;
-        }
-
-        //----------------------------------------------------------------------------------------------------
-
-
         public async Task<decimal> CalculateShippingCost(OrderCreateEditDTO createDTO)
         {
             decimal TotalShippingCost = 0;
@@ -244,8 +197,8 @@ namespace Shipping.Services.ModelService
             // -----------------------------------------------------------------
             // سعر الشحن لمدينة ولقرية ان طلب
             var specialRate = await specialShippingRateService.GetSpecialRateByMerchant(createDTO.Merchant_Id, createDTO.City_Id);
-            var setting = await settingService.GetByIdAsync(1);
-            var city = await cityService.GetByIdAsync(createDTO.City_Id);
+            var setting = await settingService.GetAllExistAsync();
+            var settingFirst = setting.FirstOrDefault();
 
             if (specialRate != null)
             {
@@ -253,22 +206,25 @@ namespace Shipping.Services.ModelService
             }
             else
             {
-                TotalShippingCost += city.StandardShipping;
+                TotalShippingCost += (decimal)specialRate.City.StandardShipping;
+
             }
 
             if (createDTO.DeliverToVillage)
             {
-                TotalShippingCost += setting.ShippingToVillageCost;
+                TotalShippingCost += settingFirst.ShippingToVillageCost;
             }
             // -----------------------------------------------------------------
 
             // -----------------------------------------------------------------
             // سعر الوزن الاضافي
-            var weightPricing = await weightService.GetByIdAsync(1);
+            var weightObj = await weightService.GetAllExistAsync();
+            var defaultWeight = weightObj.FirstOrDefault().DefaultWeight;
+            var additonalPricingPerKG = weightObj.FirstOrDefault().AdditionalKgPrice;
 
-            if (createDTO.OrderTotalWeight > weightPricing.DefaultWeight)
+            if (createDTO.OrderTotalWeight > defaultWeight)
             {
-                TotalShippingCost += (decimal)(createDTO.OrderTotalWeight - weightPricing.DefaultWeight) * weightPricing.AdditionalKgPrice;
+                TotalShippingCost += (decimal)(createDTO.OrderTotalWeight - defaultWeight) * additonalPricingPerKG;
             }
             // -----------------------------------------------------------------
 
@@ -303,7 +259,6 @@ namespace Shipping.Services.ModelService
             if (order.Delivery_Id != null)  throw new Exception("Order is already assigned to a delivery has id: {order.Delivery_Id}.");
 
             order.Delivery_Id = deliveryId;
-            order.OrderStatus = OrderStatus.DeliveredToAgent;
 
             if (delivery.DiscountType == DiscountType.Fixed)
             {

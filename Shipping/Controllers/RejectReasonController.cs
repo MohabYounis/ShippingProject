@@ -77,11 +77,7 @@ namespace Shipping.Controllers
             }
         }
 
-        /// <summary>
-        /// Returns 200 OK with a paginated list of reject reasons,
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
+
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {

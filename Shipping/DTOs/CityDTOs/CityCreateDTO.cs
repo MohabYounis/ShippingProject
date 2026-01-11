@@ -11,6 +11,9 @@ namespace Shipping.DTOs.CityDTOs
         [MaxLength(100, ErrorMessage = "Name must not exceed 100 characters.")]
         public string Name { get; set; }
 
+        [Range(0, double.MaxValue, ErrorMessage = "PickupShipping must be a positive number.")]
+        public decimal? PickupShipping { get; set; }
+
         [Range(0, double.MaxValue, ErrorMessage = "StandardShipping must be a positive number.")]
         public decimal? StandardShipping { get; set; }
     }
