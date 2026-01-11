@@ -1,24 +1,17 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-using Shipping.Configration;
-using Shipping.Controllers;
+﻿using Microsoft.EntityFrameworkCore;
 using Shipping.DTOs;
-using Shipping.ImodelRepository;
-using Shipping.modelRepository;
 using Shipping.Models;
 using Shipping.Repository;
-using Shipping.Repository.ImodelRepository;
-using Shipping.Repository.modelRepository;
 using Shipping.Services;
 using Shipping.Services.IModelService;
 using Shipping.Services.ModelService;
-using Shipping.SignalRHubs;
 using Shipping.UnitOfWorks;
 using SHIPPING.Services;
+using Microsoft.OpenApi.Models;
+using Shipping.Controllers;
+using Shipping.Repository.ImodelRepository;
+using Shipping.Repository.modelRepository;
+using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -26,7 +19,6 @@ using Shipping.ImodelRepository;
 using Shipping.modelRepository;
 using System.Reflection;
 using Shipping.SignalRHubs;
-
 
 namespace Shipping
 {
@@ -45,40 +37,8 @@ namespace Shipping
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo
-                {
-                    Title = "Shipping API",
-                    Version = "v1"
-                });
-
-                // 🔐 تعريف JWT Bearer
-                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-                {
-                    Name = "Authorization",
-                    Type = SecuritySchemeType.Http,
-                    Scheme = "bearer",
-                    BearerFormat = "JWT",
-                    In = ParameterLocation.Header,
-                    Description = "Enter: Bearer {your JWT token}"
-                });
-
-                // 🔗 ربطه بكل الـ endpoints   
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement
-                {
-                    {
-                        new OpenApiSecurityScheme    
-                        {
-                            Reference = new OpenApiReference
-                                {
-                            Type = ReferenceType.SecurityScheme,
-                                Id = "Bearer"
-                            }
-                        },
-                        Array.Empty<string>()
-                    }
-                });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Shipping API", Version = "v1" });
             });
-
 
             //register context
             builder.Services.AddDbContext<ShippingContext>(options =>
@@ -88,7 +48,7 @@ namespace Shipping
           
             // Register Identity
             builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
-                .AddEntityFrameworkStores<ShippingContext>().AddDefaultTokenProviders(); ;
+                .AddEntityFrameworkStores<ShippingContext>();
           
             builder.Services.AddAutoMapper(typeof(Program));
             builder.Services.AddScoped(typeof(IRepositoryGeneric<>), typeof(RepositoryGeneric<>));
@@ -105,12 +65,6 @@ namespace Shipping
             builder.Services.AddScoped<IRejectReasonService, RejectReasonService>();
             builder.Services.AddScoped<IGovernmentService, GovernmentService>();
             builder.Services.AddScoped<ISpecialShippingRateService, SpecialShippingRateService>();
-
-            //Generate ResetToken Service
-            builder.Services.AddScoped<IResetTokenService, ResetTokenService>();
-
-            //Register City Service
-
             builder.Services.AddScoped<ICityService, CityService>();
             builder.Services.AddScoped<IOrderService, OrderService>();
             builder.Services.AddScoped<IApplicationRoleService, ApplicationRoleService>();
@@ -132,27 +86,7 @@ namespace Shipping
                         ValidateIssuerSigningKey = true,
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),//حولي signkey الي array of byte 
                     };
-                }).AddJwtBearer("ResetToken", options =>
-                {
-                    // Reset Password JWT
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidIssuer = jwtOptions.Issuer,
-                        ValidateAudience = true,
-                        ValidAudience = jwtOptions.Audience,
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(
-                            Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
-                        ValidateLifetime = true,
-                        ClockSkew = TimeSpan.FromSeconds(30)
-                    };
                 });
-
-
-            //Email smtp
-            builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
-            builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 
 
             // For Profile Image
@@ -200,16 +134,13 @@ namespace Shipping
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
-                app.UseHttpsRedirection();
                 app.UseSwagger(); 
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Shipping API V1"));
-               
             }
 
             app.UseStaticFiles();
 
             app.UseRouting();
-            app.UseAuthentication();
 
             // Enable CORS
             app.MapHub<OrderHub>("/orderHub");
