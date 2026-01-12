@@ -7,13 +7,15 @@ namespace Shipping.Services.IModelService
 {
     public interface IEmployeeService : IServiceGeneric<Employee>
     {
-        Task<IDbContextTransaction> BeginTransactionAsync();
-        Task UpdateAsync(int id, UpdateEmployeeDTO employeeDto);
-        Task AddAsync(CreateEmployeeDTO employeeDto);
-        Task DeleteAsync(int id);
-        Task<EmployeeGetDTO> GetByIdAsync(int id);
 
-        Task<IEnumerable<EmployeeGetDTO>> GetAllAsync();
-        Task<IEnumerable<EmployeeGetDTO>> GetAllExistAsync();
+        Task<GenericPagination<EmployeeDTO>> GetAllAsync(int pageIndex = 1, int pageSize = 10);       
+        Task<GenericPagination<EmployeeDTO>> GetAllExistAsync(int pageIndex = 1, int pageSize = 10);       
+        Task<IDbContextTransaction> BeginTransactionAsync();
+        Task<IEnumerable<Employee>> GetEmployeesByRole(string roleName);
+
+
+        Task<IEnumerable<Employee>> GetEmployeesBySearch(string term, bool includeDelted = true);
+
+
     }
 }

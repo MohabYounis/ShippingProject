@@ -1,16 +1,11 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Shipping.DTOs;
 using Shipping.DTOs.Employee;
-using Shipping.DTOs.MerchantDTOs;
-using Shipping.DTOs.NewFolder1;
 using Shipping.DTOs.pagination;
 using Shipping.Models;
 using Shipping.Services;
 using Shipping.Services.IModelService;
-using Shipping.Services.ModelService;
 using System.Net;
 
 namespace Shipping.Controllers
@@ -19,148 +14,316 @@ namespace Shipping.Controllers
     [ApiController]
     public class EmployeeController : ControllerBase
     {
+        IServiceGeneric<Branch> branchService;
+
+        UserManager<ApplicationUser> userManager;
         IEmployeeService empService;
-        public EmployeeController(IEmployeeService empService, IMapper mapper)
+        //
+        IApplicationRoleService roleService;
+
+        public EmployeeController(IServiceGeneric<Employee> employeeService, IEmployeeService empService, UserManager<ApplicationUser> userManager, IServiceGeneric<Branch> branchService, IApplicationRoleService roleService)
         {
+            this.userManager = userManager;
+            this.branchService = branchService;
             this.empService = empService;
+            this.roleService = roleService;
         }
-        [HttpGet("{all:alpha}")]
-        public async Task<ActionResult> GetWithPaginationAndSearch(string? searchTxt, string all = "all", int page = 1, int pageSize = 10)
+
+
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllEmployees([FromQuery] bool includeDelted = true, int pageIndex = 1, int pageSize = 10)
         {
-            try
+            GenericPagination<EmployeeDTO>? employeeDtos = null;
+
+            if (!includeDelted) { employeeDtos = await empService.GetAllExistAsync(pageIndex,pageSize); }
+
+
+            else employeeDtos = await empService.GetAllAsync(pageIndex, pageSize);
+
+            if (employeeDtos.Items == null || !employeeDtos.Items.Any())
             {
-                IEnumerable<EmployeeGetDTO> employees;
-                if (all == "all") employees = await empService.GetAllAsync();
-                else if (all == "exist") employees = await empService.GetAllExistAsync();
-                else return BadRequest(GeneralResponse.Failure("Parameter Not Exist."));
-
-                if (employees == null || !employees.Any()) return NotFound(GeneralResponse.Failure("Not Found."));
-                else
-                {
-                    if (!string.IsNullOrEmpty(searchTxt))
-                    {
-                        employees = employees
-                            .Where(item =>
-                                (item.Name?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                                (item.Phone?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                                (item.BranchName?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                                (item.Email?.Contains(searchTxt, StringComparison.OrdinalIgnoreCase) ?? false)
-                            )
-                            .ToList();
-
-                        if (!employees.Any()) return NotFound(GeneralResponse.Failure("Not Found."));
-                    }
-
-                    var totalEmployees = employees.Count();
-
-                    var paginatedMerchants = employees
-                    .Skip((page - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToList();
-
-                    var paginationDTO = new GenericPagination<EmployeeGetDTO>
-                    {
-                       TotalCount = totalEmployees,
-                       PageNumber = page,
-                       PageSize = pageSize,
-                       Items = paginatedMerchants
-                    };
-
-                    return Ok(GeneralResponse.Success(paginationDTO));
-                }
+                return NotFound("there is no employees ");
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, GeneralResponse.Failure(ex.Message));
-            }
+            
+
+            return Ok(employeeDtos);
         }
 
 
-        [HttpGet("{id:int}")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetEmployee(int id)
         {
-            try
+            if (id <= 0)
+                return BadRequest("Invalid ID");
+            //getting emp drom db
+            var employee = await empService.GetByIdAsync(id);
+            if (employee == null) return NotFound($"  id {id}  not found");
+            var employeeDto = new EmployeeDTO
             {
-                if (id <= 0) return BadRequest(GeneralResponse.Failure("Invalid ID!."));
 
-                var employeeDTO = await empService.GetByIdAsync(id);
-                return Ok(GeneralResponse.Success(employeeDTO));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, GeneralResponse.Failure(ex.Message));
-            }
+                Id = employee.Id,
+                Name = employee.ApplicationUser?.UserName,
+                Address = employee.ApplicationUser?.Address,
+                branchId = employee.Branch.Id,
+                userId = employee.ApplicationUser?.Id,
+
+                IsDeleted = employee.IsDeleted
+
+            };
+
+            return Ok(employeeDto);
+
+
         }
+
 
 
         [HttpPost]
-        public async Task<IActionResult> AddEmployee(CreateEmployeeDTO employeeDto)
+        public async Task<IActionResult> AddEmployee([FromBody] CreateEmployeeDTO employeeDto)
         {
+
             if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            //
+            var validRoles = new List<string> { "Employee", "BranchManager", "Sales" };
+
+
+            if (!validRoles.Contains(employeeDto.Role.Trim(), StringComparer.OrdinalIgnoreCase))
             {
-                string errors = string.Join("; ", ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage));
-                return BadRequest(GeneralResponse.Failure(errors));
+                return BadRequest($"Invalid role: '{employeeDto.Role}'. Allowed roles: {string.Join(", ", validRoles)}");
             }
-            using var transaction = await empService.BeginTransactionAsync();
+
+            // Get branch
+
+            var branch = await branchService.GetByIdAsync(employeeDto.branchId);
+            if (branch == null)
+            {
+                return BadRequest("branch not found");
+            }
+            // getting app user from employeeDto
+            ApplicationUser appUser = null;
+
+            //transaction
+            using var transaction = await empService.BeginTransactionAsync(); // 🟢 فتح Transaction
             try
             {
-                await empService.AddAsync(employeeDto);
+
+                appUser = new ApplicationUser()
+                {
+                    UserName = employeeDto.Name,
+                    Email = employeeDto.Email,
+                    PhoneNumber = employeeDto.Phone,
+                    Address = employeeDto.Address
+                };
+                // creating user in database
+                var result = await userManager.CreateAsync(appUser, employeeDto.Password);
+                if (!result.Succeeded)
+                {
+                    return BadRequest("app" + string.Join(", ", result.Errors.Select(e => e.Description)));
+                }
+
+  
+                //check role
+                var role= await roleService.GetByNameAsync(employeeDto.Role.Trim());
+                if (role == null) return BadRequest($"Role {employeeDto.Role} not found");
+                // assign role 
+                await userManager.AddToRoleAsync(appUser, role.Name);
+
+
+                //   mapping manually employeeDto to employee
+                Employee emp = new Employee()
+            {
+                Branch_Id = branch.Id,
+                AppUser_Id = appUser.Id,
+                ApplicationUser = appUser,
+            };
+
+            await empService.AddAsync(emp);
+
+            await empService.SaveChangesAsync();
+
                 await transaction.CommitAsync();
 
-                return Ok(GeneralResponse.Success("Employee Created Successfully"));
+            return Ok("employee added successfully!");
+            
             }
-            catch (Exception ex)
-            {
+
+
+              catch (Exception ex)
+              {
                 await transaction.RollbackAsync();
-                return StatusCode(500, GeneralResponse.Failure(ex.Message));
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+
+
+              }
+        }
+
+        [HttpPut("{id}")]
+
+        public async Task<IActionResult> UpdateEmployee(int id, [FromBody] CreateEmployeeDTO employeeDto)
+        {
+            if (id <= 0)
+                return BadRequest("Invalid ID");
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            //transaction
+            using var transaction = await empService.BeginTransactionAsync(); // 🟢 فتح Transaction
+            try
+            {
+                //getting employee from db
+                var employee = await empService.GetByIdAsync(id);
+                if (employee == null)
+                {
+                    return NotFound($"Employee with id {id} not found");
+                }
+
+                // updating app user
+                ApplicationUser appUser = employee.ApplicationUser;
+                appUser.UserName = employeeDto.Name;
+                appUser.Email = employeeDto.Email;
+                appUser.PhoneNumber = employeeDto.Phone;
+                appUser.Address = employeeDto.Address;
+                var result = await userManager.UpdateAsync(appUser);
+                if (!result.Succeeded)
+                {
+                    return BadRequest(string.Join(", ", result.Errors.Select(e => e.Description)));
+                }
+                //mapping app user to employee
+                employee.ApplicationUser = appUser;
+
+                //mapping branch to employee
+                var branch = (await branchService.GetByIdAsync(employeeDto.branchId));
+                if (branch == null) return BadRequest("Branch not found");
+
+                employee.Branch_Id = branch.Id;
+                await empService.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                return Ok("Employee updated successfully!");
+            }
+
+            catch (Exception ex) {
+                await transaction.RollbackAsync(); 
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+
+
             }
         }
 
 
-        [HttpPut("{id:int}")]
-        public async Task<IActionResult> UpdateEmployee(int id, UpdateEmployeeDTO employeeDto)
-        {
-            if (!ModelState.IsValid)
-            {
-                string errors = string.Join("; ", ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage));
-                return BadRequest(GeneralResponse.Failure(errors));
-            }
-            using var transaction = await empService.BeginTransactionAsync();
-            try
-            {
-                await empService.UpdateAsync(id, employeeDto);
-                await transaction.CommitAsync();
-
-                return Ok(GeneralResponse.Success("Employee updated successfully."));
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                return StatusCode(500, GeneralResponse.Failure(ex.Message));
-            }
-        }
-
-
-        [HttpDelete("{id:int}")]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEmployee(int id)
         {
-            using var transaction = await empService.BeginTransactionAsync();
+            if (id <= 0)
+                return BadRequest("Invalid ID");
+
+            var employee = await empService.GetByIdAsync(id);
+            if (employee == null)
+            {
+                return NotFound($"Employee with id {id} not found");
+            }
+            //transaction
+            using var transaction = await empService.BeginTransactionAsync(); 
             try
             {
+                // delete app user
+                if (employee.ApplicationUser != null)
+                {
+                    var result = await userManager.DeleteAsync(employee.ApplicationUser);
+                    if (!result.Succeeded)
+                    {
+                        return BadRequest("Failed to delete the user.");
+                    }
+                }
+                //delete employee
                 await empService.DeleteAsync(id);
-                await transaction.CommitAsync();
+                await empService.SaveChangesAsync();
 
-                return Ok(GeneralResponse.Success("Employee deleted successfully."));
+                await transaction.CommitAsync();
+                return Ok("Employee deleted successfully!");
+
+
             }
+
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                return StatusCode(500, GeneralResponse.Failure(ex.Message));
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+
+
             }
+        }
+
+
+
+        //by role name
+        [HttpGet("GetEmployeesByRole")]
+        public async Task<IActionResult> GetEmployeesByRole(string roleName)
+        {
+            try
+            {
+                var employees = await empService.GetEmployeesByRole(roleName);
+                if (employees == null || !employees.Any()) return NotFound($"ther is no  employees have {roleName} role");
+                //mapping
+                var employeesDto = employees.Select(e => new EmployeeDTO
+                {
+                    Id = e.Id,
+                    IsDeleted = e.IsDeleted,
+
+                    userId = e.AppUser_Id,
+                    Name = e.ApplicationUser.UserName,
+                    Phone = e.ApplicationUser?.PhoneNumber,
+                    Address = e.ApplicationUser?.Address,
+
+                    branchId = e.Branch_Id
+
+                }).ToList();
+
+
+
+                return Ok(employeesDto);
+            }
+
+            catch (Exception ex) { 
+            
+            return StatusCode(500, ex.Message);
+            }
+        }
+
+        //search by name
+
+        [HttpGet("SearchByName")]
+        public async Task<IActionResult> SearchByName([FromQuery] string term)
+        {
+            try
+            {
+                var employees = await empService.GetEmployeesBySearch(term);
+                if (employees == null || !employees.Any()) return NotFound($"ther is no any employee whose name contains {term} ");
+                //mapping
+                var employeesDto = employees.Select(e => new EmployeeDTO
+                {
+                    Id = e.Id,
+                    IsDeleted = e.IsDeleted,
+                    userId = e.AppUser_Id,
+                    Name = e.ApplicationUser.UserName,
+                    Phone = e.ApplicationUser?.PhoneNumber,
+                    Address = e.ApplicationUser?.Address,
+                    branchId = e.Branch_Id
+                }).ToList();
+
+                return Ok(employeesDto);
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+
+
         }
     }
 }

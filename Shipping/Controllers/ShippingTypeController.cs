@@ -127,7 +127,7 @@ namespace Shipping.Controllers
                 await shippingService.AddAsync(shippingType);
                 await shippingService.SaveChangesAsync();
 
-                return Ok(new { message = "Shipping added successfully" });
+                return Ok("Shipping added successfully");
             }
             catch (Exception ex)
             {
@@ -163,7 +163,7 @@ namespace Shipping.Controllers
             await shippingService.UpdateAsync(ShippingType);
             await shippingService.SaveChangesAsync();
 
-            return Ok(new { message = "Shipping updated successfully" });
+            return Ok("Shipping updated successfully");
         }
 
 
@@ -189,7 +189,7 @@ namespace Shipping.Controllers
             await shippingService.DeleteAsync(id);
             await shippingService.SaveChangesAsync();
 
-            return Ok(new { message = "Shipping deleted successfully" });
+            return Ok("Shipping deleted successfully");
         }
     }
 }

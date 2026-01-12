@@ -19,29 +19,12 @@ namespace Shipping.Models
         public virtual DbSet<WeightPricing> WeightPricings { get; set; }
         public virtual DbSet<Permission> Permissions { get; set; }
         public virtual DbSet<RolePermission> RolePermissions { get; set; }
-        public virtual DbSet<Setting> Settings { get; set; }
+        public virtual DbSet<Setting> ShippingToVillages { get; set; }
         public virtual DbSet<DeliveryGovernment> DeliveryGovernments { get; set; }
         public virtual DbSet<BranchMerchant> BranchMerchants { get; set; }
         public virtual DbSet<RejectedOrder> RejectedOrders { get; set; }
 
         public ShippingContext() : base() { }
         public ShippingContext (DbContextOptions<ShippingContext> options) : base(options) { }
-        protected override void OnModelCreating(ModelBuilder builder)
-        {
-            base.OnModelCreating(builder);
-
-            builder.Entity<ApplicationUserRole>(entity =>
-            {
-                entity.HasOne(ur => ur.Role)
-                    .WithMany(r => r.UserRoles)
-                    .HasForeignKey(ur => ur.RoleId)
-                    .IsRequired();
-
-                entity.HasOne(ur => ur.User)
-                    .WithMany(u => u.UserRoles)
-                    .HasForeignKey(ur => ur.UserId)
-                    .IsRequired();
-            });
-        }
     }
 }

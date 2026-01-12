@@ -8,12 +8,15 @@ using Shipping.Models;
 using Microsoft.EntityFrameworkCore;
 using Shipping.Repository;
 using Shipping.UnitOfWorks;
-using static Dapper.SqlMapper;
 
 namespace Shipping.modelRepository
 {
-    public class EmployeeRepository : IEmployeeRepository
+    public class EmployeeRepository : RepositoryGeneric<Employee>, IEmployeeRepository
     {
+        public EmployeeRepository (UnitOfWork unitOfWork) : base(unitOfWork)
+        {
+        }
+
     }
 }
 

@@ -12,7 +12,7 @@ public class WeightPricingService : ServiceGeneric<WeightPricing>, IWeightPricin
     private readonly IRepositoryGeneric<WeightPricing> repositoryGeneric;
     private readonly IMapper mapper;
 
-    public WeightPricingService(IUnitOfWork unitOfWork, IRepositoryGeneric<WeightPricing> repositoryGeneric, IMapper mapper)
+    public WeightPricingService(IUnitOfWork unitOfWork, IRepositoryGeneric<WeightPricing> repositoryGeneric , IMapper mapper)
         : base(unitOfWork)
     {
         this.unitOfWork = unitOfWork;
@@ -20,7 +20,6 @@ public class WeightPricingService : ServiceGeneric<WeightPricing>, IWeightPricin
         this.mapper = mapper;
     }
 
-    #region Add Weight setting
     public async Task<WeightPricingDTO> AddWeightAsync(WeightPricingDTO weightPricing)
     {
         if (weightPricing == null) throw new ArgumentNullException(nameof(weightPricing));
@@ -42,32 +41,29 @@ public class WeightPricingService : ServiceGeneric<WeightPricing>, IWeightPricin
 
         return weightPricing;  // Return the newly added weightPricing
     }
-    #endregion
 
-    #region Get Weight setting
-    public async Task<WeightPricing> UpdateWeightAsync(WeightPricing weightPricing)
+   public async Task<WeightPricing> UpdateWeightAsync(WeightPricing weightPricing)
+{
+    if (weightPricing == null) throw new ArgumentNullException(nameof(weightPricing));
+
+    // Retrieve the existing record to update
+    var allweight = await unitOfWork.GetRepository<WeightPricing>().GetAllAsync();
+    var firstWeightPricing = allweight.FirstOrDefault();
+
+    if (firstWeightPricing == null)
     {
-        if (weightPricing == null) throw new ArgumentNullException(nameof(weightPricing));
-
-        // Retrieve the existing record to update
-        var allweight = await unitOfWork.GetRepository<WeightPricing>().GetAllAsync();
-        var firstWeightPricing = allweight.FirstOrDefault();
-
-        if (firstWeightPricing == null)
-        {
-            // If no record exists, throw an error indicating no data to update
-            throw new InvalidOperationException("No existing weight pricing to update.");
-        }
-
-        // Update the existing record with the new values
-        firstWeightPricing.DefaultWeight = weightPricing.DefaultWeight;
-        firstWeightPricing.AdditionalKgPrice = weightPricing.AdditionalKgPrice;
-
-        repositoryGeneric.Update(firstWeightPricing);
-        await unitOfWork.SaveChangesAsync();
-
-        return firstWeightPricing;
+        // If no record exists, throw an error indicating no data to update
+        throw new InvalidOperationException("No existing weight pricing to update.");
     }
-    #endregion
+
+    // Update the existing record with the new values
+    firstWeightPricing.DefaultWeight = weightPricing.DefaultWeight;
+    firstWeightPricing.AdditionalKgPrice = weightPricing.AdditionalKgPrice;
+
+    repositoryGeneric.Update(firstWeightPricing);
+    await unitOfWork.SaveChangesAsync();
+
+    return firstWeightPricing;
+}
 
 }
