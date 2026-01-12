@@ -49,7 +49,7 @@
 		<PackageReference Include="Scalar.AspNetCore" Version="2.1.17" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="8.0.0" />
 	</ItemGroup>
-	</ItemGroup>
+	
 
   <ItemGroup>
     <Folder Include="Migrations\" />
