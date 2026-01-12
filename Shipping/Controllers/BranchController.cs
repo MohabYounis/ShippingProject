@@ -26,7 +26,7 @@ namespace Shipping.Controllers
             this.branchService = branchService;
         }
 
-        [LogSensitiveActive]
+
         [HttpGet("{all:alpha}")]
         public async Task<ActionResult> GetWithPaginationAndSearch(string? searchTxt, string all = "all", int page = 1, int pageSize = 10)
         {
