@@ -1,9 +1,14 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using BCrypt.Net;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Shipping.DTOs.AccountDto;
 using Shipping.Models;
+using Shipping.Services.IModelService;
+using Shipping.Services.ModelService;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -12,17 +17,8 @@ namespace Shipping.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AccountController(JwtOptions jwtOptions,UserManager<ApplicationUser> userManager) : ControllerBase
+    public class AccountController(JwtOptions jwtOptions, UserManager<ApplicationUser> userManager, IEmailSender emailSender,IResetTokenService resetTokenService) : ControllerBase
     {
-        /// <summary>
-        /// Authenticates a user using their email and password, and returns a JWT access token if valid.
-        /// </summary>
-        /// <param name="loginDto">The login data transfer object containing Email and Password.</param>
-        /// <returns>
-        /// Returns 200 OK with a JWT token if authentication is successful.
-        /// Returns 400 Bad Request if the model state is invalid.
-        /// Returns 401 Unauthorized if the user does not exist, is marked as deleted, or the password is incorrect.
-        /// </returns>
 
         [HttpPost]
         public async Task<IActionResult> Login(LoginDto loginDto)
@@ -71,8 +67,145 @@ namespace Shipping.Controllers
                 Subject = new ClaimsIdentity(authClaims)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);// token as object
-            var accessToken=tokenHandler.WriteToken(token); //هنا بتحولي token من object ل string
+            var accessToken = tokenHandler.WriteToken(token); //هنا بتحولي token من object ل string
             return Ok(accessToken);
         }
+
+        [Authorize(AuthenticationSchemes = "ResetToken")]
+        [HttpPost("reset-password-session")]
+        public async Task<IActionResult> ResetPasswordSession([FromBody] ResetPasswordDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            // جاي من التوكين نفسه
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userId))
+                return Unauthorized(new { message = "Invalid reset token." });
+
+            var user = await userManager.FindByIdAsync(userId);
+            if (user == null || user.IsDeleted)
+                return Unauthorized(new { message = "Invalid reset token." });
+
+            // نستخدم Identity الرسمي لتغيير الباسورد
+            var identityResetToken = await userManager.GeneratePasswordResetTokenAsync(user);
+            var result = await userManager.ResetPasswordAsync(user, identityResetToken, dto.NewPassword);
+
+            if (!result.Succeeded)
+                return BadRequest(new
+                {
+                    message = "Reset password failed.",
+                    errors = result.Errors.Select(e => e.Description)
+                });
+
+            return Ok(new { message = "Password has been reset successfully." });
+        }
+
+        [HttpPost("forgot-password-otp")]
+        public async Task<IActionResult> SendForgotPasswordOtp(
+        [FromBody] SendOtpDto dto,[FromServices] ShippingContext db)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        var user = await userManager.FindByEmailAsync(dto.Email);
+
+        // Security: نفس الرد سواء موجود أو لا
+        if (user == null || user.IsDeleted)
+            return Ok(new { message = "If the email exists, a code was sent." });
+
+        // 1) Invalidate old active OTPs (اختياري لكن مفيد)
+        var now = DateTime.UtcNow;
+        var actives = await db.PasswordResetOtps
+            .Where(x => x.UserId == user.Id && !x.IsUsed && x.ExpiresAt > now)
+            .ToListAsync();
+
+        foreach (var x in actives)
+            x.IsUsed = true;
+
+        // 2) Generate 6-digit code
+        var code = Random.Shared.Next(100000, 999999).ToString();
+
+        // 3) Save hashed code
+        db.PasswordResetOtps.Add(new PasswordResetOtp
+        {
+            UserId = user.Id,
+            OtpHash = BCrypt.Net.BCrypt.HashPassword(code),
+            ExpiresAt = now.AddMinutes(10),
+            Attempts = 0,
+            IsUsed = false,
+            CreatedAt = now,
+            Email= user.Email
+        });
+
+        await db.SaveChangesAsync();
+
+        // 4) Send email
+            await emailSender.SendAsync(
+                user.Email!,
+                "Your password reset code",
+                $"""
+                <p>Your password reset code is:</p>
+                <h2 style="letter-spacing:2px;">{code}</h2>
+                <p>This code expires in <b>10 minutes</b>.</p>
+                """
+            );
+
+        return Ok(new { message = "If the email exists, a code was sent." });
+    }
+
+        [HttpPost("verify-forgot-password-otp")]
+        public async Task<IActionResult> VerifyForgotPasswordOtp(
+        [FromBody] VerifyOtpDto dto,[FromServices] ShippingContext db)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var user = await userManager.FindByEmailAsync(dto.Email);
+            if (user == null || user.IsDeleted)
+                return BadRequest(new { message = "Invalid code." });
+
+            var now = DateTime.UtcNow;
+
+            // آخر OTP active
+            var otp = await db.PasswordResetOtps
+                .Where(x => x.UserId == user.Id && !x.IsUsed && x.ExpiresAt > now)
+                .OrderByDescending(x => x.Id)
+                .FirstOrDefaultAsync();
+
+            if (otp == null)
+                return BadRequest(new { message = "Invalid or expired code." });
+
+            // attempts limit
+            otp.Attempts++;
+            if (otp.Attempts > 5)
+            {
+                otp.IsUsed = true;
+                await db.SaveChangesAsync();
+                return BadRequest(new { message = "Too many attempts. Please request a new code." });
+            }
+
+            var ok = BCrypt.Net.BCrypt.Verify(dto.Code, otp.OtpHash);
+            if (!ok)
+            {
+                await db.SaveChangesAsync();
+                return BadRequest(new { message = "Invalid or expired code." });
+            }
+
+            // OTP صحيح
+            otp.IsUsed = true;
+            await db.SaveChangesAsync();
+
+            // 🔑 توليد Reset Session Token
+            var resetToken = resetTokenService.GenerateResetToken(user.Id);
+
+            // 👇 ترجعيه في الـ response
+            return Ok(new
+            {
+                message = "OTP verified",
+                resetSessionToken = resetToken
+            });
+
+        }
+
+
+
     }
 }

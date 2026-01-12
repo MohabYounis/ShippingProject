@@ -1,19 +1,27 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using Shipping.Configration;
+using Shipping.Controllers;
 using Shipping.DTOs;
+using Shipping.ImodelRepository;
+using Shipping.modelRepository;
 using Shipping.Models;
 using Shipping.Repository;
+using Shipping.Repository.ImodelRepository;
+using Shipping.Repository.modelRepository;
 using Shipping.Services;
 using Shipping.Services.IModelService;
 using Shipping.Services.ModelService;
+using Shipping.SignalRHubs;
 using Shipping.UnitOfWorks;
 using SHIPPING.Services;
-using Microsoft.OpenApi.Models;
-using Shipping.Controllers;
-using Shipping.Repository.ImodelRepository;
-using Shipping.Repository.modelRepository;
-using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Threading.RateLimiting;
+
 
 namespace Shipping
 {
@@ -37,8 +45,40 @@ namespace Shipping
 
             builder.Services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Shipping API", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "Shipping API",
+                    Version = "v1"
+                });
+
+                // 🔐 تعريف JWT Bearer
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "Enter: Bearer {your JWT token}"
+                });
+
+                // 🔗 ربطه بكل الـ endpoints   
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme    
+                        {
+                            Reference = new OpenApiReference
+                                {
+                            Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        Array.Empty<string>()
+                    }
+                });
             });
+
 
             //register context
             builder.Services.AddDbContext<ShippingContext>(options =>
@@ -56,7 +96,7 @@ namespace Shipping
 
             // Register Identity
             builder.Services.AddIdentity<ApplicationUser, ApplicationRole>()
-                .AddEntityFrameworkStores<ShippingContext>();
+                .AddEntityFrameworkStores<ShippingContext>().AddDefaultTokenProviders(); ;
           
             builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 
@@ -96,6 +136,7 @@ namespace Shipping
             builder.Services.AddScoped<IResetTokenService, ResetTokenService>();
 
             //Register City Service
+
             builder.Services.AddScoped<ICityService, CityService>();
 
             //Register Order Service
@@ -121,6 +162,21 @@ namespace Shipping
                         ValidateIssuerSigningKey = true,
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),//حولي signkey الي array of byte 
                     };
+                }).AddJwtBearer("ResetToken", options =>
+                {
+                    // Reset Password JWT
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = jwtOptions.Issuer,
+                        ValidateAudience = true,
+                        ValidAudience = jwtOptions.Audience,
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(
+                            Encoding.UTF8.GetBytes(jwtOptions.SigningKey)),
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.FromSeconds(30)
+                    };
                 });
 
             //Email smtp
@@ -130,6 +186,11 @@ namespace Shipping
             builder.Logging.ClearProviders();
             builder.Logging.AddConsole();
             builder.Logging.AddDebug();
+
+
+            //Email smtp
+            builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
+            builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 
 
             // For Profile Image
@@ -154,8 +215,10 @@ namespace Shipping
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
+                app.UseHttpsRedirection();
                 app.UseSwagger(); 
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Shipping API V1"));
+               
             }
 
             // تكوين نقطة نهاية لـ SignalR
